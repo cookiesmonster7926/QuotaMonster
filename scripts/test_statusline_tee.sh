@@ -473,6 +473,46 @@ QM_STATUSLINE_INNER="$WORK/stub-inner.sh" QM_STATUSLINE_CACHE_DIR="$SWD" \
 assert "刪掉開關檔就停下來（關掉也不用動設定）" \
   "[[ \$(wc -l < '$WORK/switch/trace-usage.log') -eq ${LINES_AFTER_OFF} ]]"
 
+# ── 沒有內層時，wrapper 自己印一行 ──────────────────────────────
+# 為什麼要有這條路：〔實測 2026-09-21〕`~/.claude.json` 的額度欄位已經不再更新
+# （檔案一直被重寫，但 fetchedAtMs 凍了 3.9 天），所以**沒有 tee 就沒有額度數字**。
+# 而安裝腳本原本要求使用者已經有自訂 statusLine —— 沒有的人（多數新使用者）
+# 連裝都裝不了。現在「沒有內層」是一條合法的路，不是錯誤。
+#
+# ⚠️ 與「內層設了但壞掉」必須分得開：那個仍然要報錯（它代表設定壞了）。
+echo "▸ 沒有內層"
+NOIN="$WORK/noinner"; mkdir -p "$NOIN"
+printf '%s' '{"session_id":"11111111-1111-4111-8111-111111111111","model":{"display_name":"Opus 5 (1M context)"},"context_window":{"used_percentage":26},"rate_limits":{"five_hour":{"used_percentage":31},"seven_day":{"used_percentage":15}}}' \
+  > "$WORK/full-payload.json"
+set +e
+OUT_BUILTIN="$(QM_STATUSLINE_CACHE_DIR="$NOIN" "$WRAPPER" < "$WORK/full-payload.json" 2>/dev/null)"
+RC_BUILTIN=$?
+set -e
+assert "沒設內層時 stdout 不可以是空的（否則狀態列整條消失）" "[[ -n \"\$OUT_BUILTIN\" ]]"
+assert "沒設內層時離開碼 0" "[[ ${RC_BUILTIN} -eq 0 ]]"
+assert "內建那一行帶得出模型" "[[ \"\$OUT_BUILTIN\" == *'Opus 5'* ]]"
+assert "內建那一行帶得出 context 壓力" "[[ \"\$OUT_BUILTIN\" == *'ctx 26%'* ]]"
+assert "內建那一行帶得出 5 小時額度" "[[ \"\$OUT_BUILTIN\" == *'5h 31%'* ]]"
+assert "內建那一行帶得出 7 天額度" "[[ \"\$OUT_BUILTIN\" == *'7d 15%'* ]]"
+assert "沒設內層時快取照樣寫" "[[ -f '$NOIN/11111111-1111-4111-8111-111111111111.json' ]]"
+
+# 欄位缺席時不可以印出空的欄位或「%」孤兒
+printf '%s' '{"session_id":"11111111-1111-4111-8111-111111111111","model":{"display_name":"Haiku"}}' \
+  > "$WORK/thin-payload.json"
+set +e
+OUT_THIN="$(QM_STATUSLINE_CACHE_DIR="$NOIN" "$WRAPPER" < "$WORK/thin-payload.json" 2>/dev/null)"
+set -e
+assert "payload 只有模型時仍然印得出東西" "[[ -n \"\$OUT_THIN\" ]]"
+assert "缺席的欄位整個不出現，不會留下孤兒的 %" "[[ \"\$OUT_THIN\" != *'%'* ]]"
+
+# ⚠️ 這條不可以被上面那條蓋掉：內層**設了但壞掉**仍然要講出來
+set +e
+OUT_BROKEN="$(QM_STATUSLINE_INNER="$NOIN/nope.sh" QM_STATUSLINE_CACHE_DIR="$NOIN" \
+  "$WRAPPER" < "$WORK/full-payload.json" 2>/dev/null)"
+set -e
+assert "內層設了但不存在時，講的是錯誤而不是內建那一行" \
+  "[[ \"\$OUT_BROKEN\" == *'不可執行'* ]]"
+
 # ── 結果 ─────────────────────────────────────────────────────────
 echo
 REACHED_END=1

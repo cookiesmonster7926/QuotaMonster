@@ -97,6 +97,22 @@ struct PanelView: View {
                 divider
                 perModelCell
             }
+            // ⚠️ 新使用者第一眼看到的就是這個。
+            // 〔實測 2026-09-21〕`~/.claude.json` 那個來源已經不再更新
+            //（檔案一直被重寫，但 fetchedAtMs 凍了 3.9 天），所以沒裝 tee
+            // 三欄全是「—」。只給一個「無讀數」會讓人以為 app 壞了。
+            // ⚠️ 「該不該出現」的判斷在 Core（有測試釘住「tee 有在寫就不准說沒裝」），
+            // 這裡只負責畫。
+            if let hint = UsageSourceCaption.setupHint(
+                usage: store.usage, source: store.usageSource,
+                statusLinePayloadCount: store.statusLinePayloadCount) {
+                Text(hint)
+                    .font(.system(size: 9.5))
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .textSelection(.enabled)   // 指令要能複製走
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         // ⚠️ 沒有這一行，額度區塊會被撐高。
@@ -263,31 +279,17 @@ struct PanelView: View {
 
     /// 說出新鮮度，也說出**來源** —— 兩個來源的「舊」代表完全不同的事情。
     ///
-    /// statusline tee 是事件驅動的：會讓額度變大的活動本身就會觸發重新寫入，
-    /// 所以它的「舊」通常代表「你沒在用」。`~/.claude.json` 的「舊」則代表
-    /// 那份快取單純沒被刷新 —— 實測可以整整 16 小時，而且過期的窗口還留在裡面。
+    /// ⚠️ 這裡原本有一句：「statusline tee 是事件驅動的：會讓額度變大的活動
+    /// 本身就會觸發重新寫入，所以它的『舊』通常代表『你沒在用』。」
+    /// **後半段成立，前半段的推論在 2026-09-21 被實測推翻** ——
+    /// 渲染是 UI 事件驅動的，不是 API 回應驅動的，所以一次渲染可以完全不帶新數字
+    /// （理由見 `UsageSourceSelector.snapshot(from:now:)` 與規矩 31）。
+    ///
+    /// 字串本身全部搬進 `UsageSourceCaption`（Core）—— 這裡的風險全在文案上，
+    /// 而 App 層沒有測試守得住它。
     private var freshnessText: String {
-        guard let u = store.usage else { return "無讀數" }
-        let age: String
-        switch u.freshness {
-        case .live: age = "剛更新"
-        case .aging(let m): age = "\(m) 分鐘前"
-        case .expired: age = "已過期"
-        }
-        let statusLinePayloadCount = store.statusLinePayloadCount
-        switch store.usageSource {
-        case .statusLine:
-            return u.freshness == .expired ? "\(age) · 已經一小時沒有 session 動過" : age
-        case .claudeJSON:
-            guard u.freshness == .expired else { return "\(age) · 來自 ~/.claude.json" }
-            // tee 明明一秒前才寫過檔，卻說「沒裝 statusline tee」是最糟的謊：
-            // 使用者會去重裝一個已經裝好的東西。
-            return statusLinePayloadCount > 0
-                ? "\(age) · tee 有在寫，但那些 payload 還沒帶到額度"
-                : "\(age) · 沒裝 statusline tee，這份快取不會即時更新"
-        case nil:
-            return age
-        }
+        UsageSourceCaption.text(usage: store.usage, source: store.usageSource,
+                                statusLinePayloadCount: store.statusLinePayloadCount)
     }
 
     // ── 阻塞（釘住，永遠可見）──────────────────────────────────

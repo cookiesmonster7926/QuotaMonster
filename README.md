@@ -101,25 +101,34 @@ open ~/Applications/QuotaMonster.app
 
 ---
 
-## statusline tee（選用，但強烈建議）
+## statusline tee（**必要**，不是加分項）
 
-沒有它，QuotaMonster 只能讀 `~/.claude.json` —— 那份資料**實測可以 16 小時不更新**。
-裝了它，額度數字就跟著 API 回應走，是秒級的。
+> ### ⚠️ 沒有它就沒有額度數字
+> 〔實測 2026-09-21，單一機器〕`~/.claude.json` 的 `cachedUsageUtilization`
+> **已經不再更新**：那個檔案還在被 Claude Code 持續重寫（mtime 是當下），
+> 但裡面的 `fetchedAtMs` 凍在 **3.9 天前**。把 tee 的快取目錄移開實跑 `--dump`，
+> 兩個額度窗口都變成「沒有讀數」。
+>
+> repo 的舊文件寫「實測可以整整 16 小時不更新」—— 現在是根本不再更新。
+> 所以這一步不是加分項。**不裝的話，面板的額度欄位會是三個「—」。**
 
-做法是在 Claude Code 與你原本的狀態列腳本之間夾一支 wrapper：payload 收下來寫進快取，
+做法是在 Claude Code 與你的狀態列腳本之間夾一支 wrapper：payload 收下來寫進快取，
 然後**一個 byte 不差**地交棒給你原本的腳本。
 
 ```bash
 bash scripts/install_statusline_tee.sh              # 只印 diff，什麼都不改
 bash scripts/install_statusline_tee.sh --apply      # 真的安裝
-bash scripts/install_statusline_tee.sh --uninstall --apply   # 還原
+bash scripts/install_statusline_tee.sh --uninstall --apply   # 逐 byte 還原
 ```
 
-它對你的環境做什麼，以及為什麼可以信任它，寫在 [SECURITY.md](.github/SECURITY.md)。
-簡短版：只動 `~/.claude/settings.json` 裡 `statusLine.command` **一個字串**，
-動手前留時間戳備份，原始命令原樣存起來，`--uninstall` 逐 byte 還原。
+**你還沒有設定過狀態列也沒關係。** 這種情況下它會幫你從零建立一條，
+wrapper 自己印出 `Opus 5 (1M context) · ctx 26% · 5h 31% · 7d 15%`。
+之後想換成自己的，用 `/statusline` 設好，再 `--uninstall --apply` 然後重裝。
 
----
+它對你的環境做什麼，以及為什麼可以信任它，寫在 [SECURITY.md](.github/SECURITY.md)。
+簡短版：**只動 `~/.claude/settings.json` 裡 `statusLine.command` 一個字串**
+（從零建立時是插入一段，其餘 byte 一個都不動），動手前留時間戳備份，
+原始命令原樣存起來，`--uninstall` 逐 byte 還原。
 
 ## 隱私
 
@@ -166,7 +175,7 @@ bash scripts/test_statusline_tee.sh         # shell 層：狀態列一個 byte �
 bash scripts/test_install_statusline_tee.sh
 ```
 
-**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 32 條不可違反的規矩、
+**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 34 條不可違反的規矩、
 16 條寫下來的拒絕、27 處「曾經這樣想、後來被資料推翻」，每一條都附證據。
 
 > ⚠️ **`docs/build-log.md` 是施工紀錄，不是現況。** 它裡面有**已知是錯的敘述**

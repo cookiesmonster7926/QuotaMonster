@@ -200,8 +200,33 @@ open(p, "w").write(json.dumps(d, indent=2) + "\n")
 PY
 cp "$R1/settings.json" "$WORK/r1.before"
 set +e; QM_CLAUDE_DIR="$R1" "$INSTALLER" --apply > "$WORK/r1.out" 2>&1; R1RC=$?; set -e
-assert "沒有 statusLine 設定時拒絕並以非 0 收尾" "[[ ${R1RC} -ne 0 ]]"
-assert "沒有 statusLine 設定時不動 settings.json" "cmp -s '$WORK/r1.before' '$R1/settings.json'"
+# ⚠️ 這裡的行為在 2026-09-21 改了，而且是**刻意**改的。
+#    原本：沒有 statusLine 就拒絕（「不猜」）。
+#    現在：沒有 statusLine 就**幫忙建一個**（wrapper 自己會印一行最小狀態列）。
+#    為什麼不算違反「不猜」：沒有東西可以保留，就沒有東西會被猜壞。
+#    那條規矩擋的是「看不懂既有的設定卻硬要包」，不是「從零建立」。
+#    為什麼非改不可：〔實測〕~/.claude.json 的額度欄位已經不再更新，
+#    所以沒有 tee 就沒有額度數字 —— 而多數新使用者沒有自訂 statusLine，
+#    原本的拒絕等於把他們擋在門外。
+assert "沒有 statusLine 設定時改成幫忙建一個（離開碼 0）" "[[ ${R1RC} -eq 0 ]]"
+assert "建出來的 command 走 tee" "grep -q 'quotamonster-tee.sh' '$R1/settings.json'"
+assert "建出來的 command type 是 command" \
+  "python3 -c \"import json;d=json.load(open('$R1/settings.json'));import sys;sys.exit(0 if d['statusLine']['type']=='command' else 1)\""
+assert "建出來的那條命令真的跑得出非空輸出" \
+  "[[ -n \$(printf '%s' '{\"session_id\":\"11111111-1111-4111-8111-111111111111\",\"model\":{\"display_name\":\"X\"}}' | QM_STATUSLINE_CACHE_DIR='$R1/cache' bash '$R1/quotamonster-tee.sh') ]]"
+assert "從零建立時也留下備份" "[[ -n \$(find '$R1' -name 'settings.json.bak-*' -print -quit) ]]"
+# ⚠️ 只有「從零建立」放行。**看不懂既有的設定仍然要拒絕** —— 下面幾則守著。
+assert "從零建立之後，settings.json 其餘部分沒有被動到" \
+  "python3 -c \"import json;a=json.load(open('$WORK/r1.before'));b=json.load(open('$R1/settings.json'));b.pop('statusLine');import sys;sys.exit(0 if a==b else 1)\""
+
+# ⚠️ 從零建立之後的 --uninstall 必須把**整個 statusLine 拿掉**，
+#    不是把 command 還原成空字串 —— 那會留下一個 command 是 "" 的 statusLine，
+#    Claude Code 會拿空命令去跑，狀態列整條變空白。
+QM_CLAUDE_DIR="$R1" "$INSTALLER" --uninstall --apply > "$WORK/r1.un.out" 2>&1
+assert "從零建立之後 --uninstall 把整個 statusLine 拿掉" \
+  "python3 -c \"import json;d=json.load(open('$R1/settings.json'));import sys;sys.exit(0 if 'statusLine' not in d else 1)\""
+assert "從零建立之後 --uninstall 還原成原本的 byte" "cmp -s '$WORK/r1.before' '$R1/settings.json'"
+assert "從零建立之後 --uninstall 也移除 wrapper" "[[ ! -e '$R1/quotamonster-tee.sh' ]]"
 
 R2="$WORK/not-a-file"; make_claude_dir "$R2" 'npx ccstatusline@latest --fancy'
 cp "$R2/settings.json" "$WORK/r2.before"

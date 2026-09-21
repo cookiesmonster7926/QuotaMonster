@@ -9,7 +9,8 @@
 # 然後一個 byte 不差地交棒給原本的腳本。
 #
 # 環境變數（安裝腳本會把 INNER 寫成安裝當下的真實值）：
-#   QM_STATUSLINE_INNER      內層腳本路徑
+#   QM_STATUSLINE_INNER      內層腳本路徑。**空的或沒設 = 沒有內層**，
+#                            這時 wrapper 自己印一行最小狀態列（見第 3 段）。
 #   QM_STATUSLINE_CACHE_DIR  快取目錄
 #   QM_STATUSLINE_TRACE      （選用）shadow 量測的 log 檔路徑。測試用的明確覆寫。
 #
@@ -42,7 +43,12 @@
 # ⚠️ /bin/bash 在 macOS 是 3.2.57。read -N 是 4.1 才有的，不可使用。
 #    這裡用到的 read -r -d ''、[[ =~ ]] + BASH_REMATCH、{36} 量詞在 3.2 都可用。
 
-INNER="${QM_STATUSLINE_INNER:-$HOME/.claude/statusline.sh}"
+# ⚠️ **刻意沒有預設值。** 這裡原本是 `${QM_STATUSLINE_INNER:-$HOME/.claude/statusline.sh}`，
+# 而那個猜測有兩個問題：(一) 猜錯時（那個檔不存在）狀態列整條變空白，
+# 而且錯誤不會出現在任何地方；(二) 它讓測試在**開發者剛好有那個檔**的機器上
+# 為了錯的理由通過 —— 實測 2026-09-21 的「內建那一行帶得出模型」就是這樣過的。
+# 空的代表「沒有內層」，那是一條合法的路，不是錯誤。
+INNER="${QM_STATUSLINE_INNER-}"
 DIR="${QM_STATUSLINE_CACHE_DIR:-$HOME/Library/Application Support/QuotaMonster/statusline}"
 
 # INNER 指到自己會變成 fork bomb。-ef 是 bash 內建的 inode 比對，不 fork。
@@ -160,6 +166,58 @@ fi
 #
 # 這條路徑尤其容易被踩到：INNER 的預設值是 $HOME/.claude/statusline.sh，
 # 於是「環境變數沒被傳進來」從一個會報錯的情況變成一條靜默路徑。
+# ── 沒有內層：自己印一行 ─────────────────────────────────────────
+#
+# 為什麼要有這條路：〔實測 2026-09-21〕`~/.claude.json` 的 `cachedUsageUtilization`
+# 已經**不再更新**（檔案一直被重寫，但 fetchedAtMs 凍了 3.9 天），所以
+# **沒有 tee 就沒有額度數字**。而 tee 原本要求使用者已經有自訂 statusLine ——
+# 沒有的人（多數新使用者）連裝都裝不了。現在「沒有內層」是合法狀態。
+#
+# ⚠️ 用純 bash 抽欄位，不叫 python3：這條路每次渲染都會跑，
+# python3 的啟動成本（~30ms）遠高於整個 wrapper 現在的 6.5ms。
+# ⚠️ 欄位缺席就整段不出現 —— 絕不印出孤兒的「%」或空欄位。
+if [ -z "$INNER" ]; then
+  parts=""
+  add() { [ -z "$1" ] || { [ -z "$parts" ] && parts="$1" || parts="$parts · $1"; }; }
+
+  m=$(LC_ALL=C
+      if [[ $payload =~ \"display_name\"[[:space:]]*:[[:space:]]*\"([^\"]*)\" ]]
+      then printf '%s' "${BASH_REMATCH[1]}"; fi)
+  add "$m"
+
+  # context_window 底下有巢狀的 current_usage（也帶 }），所以不能用 [^}]*。
+  # 改成先把 payload 切成「context_window 之後、rate_limits 之前」那一段。
+  # ⚠️ 這依賴 context_window 排在 rate_limits 前面〔實測 2.1.277 是這樣〕。
+  # 順序若改變，這一格會消失而不是印出錯的數字 —— 那是可以接受的退化方向。
+  if [ "${payload#*\"context_window\"}" != "$payload" ]; then
+    seg="${payload#*\"context_window\"}"
+    seg="${seg%%\"rate_limits\"*}"
+    c=$(LC_ALL=C
+        if [[ $seg =~ \"used_percentage\"[[:space:]]*:[[:space:]]*([0-9]+) ]]
+        then printf '%s' "${BASH_REMATCH[1]}"; fi)
+    [ -z "$c" ] || add "ctx ${c}%"
+  fi
+
+  # 這兩個可以用 [^}]* —— five_hour / seven_day 底下沒有巢狀物件。
+  h=$(LC_ALL=C
+      if [[ $payload =~ \"five_hour\"[^}]*\"used_percentage\"[[:space:]]*:[[:space:]]*([0-9]+) ]]
+      then printf '%s' "${BASH_REMATCH[1]}"; fi)
+  [ -z "$h" ] || add "5h ${h}%"
+  d=$(LC_ALL=C
+      if [[ $payload =~ \"seven_day\"[^}]*\"used_percentage\"[[:space:]]*:[[:space:]]*([0-9]+) ]]
+      then printf '%s' "${BASH_REMATCH[1]}"; fi)
+  [ -z "$d" ] || add "7d ${d}%"
+
+  # ⚠️ 一個 byte 都不印會讓狀態列整條消失，所以最後一定要有東西。
+  [ -n "$parts" ] || parts="QuotaMonster"
+  trap - TERM INT HUP EXIT
+  printf '%s' "$parts"
+  exit 0
+fi
+
+# ⚠️ 內層**設了但不可執行**與「沒有內層」是兩件事：前者代表設定壞了，要講出來。
+# 〔實測〕INNER 指到不存在的檔 → rc=127、stdout 0 byte；INNER 是 0644 → rc=126、
+# stdout 0 byte。兩種都讓狀態列整條變空白，而且錯誤不會出現在任何地方。
 if [ ! -x "$INNER" ]; then
   printf 'QuotaMonster tee: 內層狀態列腳本不可執行（%s）' "$INNER"
   exit 0

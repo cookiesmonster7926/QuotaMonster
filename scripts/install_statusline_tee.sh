@@ -16,7 +16,11 @@
 #   - 只有 statusLine.command 這一個字串會變，檔案其餘 byte 完全不動
 #   - 動手之前一定留下時間戳備份
 #   - 原本的命令字串原樣存進 quotamonster-tee.original，--uninstall 逐 byte 還原
-#   - 看不懂的設定（沒有 statusLine、命令不是可執行檔、JSON 壞掉）一律拒絕，不猜
+#   - 看不懂的設定（statusLine 形狀不對、命令不是可執行檔、JSON 壞掉）一律拒絕，不猜
+#   - **完全沒有 statusLine 時改成「從零建立」一條**（2026-09-21 起）——
+#     沒有東西可以保留，就沒有東西會被猜壞；而 ~/.claude.json 的額度欄位
+#     已經不再更新，沒有 tee 就沒有額度數字，原本的拒絕等於把新使用者擋在門外。
+#     --uninstall 會把整段拿掉，回到原本的 byte。
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -103,10 +107,20 @@ def read_settings():
 
 def current_command(data):
     sl = data.get("statusLine")
+    if sl is None:
+        # ⚠️ 這裡原本直接 die（「沒有原本的腳本就沒有東西可以包」）。
+        # 2026-09-21 改成回 None，由呼叫端走「從零建立」那條路。
+        #
+        # 為什麼不算違反「看不懂的設定一律拒絕，不猜」：**沒有東西可以保留，
+        # 就沒有東西會被猜壞。** 那條規矩擋的是「看不懂既有的設定卻硬要包」。
+        # 底下 `sl` 存在但形狀不對的兩個 die 一個都沒有放寬。
+        #
+        # 為什麼非改不可：〔實測 2026-09-21〕`~/.claude.json` 的額度欄位已經
+        # 不再更新，所以**沒有 tee 就沒有額度數字**；而多數新使用者沒有自訂
+        # statusLine，原本的拒絕等於把他們擋在門外。
+        return None
     if not isinstance(sl, dict):
-        die("settings.json 裡沒有 statusLine 設定。\n"
-            "  tee 是包在既有的狀態列腳本外面的，沒有原本的腳本就沒有東西可以包。\n"
-            "  先用 /statusline 設定好狀態列，再回來跑這支腳本。")
+        die("statusLine 不是一個物件（是 %s）。不認得的形狀，不動。" % type(sl).__name__)
     if sl.get("type") != "command":
         die('statusLine.type 是 %r，不是 "command"。不認得的形狀，不動。' % sl.get("type"))
     cmd = sl.get("command")
@@ -197,6 +211,46 @@ def write_atomically(path, text):
     os.replace(tmp, path)
 
 
+def insert_status_line(raw, new_cmd):
+    """在沒有 statusLine 的 settings.json 裡**插入**一個，其餘 byte 一個都不動。
+
+    ⚠️ 刻意不用 `json.dumps(data)` 重寫整個檔 —— 那會把使用者的縮排、鍵的順序、
+    尾端換行全部換掉，而這支腳本的整個賣點就是「只動該動的那一段」。
+    JSON 的鍵沒有順序，所以插在最前面與插在最後面等價；插在最前面
+    不必處理「前一個鍵要不要補逗號」。
+    """
+    i = raw.index("{")
+    block = ('\n  "statusLine": {\n'
+             '    "type": "command",\n'
+             '    "command": %s\n'
+             '  },' % json.dumps(new_cmd))
+    out = raw[:i + 1] + block + raw[i + 1:]
+    json.loads(out)              # 自我斷言：插出來的東西必須仍然是合法 JSON
+    return out
+
+
+def remove_status_line(raw):
+    """把 `insert_status_line` 插進去的那一段**原樣拿掉**，回到插入前的 byte。
+
+    ⚠️ 不可以改成「把 command 換成空字串」—— 那會留下一個 command 是 "" 的
+    statusLine，Claude Code 會拿空命令去跑，狀態列整條變空白。
+    「原本沒有」與「原本是空的」是兩件事（規矩：nil 不是零）。
+
+    - Returns: 拿掉之後的內容；找不到那一段時回 None（呼叫端要拒絕動手，不猜）。
+    """
+    i = raw.index("{")
+    for cmd in (shell_quote(WRAPPER_DST), WRAPPER_DST):
+        block = ('\n  "statusLine": {\n'
+                 '    "type": "command",\n'
+                 '    "command": %s\n'
+                 '  },' % json.dumps(cmd))
+        if raw[i + 1:i + 1 + len(block)] == block:
+            out = raw[:i + 1] + raw[i + 1 + len(block):]
+            json.loads(out)      # 自我斷言：拿掉之後仍然是合法 JSON
+            return out
+    return None
+
+
 def backup(raw):
     dst = "%s.bak-%s" % (SETTINGS, time.strftime("%Y%m%d-%H%M%S"))
     with open(dst, "w", encoding="utf-8", newline="") as f:
@@ -208,6 +262,32 @@ def backup(raw):
 def install():
     raw, data = read_settings()
     cmd = current_command(data)
+
+    if cmd is None:
+        # 從零建立。內層留空 → wrapper 自己印一行最小狀態列（見它的第 3 段）。
+        new_cmd = shell_quote(WRAPPER_DST)
+        out = insert_status_line(raw, new_cmd)
+        print("▸ 你還沒有設定過狀態列，所以這次是**從零建立**一條。")
+        print("▸ 會安裝：%s" % WRAPPER_DST)
+        print("▸ 沒有內層腳本 —— wrapper 會自己印出「模型 · ctx · 5h · 7d」。")
+        print("▸ 之後想換成自己的：用 /statusline 設好，再跑一次 --uninstall --apply、"
+              "然後重新安裝。")
+        print()
+        show_diff(raw, out)
+        print()
+        if MODE != "apply":
+            print("（這是預覽。確認沒問題後加 --apply 才會真的改。）")
+            return 0
+        bak = backup(raw)
+        install_wrapper()
+        # ⚠️ ORIGINAL 寫成空字串：--uninstall 才知道「原本什麼都沒有」，
+        # 要把整個 statusLine 拿掉而不是還原成某個命令。
+        with open(ORIGINAL, "w", encoding="utf-8") as f:
+            f.write("")
+        write_atomically(SETTINGS_REAL, out)
+        print("✓ 備份：%s" % bak)
+        print("✓ 已建立狀態列並接上 tee。下一次 Claude Code 渲染狀態列就會生效。")
+        return 0
 
     if MARKER in cmd:
         # 已經裝過了。只把 wrapper 更新成 repo 裡的最新版，設定不動。
@@ -265,7 +345,15 @@ def uninstall():
             "  請自己從 %s.bak-* 裡挑一份回復。" % (ORIGINAL, SETTINGS))
     old_cmd = open(ORIGINAL, encoding="utf-8").read()
 
-    out = swap_command(raw, cmd, old_cmd)
+    if old_cmd == "":
+        # 空字串是「從零建立」留下的記號：原本**根本沒有** statusLine。
+        # 這時要把整段拿掉，不是把 command 還原成空字串。
+        out = remove_status_line(raw)
+        if out is None:
+            die("這是一個由 tee 從零建立的 statusLine，但它已經被改過，\n"
+                "  沒辦法原樣拿掉。請自己從 %s.bak-* 裡挑一份回復。" % SETTINGS)
+    else:
+        out = swap_command(raw, cmd, old_cmd)
     show_diff(raw, out)
     print()
 

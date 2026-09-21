@@ -4,7 +4,7 @@ macOS 選單列 app（Swift 6 / AppKit / SwiftPM），看 Claude Code 的額度�
 
 ## 接手時第一件事
 
-**讀 `docs/quotamonster.md`。** 它有 32 條不可違反的規矩、16 條寫下來的拒絕、
+**讀 `docs/quotamonster.md`。** 它有 34 條不可違反的規矩、16 條寫下來的拒絕、
 27 處「曾經這樣想、後來被資料推翻」，每一條都附證據與這個 repo 為它付過的代價。
 
 ⚠️ **不要拿 `docs/build-log.md` 當現況。** 那是施工紀錄，裡面有已知是錯的敘述
