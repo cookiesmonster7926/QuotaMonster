@@ -20,8 +20,48 @@ enum Fixture {
 
     static let agentSessionId = "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa"
 
+    /// 這些 agent 刻意比 `sessionStart` 還舊，用來釘住存活閘。
+    /// 名字對應 `agent-<id>.jsonl`。
+    static let staleAgentIds = ["stale"]
+
     /// agent 樹 fixture 的根，等同 ~/.claude/projects/
-    static func projectsRoot() throws -> URL { try url("agents") }
+    ///
+    /// ### ⚠️ 複製到暫存目錄並**自己蓋 mtime**，不直接用 bundle 裡那一份
+    /// `AgentTreeBuilder.isFresh` 判斷「這個 agent 是不是這一輪的」用的是
+    /// `agent-<id>.jsonl` 的 **mtime**，而 **git 不保存 mtime** ——
+    /// 全新 checkout 之後每個檔案的 mtime 都是 checkout 當下，
+    /// 於是「四天前就死掉的 agent」在別人的機器上變成「剛剛才動過」。
+    ///
+    /// 〔實測 2026-09-21，GitHub Actions 第一次跑〕`depthOneAgentsAreRoots` 與
+    /// `agentOlderThanSessionStartIsExcluded` 兩則因此紅掉。
+    /// **開發機上永遠看不到** —— 那些檔案是 2026-09-13／09-17 由
+    /// `capture_fixtures.py` 明確蓋過 mtime 產生的，之後從來沒有被重新 checkout。
+    ///
+    /// 這正是本檔 `statuslineDirectory` 檔頭早就寫下的那條規則
+    /// （「年齡必須由測試明確指定，不可以倚賴碰巧保留的 mtime」），
+    /// 當初只是沒有套用到 agents 這一份。
+    static func projectsRoot() throws -> URL {
+        let fm = FileManager.default
+        let dir = fm.temporaryDirectory
+            .appendingPathComponent("qm-agents-\(UUID().uuidString)")
+        try fm.copyItem(at: try url("agents"), to: dir)
+
+        // 走一遍，把每個 agent-*.jsonl 的 mtime 蓋成確定的值。
+        // ⚠️ 只蓋 .jsonl —— isFresh 看的就是它；meta 的 mtime 沒有任何人在讀，
+        // 蓋了只會讓下一個人以為它也是載重的。
+        guard let walker = fm.enumerator(at: dir, includingPropertiesForKeys: nil) else {
+            return dir
+        }
+        for case let f as URL in walker where f.lastPathComponent.hasSuffix(".jsonl")
+            && f.lastPathComponent.hasPrefix("agent-") {
+            let id = String(f.lastPathComponent.dropFirst(6).dropLast(6))
+            let stamp = staleAgentIds.contains(id)
+                ? sessionStart.addingTimeInterval(-4 * 86400)   // 四天前那一輪留下的
+                : now                                          // 這一輪的
+            try? fm.setAttributes([.modificationDate: stamp], ofItemAtPath: f.path)
+        }
+        return dir
+    }
 
     /// session 十分鐘前啟動 —— 與 capture 腳本裡的 SESSION_START 一致
     static let sessionStart = Date(timeIntervalSince1970: 1_789_660_000 - 600)

@@ -91,10 +91,20 @@ printf '%s' '{"session_id":"11111111-1111-4111-8111-111111111111","cwd":"/tmp","
 
 # ── 1. 預設不套用 ────────────────────────────────────────────────
 echo "▸ 不帶 --apply 時只印 diff，不動任何東西"
+# ⚠️ 這一則刻意餵 `$HOME/...` 形式的命令（安裝腳本會把家目錄底下的路徑寫成
+#    "$HOME/..."，所以它必須看得懂這個形式）。
+#    **但不可以指向開發者真正的 ~/.claude/statusline.sh** ——
+#    〔實測 2026-09-21，GitHub Actions 第一次跑〕runner 上沒有那個檔，
+#    安裝腳本判定「命令不是可執行檔」而拒絕，這一則就紅了。
+#    開發機上永遠看不到，因為開發機**剛好有**那個檔。
+#    所以自己造一個假的 HOME，`$HOME` 展開的語意照測，環境依賴拿掉。
 D="$WORK/dry"; make_claude_dir "$D" '$HOME/.claude/statusline.sh'
+FAKEHOME="$WORK/fakehome"; mkdir -p "$FAKEHOME/.claude"
+cp "$D/statusline.sh" "$FAKEHOME/.claude/statusline.sh"
+chmod +x "$FAKEHOME/.claude/statusline.sh"
 cp "$D/settings.json" "$WORK/dry.before"
 set +e
-QM_CLAUDE_DIR="$D" "$INSTALLER" > "$WORK/dry.out" 2>&1
+HOME="$FAKEHOME" QM_CLAUDE_DIR="$D" "$INSTALLER" > "$WORK/dry.out" 2>&1
 DRY_RC=$?
 set -e
 assert "離開碼 0" "[[ ${DRY_RC} -eq 0 ]]"
