@@ -1,0 +1,252 @@
+<div class="cr-noface">
+<style>
+@property --f{syntax:'<number>';inherits:true;initial-value:0}
+@property --g{syntax:'<number>';inherits:true;initial-value:0}
+@property --w{syntax:'<number>';inherits:true;initial-value:1}
+@property --qs{syntax:'<number>';inherits:true;initial-value:1}
+@property --cr{syntax:'<number>';inherits:true;initial-value:1}
+@property --rr{syntax:'<angle>';inherits:true;initial-value:0deg}
+@property --qk{syntax:'<angle>';inherits:true;initial-value:0deg}
+@property --q1{syntax:'<number>';inherits:true;initial-value:1}
+@property --q2{syntax:'<number>';inherits:true;initial-value:1}
+@property --q3{syntax:'<number>';inherits:true;initial-value:1}
+@property --q4{syntax:'<number>';inherits:true;initial-value:1}
+@property --q5{syntax:'<number>';inherits:true;initial-value:1}
+@property --q6{syntax:'<number>';inherits:true;initial-value:1}
+@property --o3{syntax:'<number>';inherits:true;initial-value:1}
+@property --t3{syntax:'<length>';inherits:true;initial-value:0px}
+@property --t4{syntax:'<length>';inherits:true;initial-value:0px}
+@property --t5{syntax:'<length>';inherits:true;initial-value:0px}
+@property --x4{syntax:'<length>';inherits:true;initial-value:0px}
+@property --x5{syntax:'<length>';inherits:true;initial-value:0px}
+@property --p1{syntax:'<number>';inherits:true;initial-value:0}
+@property --p2{syntax:'<number>';inherits:true;initial-value:0}
+@property --p3{syntax:'<number>';inherits:true;initial-value:0}
+@property --d1{syntax:'<number>';inherits:true;initial-value:0}
+@property --d2{syntax:'<number>';inherits:true;initial-value:0}
+@property --d3{syntax:'<number>';inherits:true;initial-value:0}
+.cr-noface{--bg:#0d0f13;--pa:#15181e;--pb:#1b1f26;--ln:#262c35;--tx:#e9ecf1;--mu:#868f9b;--am:#f0a132;background:var(--bg);color:var(--tx);font:13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text",Inter,system-ui,sans-serif;padding:34px 30px 70px;-webkit-font-smoothing:antialiased}
+.cr-noface *{box-sizing:border-box}
+.cr-noface h1{font:600 21px/1.25 inherit;letter-spacing:-.012em;margin:0 0 4px}
+.cr-noface h2{font:600 10.5px/1 inherit;letter-spacing:.15em;text-transform:uppercase;color:var(--mu);margin:0 0 16px}
+.cr-noface p{margin:0 0 14px;max-width:74ch;color:#bcc4ce}
+.cr-noface .lead{color:var(--mu);max-width:74ch;margin:0 0 26px}
+.cr-noface .sec{border-top:1px solid var(--ln);padding:28px 0 6px;margin-top:30px}
+.cr-noface .mo{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;letter-spacing:.01em;color:var(--mu)}
+.cr-noface .mk{display:block;color:currentColor;overflow:visible;shape-rendering:geometricPrecision}
+.cr-noface .n0{--q1:0;--q2:0;--q3:0;--q4:0;--q5:0;--q6:0}
+.cr-noface .n1{--q2:0;--q3:0;--q4:0;--q5:0;--q6:0}
+.cr-noface .n2{--q3:0;--q4:0;--q5:0;--q6:0}
+.cr-noface .n3{--q4:0;--q5:0;--q6:0}
+.cr-noface .n5{--q6:0}
+.cr-noface .n7{--qs:1.15}
+.cr-noface .nx{--qs:1.375;--qk:-11deg}
+.cr-noface .sil{--lo:1;--lg:1;--ld:1;--f:1;--g:1;--w:1}
+.cr-noface .st{opacity:.34}
+.cr-noface .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:14px}
+.cr-noface .cell{background:var(--pa);border:1px solid var(--ln);border-radius:9px;padding:14px 14px 12px}
+.cr-noface .cell .t{font:600 12px/1.3 inherit;margin:0 0 2px}
+.cr-noface .cell .r{font-size:11.5px;color:var(--mu);margin:0 0 12px;min-height:32px}
+.cr-noface .p3{background:var(--pb);border-radius:6px;padding:12px 8px;display:flex;justify-content:center;color:#eef1f5}
+.cr-noface .p1{margin-top:9px;padding:7px 8px;background:var(--pb);border-radius:6px;display:flex;align-items:center;gap:10px;color:#eef1f5}
+.cr-noface .p1 .mo{font-size:10px}
+.cr-noface .wall{border-radius:11px;overflow:hidden;border:1px solid var(--ln);margin-bottom:14px}
+.cr-noface .wd{background:linear-gradient(150deg,#2b3a57 0%,#4a3f66 42%,#7a4a5e 75%,#b3703f 100%);padding-bottom:58px}
+.cr-noface .wl{background:linear-gradient(150deg,#cfe0f2 0%,#e8e2f0 40%,#f7e6df 72%,#fdf3e3 100%);padding-bottom:58px}
+.cr-noface .bar{height:33px;display:flex;align-items:center;justify-content:flex-end;gap:15px;padding:0 13px 0 16px;backdrop-filter:blur(26px) saturate(1.7);-webkit-backdrop-filter:blur(26px) saturate(1.7)}
+.cr-noface .bard{background:rgba(22,24,28,.44);color:#fff}
+.cr-noface .barl{background:rgba(248,249,251,.52);color:#000}
+.cr-noface .bar .ap{margin-right:auto;font:600 13px/1 inherit}
+.cr-noface .bar .cl{font:400 13px/1 inherit;font-variant-numeric:tabular-nums}
+.cr-noface .item{display:flex;align-items:center;gap:5px}
+.cr-noface .num{font:400 13px/1 inherit;font-variant-numeric:tabular-nums}
+.cr-noface .cap{font-size:11.5px;color:var(--mu);padding:8px 2px 0;max-width:80ch}
+.cr-noface .ctab{width:100%;border-collapse:collapse;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px}
+.cr-noface .ctab td{padding:3.5px 10px 3.5px 0;border-bottom:1px solid var(--ln);color:#aeb7c2;vertical-align:top}
+.cr-noface .ctab td:first-child{color:var(--mu);white-space:nowrap}
+.cr-noface .cw{display:grid;grid-template-columns:minmax(0,1fr) 250px;gap:22px;align-items:start}
+.cr-noface .cbox{background:#101319;border:1px solid var(--ln);border-radius:10px;padding:10px;overflow:auto}
+.cr-noface .lg{display:flex;gap:18px;flex-wrap:wrap;margin:16px 0 0}
+.cr-noface .lg div{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--mu)}
+.cr-noface .sw{width:22px;height:9px;background:currentColor;border-radius:1px;color:#e9ecf1}
+.cr-noface .stage{background:linear-gradient(150deg,#2b3a57,#5b4364 55%,#9a5b4c);border-radius:11px;border:1px solid var(--ln);overflow:hidden}
+.cr-noface .sbar{height:33px;display:flex;align-items:center;justify-content:flex-end;gap:15px;padding:0 13px 0 16px;background:rgba(22,24,28,.44);backdrop-filter:blur(26px) saturate(1.7);-webkit-backdrop-filter:blur(26px) saturate(1.7);color:#fff}
+.cr-noface .beats{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;margin-top:14px;background:var(--ln);border:1px solid var(--ln);border-radius:6px;overflow:hidden}
+.cr-noface .beats b{background:var(--pa);padding:8px 9px;font:500 10.5px/1.45 inherit;color:var(--mu)}
+.cr-noface .beats b i{display:block;font-style:normal;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#5f6874;margin-bottom:2px}
+.cr-noface .rail{height:3px;background:var(--ln);border-radius:2px;margin-top:12px;overflow:hidden}
+.cr-noface .rail i{display:block;height:100%;width:8%;background:var(--tx);animation:cnRail 18s linear infinite}
+@keyframes cnRail{0%{transform:translateX(0)}100%{transform:translateX(1150%)}}
+@keyframes cnF{0%,36.1%{--f:.06}37.1%,47.2%{--f:.14}48.2%,88.9%{--f:.22}89.9%,100%{--f:.28}}
+@keyframes cnG{0%,16.7%{--g:.12}18.3%,36.1%{--g:.34}37.1%,47.2%{--g:.46}48.2%,58.3%{--g:.56}59.6%,80.6%{--g:0}82%,88.9%{--g:.52}89.9%,100%{--g:.58}}
+@keyframes cnQ1{0%,16.7%{--q1:0}17.3%{--q1:1.14}18.3%,100%{--q1:1}}
+@keyframes cnQ2{0%,20%{--q2:0}20.7%{--q2:1.14}21.7%,100%{--q2:1}}
+@keyframes cnQ3{0%,20.7%{--q3:0}21.4%{--q3:1.14}22.4%,50%{--q3:1}50.7%{--q3:1.2}53.9%{--q3:1.2}53.91%,100%{--q3:0}}
+@keyframes cnT3{0%,50.7%{--t3:0px;--o3:1}53.9%{--t3:-5.2px;--o3:0}53.91%,100%{--t3:0px;--o3:0}}
+@keyframes cnQ4{0%,21.4%{--q4:0}22.1%{--q4:1.14}23.1%,100%{--q4:1}}
+@keyframes cnQ5{0%,22.1%{--q5:0}22.8%{--q5:1.14}23.8%,100%{--q5:1}}
+@keyframes cnX45{0%,53.9%{--x4:0px;--t4:0px;--x5:0px;--t5:0px}54.9%,100%{--x4:-3.5px;--t4:1.02px;--x5:-3.5px;--t5:1.02px}}
+@keyframes cnRR{0%,58.3%{--rr:0deg}59.6%,80.6%{--rr:-9deg}82%,100%{--rr:0deg}}
+@keyframes cnP1{0%,58.3%{--p1:0}59.6%,80.6%{--p1:1}81%,100%{--p1:0}}
+@keyframes cnQS{0%,58.3%{--qs:1}59.6%,80.6%{--qs:1.15}82%,100%{--qs:1}}
+@keyframes cnCR{0%,82%{--cr:1}82.7%{--cr:.955}83.4%,100%{--cr:1}}
+.cr-noface .live{animation:cnF 18s linear infinite,cnG 18s linear infinite,cnQ1 18s linear infinite,cnQ2 18s linear infinite,cnQ3 18s linear infinite,cnT3 18s linear infinite,cnQ4 18s linear infinite,cnQ5 18s linear infinite,cnX45 18s linear infinite,cnRR 18s linear infinite,cnP1 18s linear infinite,cnQS 18s linear infinite,cnCR 18s linear infinite}
+@media (prefers-reduced-motion:reduce){.cr-noface .live,.cr-noface .rail i{animation:none!important}.cr-noface .live{--f:.28;--g:.56;--q1:1;--q2:1;--q3:1;--q4:1;--q5:1}}
+</style>
+
+<h1>The Halt &mdash; QuotaMonster menu-bar mark</h1>
+<p class="lead mo">58 &times; 22pt &middot; one closed path &middot; one 1.5pt stroke weight &middot; three opacity steps &middot; no eyes, no face, no front view &middot; 1pt = 1px throughout</p>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<clipPath id="cnb"><path d="M38.5 17.5A40.45 40.45 0 0 0 10.5 17.5A7 7 0 1 1 12.46 3.78L39.34 11.62A3 3 0 0 1 38.5 17.5Z"/></clipPath>
+<g id="cnmk" fill="currentColor">
+<rect x="2" y="17.5" width="54" height="1.5" style="fill-opacity:var(--lo,.26)"/>
+<rect x="2" y="17.5" width="54" height="1.5" style="transform:scaleX(var(--w,1));transform-box:fill-box;transform-origin:left"/>
+<g style="transform:rotate(var(--rr,0deg)) scaleY(var(--cr,1));transform-box:fill-box;transform-origin:18.42% 100%">
+<path d="M38.5 17.5A40.45 40.45 0 0 0 10.5 17.5A7 7 0 1 1 12.46 3.78L39.34 11.62A3 3 0 0 1 38.5 17.5Z" style="fill-opacity:var(--lo,.26)"/>
+<g clip-path="url(#cnb)">
+<rect x="3.5" y="3" width="38" height="15" style="fill-opacity:var(--lg,.405);transform:scaleX(var(--g,0));transform-box:fill-box;transform-origin:left"/>
+<rect x="3.5" y="3" width="38" height="15" style="transform:scaleX(var(--f,0));transform-box:fill-box;transform-origin:left"/>
+</g>
+<rect x="19" y="3.4" width="1.5" height="4" style="transform:scaleY(calc(var(--q1,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+<rect x="22.5" y="4.4" width="1.5" height="4" style="transform:scaleY(calc(var(--q2,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+<rect x="26" y="5.5" width="1.5" height="4" style="opacity:var(--o3,1);transform:translate(0px,var(--t3,0px)) scaleY(calc(var(--q3,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+<rect x="29.5" y="6.5" width="1.5" height="4" style="transform:translate(var(--x4,0px),var(--t4,0px)) scaleY(calc(var(--q4,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+<rect x="33" y="7.5" width="1.5" height="4" style="transform:translate(var(--x5,0px),var(--t5,0px)) scaleY(calc(var(--q5,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+<rect x="36.5" y="8.5" width="1.5" height="4" style="transform:scaleY(calc(var(--q6,1)*var(--qs,1))) skewX(var(--qk,0deg));transform-box:fill-box;transform-origin:50% 100%"/>
+</g>
+<rect x="43.5" y="13.5" width="2.5" height="1.5" style="fill-opacity:var(--ld,.56);opacity:var(--d1,0)"/>
+<rect x="48" y="13.5" width="2.5" height="1.5" style="fill-opacity:var(--ld,.56);opacity:var(--d2,0)"/>
+<rect x="52.5" y="13.5" width="2.5" height="1.5" style="fill-opacity:var(--ld,.56);opacity:var(--d3,0)"/>
+<rect x="44" y="12.5" width="1.5" height="5" style="fill:var(--am,currentColor);opacity:var(--p1,0)"/>
+<rect x="47.5" y="12.5" width="1.5" height="5" style="fill:var(--am,currentColor);opacity:var(--p2,0)"/>
+<rect x="51" y="12.5" width="1.5" height="5" style="fill:var(--am,currentColor);opacity:var(--p3,0)"/>
+</g>
+<pattern id="cng" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0V1M0 1H1" stroke="#5b6572" stroke-width=".05" opacity=".55" fill="none"/></pattern>
+<pattern id="cng4" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M4 0V4M0 4H4" stroke="#7e8a99" stroke-width=".07" opacity=".7" fill="none"/></pattern>
+</defs></svg>
+
+<div class="sec"><h2>1 &middot; Construction &mdash; 8&times;</h2>
+<div class="cw"><div class="cbox">
+<svg viewBox="-2 -3.5 64 30" width="512" height="240" style="display:block">
+<rect x="0" y="0" width="58" height="22" fill="url(#cng)"/><rect x="0" y="0" width="58" height="22" fill="url(#cng4)"/>
+<rect x="0" y="0" width="58" height="22" fill="none" stroke="#8d99a8" stroke-width=".1"/>
+<g stroke="#6f7b8b" stroke-width=".09" stroke-dasharray=".5 .45" fill="none"><path d="M-1.6 3.5H59.6M-1.6 17.5H59.6M-1.6 19H59.6M2 -2.6V24M56 -2.6V24"/></g>
+<g fill="none" stroke="#4f9de0" stroke-width=".13" stroke-dasharray=".7 .55"><circle cx="10.5" cy="10.5" r="7"/><circle cx="24.5" cy="12.5" r="5"/><circle cx="38.5" cy="14.5" r="3"/></g>
+<g stroke="#4f9de0" stroke-width=".11" fill="none"><path d="M10.5 9.9v1.2M9.9 10.5h1.2M24.5 11.9v1.2M23.9 12.5h1.2M38.5 13.9v1.2M37.9 14.5h1.2"/><path d="M10.5 10.5H17.5M24.5 12.5V7.5M38.5 14.5H41.5" stroke-dasharray=".45 .4"/></g>
+<path d="M7.5 1.33 45 12.28" stroke="#e2705a" stroke-width=".1" stroke-dasharray=".6 .5" fill="none"/>
+<path d="M38.5 17.5A40.45 40.45 0 0 0 10.5 17.5" stroke="#8ad08a" stroke-width=".12" stroke-dasharray=".6 .5" fill="none"/>
+<path d="M24.5 15V23.4" stroke="#8ad08a" stroke-width=".08" stroke-dasharray=".4 .35" fill="none"/>
+<path d="M38.5 17.5A40.45 40.45 0 0 0 10.5 17.5A7 7 0 1 1 12.46 3.78L39.34 11.62A3 3 0 0 1 38.5 17.5Z" fill="#e9ecf1" fill-opacity=".17" stroke="#e9ecf1" stroke-width=".14"/>
+<g fill="#e9ecf1" fill-opacity=".55"><rect x="19" y="3.4" width="1.5" height="4"/><rect x="22.5" y="4.4" width="1.5" height="4"/><rect x="26" y="5.5" width="1.5" height="4"/><rect x="29.5" y="6.5" width="1.5" height="4"/><rect x="33" y="7.5" width="1.5" height="4"/><rect x="36.5" y="8.5" width="1.5" height="4"/></g>
+<g stroke="#e2705a" stroke-width=".07" stroke-dasharray=".35 .3" fill="none"><path d="M19 2.6V8M20.5 2.6V8M22.5 3.6V9M24 3.6V9"/></g>
+<g fill="#e9ecf1" fill-opacity=".22"><rect x="2" y="17.5" width="54" height="1.5"/><rect x="43.5" y="13.5" width="2.5" height="1.5"/><rect x="48" y="13.5" width="2.5" height="1.5"/><rect x="52.5" y="13.5" width="2.5" height="1.5"/></g>
+<g fill="#ffd24a"><circle cx="12.46" cy="3.78" r=".26"/><circle cx="39.34" cy="11.62" r=".26"/><circle cx="10.5" cy="17.5" r=".26"/><circle cx="38.5" cy="17.5" r=".26"/></g>
+<g font-family="ui-monospace,Menlo,monospace" font-size="1.05" fill="#93a0b0"><text x="13.6" y="11.05">R7</text><text x="24.9" y="9.6">R5</text><text x="39.6" y="14.9">R3</text><text x="20.6" y="23.3">girth R40.45 &rarr; centre (24.5, 55.45), sagitta 2.5</text><text x="12.9" y="2.5" fill="#e2705a">dorsal = upper external tangent C1&rarr;C3, 16.3&deg;</text><text x="-1.95" y="3.15">3.5</text><text x="-1.95" y="17.2">17.5</text><text x="-1.95" y="20.5">19.0</text><text x="1.3" y="-1.6">2</text><text x="54.4" y="-1.6">56</text><text x="41.3" y="6.2">tangency (39.34, 11.62)</text><text x="4.4" y="-.3">tangency (12.46, 3.78)</text><text x="43.5" y="12.6">forward zone</text><text x="18.1" y="9.3" fill="#e2705a">1.5</text><text x="20.8" y="9.3" fill="#e2705a">2.0</text></g>
+</svg></div>
+<div><table class="ctab">
+<tr><td>canvas</td><td>58 &times; 22pt</td></tr>
+<tr><td>ink</td><td>54 &times; 15.5pt &middot; margins 2 / 3.4 / 2 / 3.0</td></tr>
+<tr><td>stroke</td><td>1.5pt everywhere = 9.7% of ink height</td></tr>
+<tr><td>counters</td><td>2.0pt min (quills, posts, dashes) &middot; belly 2.5pt</td></tr>
+<tr><td>C1 rump</td><td>(10.5, 10.5) r7 &middot; tangent to ground</td></tr>
+<tr><td>C2 barrel</td><td>(24.5, 12.5) r5 &middot; solved: tangent to ground + dorsal</td></tr>
+<tr><td>C3 muzzle</td><td>(38.5, 14.5) r3 &middot; tangent to ground</td></tr>
+<tr><td>girth</td><td>R40.45, sagitta 2.5pt, 20&deg; corner each end</td></tr>
+<tr><td>quills</td><td>1.5 &times; 2.5pt visible, pitch 3.5, base +1.02/step</td></tr>
+<tr><td>opacity</td><td>1.00 used &middot; 0.56 projected &middot; 0.26 empty</td></tr>
+<tr><td>path</td><td>4 segments, 1 closed path, 0 interior detail</td></tr>
+</table>
+<div class="lg"><div><span class="sw"></span>1.00 used / agents / week remaining</div><div><span class="sw" style="opacity:.56"></span>0.56 projected one hour out</div><div><span class="sw" style="opacity:.26"></span>0.26 empty capacity / week track</div></div>
+</div></div>
+</div>
+
+<div class="sec"><h2>2 &middot; Silhouette test</h2>
+<p>Flattened to one solid black shape with every opacity step removed. It reads as a low-headed grazing animal with a raked back. The quills are what fix it as a creature rather than a hill &mdash; without them, cold, the zero-agent frame on the right could be read as a shoe. That is an honest weakness, not a pass.</p>
+<div style="display:flex;gap:26px;align-items:flex-end;background:#fff;border-radius:10px;padding:20px 24px;flex-wrap:wrap">
+<svg class="mk sil n5" viewBox="0 0 58 22" width="174" height="66" style="color:#000"><use href="#cnmk"/></svg>
+<svg class="mk sil n5" viewBox="0 0 58 22" width="58" height="22" style="color:#000"><use href="#cnmk"/></svg>
+<svg class="mk sil n0" viewBox="0 0 58 22" width="58" height="22" style="color:#000"><use href="#cnmk"/></svg>
+<span class="mo" style="color:#555">3&times; &nbsp;&middot;&nbsp; 22pt &nbsp;&middot;&nbsp; 22pt, zero agents</span>
+</div></div>
+
+<div class="sec"><h2>3 &middot; Menu bar at real size</h2>
+<p>Real data: 5-hour 28% used, burn 92%/h, two severity dashes past the nose, 7-day whole, 5 agents. Battery and Wi-Fi are drawn here to the same rules so the optical weight can be compared against them.</p>
+<div class="wall wd"><div class="bar bard"><span class="ap">Finder</span>
+<span class="item"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:1;--d1:1;--d2:1"><use href="#cnmk"/></svg><span class="num">28%</span></span>
+<svg viewBox="0 0 29 22" width="29" height="22" fill="currentColor"><rect x="1.4" y="6.6" width="23.2" height="10.8" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".42"/><rect x="25.6" y="9.9" width="1.5" height="4.2" rx=".75" opacity=".42"/><rect x="3" y="8.2" width="12.6" height="7.6" rx="1.8"/></svg>
+<svg viewBox="0 0 20 22" width="20" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="15.5" r="1.6" fill="currentColor" stroke="none"/><path d="M5.9 14A5.2 5.2 0 0 1 14.1 14"/><path d="M3.07 11.78A8.8 8.8 0 0 1 16.93 11.78"/></svg>
+<span class="cl">Thu 3:07 AM</span></div></div>
+<div class="wall wl"><div class="bar barl"><span class="ap">Finder</span>
+<span class="item"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:1;--d1:1;--d2:1"><use href="#cnmk"/></svg><span class="num">28%</span></span>
+<svg viewBox="0 0 29 22" width="29" height="22" fill="currentColor"><rect x="1.4" y="6.6" width="23.2" height="10.8" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".42"/><rect x="25.6" y="9.9" width="1.5" height="4.2" rx=".75" opacity=".42"/><rect x="3" y="8.2" width="12.6" height="7.6" rx="1.8"/></svg>
+<svg viewBox="0 0 20 22" width="20" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="15.5" r="1.6" fill="currentColor" stroke="none"/><path d="M5.9 14A5.2 5.2 0 0 1 14.1 14"/><path d="M3.07 11.78A8.8 8.8 0 0 1 16.93 11.78"/></svg>
+<span class="cl">Thu 3:07 AM</span></div></div>
+<p class="mo">The numeral is always 5-hour percent used. It never changes meaning, in any state, including blocked.</p>
+</div>
+
+<div class="sec"><h2>4 &middot; State gallery &mdash; 3&times; and real size</h2>
+<div class="grid">
+
+<div class="cell"><div class="t">Idle &middot; zero agents</div><div class="r">Smooth back. Nothing running, nothing pending. 5h 6%.</div>
+<div class="p3"><svg class="mk n0" viewBox="0 0 58 22" width="174" height="66" style="--f:.06;--g:.12"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n0" viewBox="0 0 58 22" width="58" height="22" style="--f:.06;--g:.12"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">1 agent</div><div class="r">One quill at the shoulder. 5h 12%, projection just ahead of the fill.</div>
+<div class="p3"><svg class="mk n1" viewBox="0 0 58 22" width="174" height="66" style="--f:.12;--g:.3"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n1" viewBox="0 0 58 22" width="58" height="22" style="--f:.12;--g:.3"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">5 agents</div><div class="r">Five quills, 1:1. 5h 28%, projection to 62%.</div>
+<div class="p3"><svg class="mk n5" viewBox="0 0 58 22" width="174" height="66" style="--f:.28;--g:.62"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:.62"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">10+ agents</div><div class="r">Six quills grown 60% and raked 11&deg; forward. One of only two states that grows past the margin.</div>
+<div class="p3"><svg class="mk nx" viewBox="0 0 58 22" width="174" height="66" style="--f:.41;--g:.95"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk nx" viewBox="0 0 58 22" width="58" height="22" style="--f:.41;--g:.95"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">High quota &middot; 85%</div><div class="r">Fill edge up in the neck &mdash; a short seam, far forward. Projection pinned at the snout.</div>
+<div class="p3"><svg class="mk n3" viewBox="0 0 58 22" width="174" height="66" style="--f:.85;--g:1;--d1:1"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n3" viewBox="0 0 58 22" width="58" height="22" style="--f:.85;--g:1;--d1:1"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">Burn overrun &middot; real data</div><div class="r">28% used, 92%/h, dry in 47 min &mdash; 1h25m before reset. Two dashes past the nose.</div>
+<div class="p3"><svg class="mk n5" viewBox="0 0 58 22" width="174" height="66" style="--f:.28;--g:1;--d1:1;--d2:1"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:1;--d1:1;--d2:1"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">7-day binding</div><div class="r">The ground ends in a square cliff just past the muzzle and the body crouches 10%.</div>
+<div class="p3"><svg class="mk n2" viewBox="0 0 58 22" width="174" height="66" style="--f:.55;--g:.8;--w:.8;--cr:.9"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n2" viewBox="0 0 58 22" width="58" height="22" style="--f:.55;--g:.8;--w:.8;--cr:.9"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">Needs input &middot; 1 blocked</div><div class="r">Nose lifts 4.4pt off the ground, quills rigid, projection deleted, one halt post ahead.</div>
+<div class="p3"><svg class="mk n5" viewBox="0 0 58 22" width="174" height="66" style="--f:.28;--g:0;--rr:-9deg;--qs:1.15;--p1:1"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:0;--rr:-9deg;--qs:1.15;--p1:1"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">Needs input &middot; 2 blocked</div><div class="r">Two posts, 2pt apart. Countable vertical strokes, and never a pair of eyes.</div>
+<div class="p3"><svg class="mk n5" viewBox="0 0 58 22" width="174" height="66" style="--f:.28;--g:0;--rr:-9deg;--qs:1.15;--p1:1;--p2:1"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n5" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:0;--rr:-9deg;--qs:1.15;--p1:1;--p2:1"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+<div class="cell"><div class="t">Stale data</div><div class="r">Everything to 34%, heavy ground and projection removed. Stale data has no forecast.</div>
+<div class="p3"><svg class="mk n5 st" viewBox="0 0 58 22" width="174" height="66" style="--f:.28;--g:0;--w:0"><use href="#cnmk"/></svg></div>
+<div class="p1"><svg class="mk n5 st" viewBox="0 0 58 22" width="58" height="22" style="--f:.28;--g:0;--w:0"><use href="#cnmk"/></svg><span class="mo">22pt</span></div></div>
+
+</div></div>
+
+<div class="sec"><h2>5 &middot; Live scenario &mdash; 18s loop</h2>
+<div class="stage"><div class="sbar"><span class="ap">Xcode</span>
+<span class="item"><svg class="mk n5 live" viewBox="0 0 58 22" width="58" height="22"><use href="#cnmk"/></svg><span class="num">28%</span></span>
+<svg viewBox="0 0 29 22" width="29" height="22" fill="currentColor"><rect x="1.4" y="6.6" width="23.2" height="10.8" rx="3.2" fill="none" stroke="currentColor" stroke-width="1.3" opacity=".42"/><rect x="25.6" y="9.9" width="1.5" height="4.2" rx=".75" opacity=".42"/><rect x="3" y="8.2" width="12.6" height="7.6" rx="1.8"/></svg>
+<svg viewBox="0 0 20 22" width="20" height="22" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="10" cy="15.5" r="1.6" fill="currentColor" stroke="none"/><path d="M5.9 14A5.2 5.2 0 0 1 14.1 14"/><path d="M3.07 11.78A8.8 8.8 0 0 1 16.93 11.78"/></svg>
+<span class="cl">Thu 3:07 AM</span></div>
+<div style="display:flex;justify-content:center;padding:30px 0 26px"><svg class="mk n5 live" viewBox="0 0 58 22" width="290" height="110" style="color:#fff"><use href="#cnmk"/></svg></div>
+</div>
+<div class="rail"><i></i></div>
+<div class="beats">
+<b><i>0.0 &ndash; 3.0s</i>Idle. Smooth back. Zero motion &mdash; not slow motion, none.</b>
+<b><i>3.0 &ndash; 4.0s</i>Work starts, then fans out. Five quills rise, 120ms each, 80ms apart.</b>
+<b><i>4.0 &ndash; 9.0s</i>Working. Perfectly still apart from two 180ms gauge steps.</b>
+<b><i>9.0 &ndash; 9.9s</i>Agent finishes. Quill 3 flicks 120ms, rises 5.2pt fading over 580ms; spine re-spaces 180ms.</b>
+<b><i>10.5s</i>Session blocks. 220ms halt: nose lifts 4.4pt, quills go rigid, projection deleted, post rises.</b>
+<b><i>14.5 &ndash; 18.0s</i>Clears. 220ms back down, one 260ms settle, then nothing at all.</b>
+</div>
+<p class="cap">Honest omission: the once-per-60s blink while blocked, with its hard stop at 10 minutes, cannot be shown truthfully inside an 18s loop, so it is not faked here. Idle motion is zero &mdash; every animation above is event-triggered and terminates. Under prefers-reduced-motion the loop is replaced by a static five-agent frame that loses no information.</p>
+</div>
+</div>

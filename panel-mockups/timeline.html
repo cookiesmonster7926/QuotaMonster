@@ -1,0 +1,625 @@
+<div class="qm-timeline">
+<style>
+.qm-timeline{--ff:-apple-system,BlinkMacSystemFont,"Segoe UI","IBM Plex Sans TC",sans-serif;--fm:ui-monospace,"SF Mono",SFMono-Regular,Menlo,monospace;font-family:var(--ff);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;color:#1d1d1f;display:flex;flex-direction:column;gap:26px;max-width:920px}
+.qm-timeline *{box-sizing:border-box}
+.qm-timeline .qm-h2{font-size:11px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:#8a8a8f;margin:0 0 3px}
+.qm-timeline .qm-h2 b{color:#1d1d1f;font-weight:700}
+.qm-timeline .qm-sub{font-size:12.5px;line-height:1.55;color:#6e6e73;margin:0 0 12px;max-width:680px}
+.qm-timeline .qm-sub code{font-family:var(--fm);font-size:11.5px;background:rgba(0,0,0,.055);padding:1px 4px;border-radius:3px}
+
+/* ---------- menu bar ---------- */
+.qm-timeline .qm-strips{display:flex;flex-direction:column;gap:9px}
+.qm-timeline .qm-striprow{border-radius:9px;overflow:hidden;position:relative}
+.qm-timeline .qm-sw-d{background:linear-gradient(160deg,#241b3d,#141a2e 48%,#0a0e1c)}
+.qm-timeline .qm-sw-l{background:linear-gradient(155deg,#f3e2cd,#dde8f6 52%,#eef2f8)}
+.qm-timeline .qm-sw-p{background:radial-gradient(120% 140% at 12% 6%,#7b3fa0 0,rgba(123,63,160,0) 58%),radial-gradient(100% 120% at 88% 16%,#1f6fa8 0,rgba(31,111,168,0) 60%),linear-gradient(150deg,#3c2a63,#16324f 55%,#0d1c30)}
+.qm-timeline .qm-mbar{height:33px;display:flex;align-items:center;gap:10px;padding:0 12px 0 13px;backdrop-filter:blur(22px) saturate(160%);-webkit-backdrop-filter:blur(22px) saturate(160%)}
+.qm-timeline .qm-mbar.is-dark{background:rgba(10,12,20,.34);color:rgba(255,255,255,.93)}
+.qm-timeline .qm-mbar.is-light{background:rgba(255,255,255,.5);color:rgba(0,0,0,.86)}
+.qm-timeline .qm-mb-apple{display:flex;align-items:center;margin-right:-3px}
+.qm-timeline .qm-mb-app{font-size:12.5px;font-weight:700;letter-spacing:.005em;white-space:nowrap;flex:0 0 auto}
+.qm-timeline .qm-mb-menu{font-size:12.5px;font-weight:400;opacity:.9;white-space:nowrap;flex:0 0 auto}
+.qm-timeline .qm-mb-gap{flex:1}
+.qm-timeline .qm-mb-item{height:22px;display:flex;align-items:center;justify-content:center;border-radius:5px;flex:0 0 auto}
+.qm-timeline .qm-mb-item.is-sel{background:rgba(255,255,255,.24)}
+.qm-timeline .qm-mbar.is-light .qm-mb-item.is-sel{background:rgba(0,0,0,.13)}
+.qm-timeline .qm-mb-clock{font-size:12.5px;white-space:nowrap;font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;justify-content:flex-end}
+.qm-timeline .qm-varkeys{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:11px}
+.qm-timeline .qm-vk{border:.5px solid rgba(0,0,0,.14);border-radius:8px;padding:9px 11px 10px;background:rgba(0,0,0,.02)}
+.qm-timeline .qm-vk h4{margin:0 0 4px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px}
+.qm-timeline .qm-vk h4 i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.06em;background:#1d1d1f;color:#fff;border-radius:4px;padding:2px 5px}
+.qm-timeline .qm-vk.is-pick h4 i{background:#0071E3}
+.qm-timeline .qm-vk p{margin:0;font-size:11.5px;line-height:1.5;color:#6e6e73}
+.qm-timeline .qm-vk .qm-w{display:block;margin-top:5px;font-family:var(--fm);font-size:10.5px;color:#8a8a8f}
+
+/* ---------- stage / wallpaper ---------- */
+.qm-timeline .qm-stage{display:flex;flex-wrap:wrap;gap:20px}
+.qm-timeline .qm-tile{width:432px;border-radius:14px;overflow:hidden;padding:0 24px 30px;position:relative}
+.qm-timeline .qm-tile .qm-cap{margin:12px 0 0;font-size:10.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+.qm-timeline .qm-wall-d{background:radial-gradient(120% 90% at 16% 4%,#5a3690 0,rgba(90,54,144,0) 58%),radial-gradient(95% 75% at 90% 16%,#1e5b96 0,rgba(30,91,150,0) 62%),radial-gradient(130% 110% at 48% 112%,#101128 0,rgba(16,17,40,0) 70%),linear-gradient(158deg,#2a1f47,#141a2e 46%,#090d1a)}
+.qm-timeline .qm-wall-d .qm-cap{color:rgba(255,255,255,.5)}
+.qm-timeline .qm-wall-l{background:radial-gradient(110% 80% at 12% 0,#ffd6a0 0,rgba(255,214,160,0) 56%),radial-gradient(90% 70% at 92% 14%,#9fd4ff 0,rgba(159,212,255,0) 60%),radial-gradient(120% 100% at 45% 110%,#fff0e0 0,rgba(255,240,224,0) 70%),linear-gradient(155deg,#f5e0c9,#dbe6f5 52%,#edf1f7)}
+.qm-timeline .qm-wall-l .qm-cap{color:rgba(0,0,0,.42)}
+.qm-timeline .qm-tile .qm-mbar{margin:0 -24px}
+
+/* ---------- popover shell ---------- */
+.qm-timeline .qm-pop{--mat:rgba(30,30,34,.70);--matSolid:#1f1f23;--stroke:rgba(255,255,255,.15);--hair:rgba(255,255,255,.085);--hair2:rgba(255,255,255,.055);--card:rgba(255,255,255,.055);--hover:rgba(255,255,255,.045);--ink:#fff;--t1:rgba(255,255,255,.95);--t2:rgba(255,255,255,.62);--t3:rgba(255,255,255,.42);--t4:rgba(255,255,255,.28);--blue:#0A84FF;--amber:#FF9F0A;--amberTx:#FFBA55;--amberBg:rgba(255,159,10,.15);--amberLn:rgba(255,159,10,.34);--red:#FF453A;--green:#30D158;--purple:#BF5AF2;--grey:rgba(255,255,255,.38);
+ position:relative;width:384px;margin-top:9px;font-size:12px;line-height:1.25;color:var(--t1);
+ filter:drop-shadow(0 16px 36px rgba(0,0,0,.42)) drop-shadow(0 2px 5px rgba(0,0,0,.3))}
+.qm-timeline .qm-pop.is-light{--mat:rgba(248,248,251,.68);--matSolid:#f7f7f9;--stroke:rgba(0,0,0,.13);--hair:rgba(0,0,0,.085);--hair2:rgba(0,0,0,.055);--card:rgba(255,255,255,.6);--hover:rgba(0,0,0,.035);--ink:#000;--t1:rgba(0,0,0,.9);--t2:rgba(0,0,0,.58);--t3:rgba(0,0,0,.4);--t4:rgba(0,0,0,.25);--blue:#0071E3;--amber:#C07A00;--amberTx:#8A5600;--amberBg:rgba(255,159,10,.22);--amberLn:rgba(180,112,0,.36);--red:#D70015;--green:#1D8F3B;--purple:#8E3FD4;--grey:rgba(0,0,0,.36);
+ filter:drop-shadow(0 16px 34px rgba(60,40,20,.2)) drop-shadow(0 2px 5px rgba(60,40,20,.14))}
+.qm-timeline .qm-notch{position:absolute;top:-6px;left:231px;width:15px;height:15px;transform:rotate(45deg);background:var(--mat);backdrop-filter:blur(30px) saturate(180%);-webkit-backdrop-filter:blur(30px) saturate(180%);border-left:.5px solid var(--stroke);border-top:.5px solid var(--stroke);border-radius:3px 0 0 0;z-index:0}
+.qm-timeline .qm-bodywrap{position:relative;z-index:1;border-radius:12px;overflow:hidden;border:.5px solid var(--stroke);background:var(--mat);backdrop-filter:blur(30px) saturate(185%);-webkit-backdrop-filter:blur(30px) saturate(185%);padding-bottom:0}
+.qm-timeline .qm-pop code{font-family:var(--fm)}
+
+/* ---------- title / rollup ---------- */
+.qm-timeline .qm-title{height:34px;display:grid;grid-template-columns:76px 1fr 76px;align-items:center;padding:0 12px 0 13px}
+.qm-timeline .qm-tl{display:flex;color:var(--t2)}
+.qm-timeline .qm-tc{text-align:center;font-size:13px;font-weight:700;letter-spacing:.006em;color:var(--t1)}
+.qm-timeline .qm-tr{display:flex;align-items:center;justify-content:flex-end;gap:4px;font-size:10px;color:var(--t3);font-variant-numeric:tabular-nums}
+.qm-timeline .qm-rollup{display:flex;gap:13px;padding:0 13px 9px;align-items:center}
+.qm-timeline .qm-rc{display:inline-flex;align-items:center;gap:4.5px;font-size:10.5px;font-weight:500;color:var(--t2);font-variant-numeric:tabular-nums}
+.qm-timeline .qm-rc.is-amber{color:var(--amberTx);font-weight:650}
+
+/* ---------- blocked alert ---------- */
+.qm-timeline .qm-alert{display:flex;align-items:center;gap:9px;padding:0 10px 0 11px;height:44px;background:var(--amberBg);border-top:.5px solid var(--amberLn);border-bottom:.5px solid var(--amberLn);border-left:3px solid var(--amber)}
+.qm-timeline .qm-aic{flex:0 0 20px;height:20px;color:var(--amber);display:flex;animation:qmTlBreathe 2.6s ease-in-out infinite}
+.qm-timeline .qm-atx{flex:1;min-width:0}
+.qm-timeline .qm-at1{font-size:12.5px;font-weight:650;color:var(--t1);letter-spacing:.004em}
+.qm-timeline .qm-at1 em{font-style:normal;font-weight:600;color:var(--amberTx)}
+.qm-timeline .qm-at2{font-size:9.5px;color:var(--t2);margin-top:1.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qm-timeline .qm-at2 code{font-size:9.5px;color:var(--amberTx);font-weight:600}
+.qm-timeline .qm-ar2{display:flex;align-items:center;gap:5px;color:var(--t3)}
+.qm-timeline .qm-adur{font-size:11.5px;font-weight:650;color:var(--amberTx);font-variant-numeric:tabular-nums}
+@keyframes qmTlBreathe{0%,100%{opacity:1}50%{opacity:.46}}
+@media (prefers-reduced-motion:reduce){.qm-timeline .qm-aic{animation:none}}
+
+/* ---------- cards ---------- */
+.qm-timeline .qm-card{margin:10px 10px 0;padding:10px 12px 3px;background:var(--card);border:.5px solid var(--hair);border-radius:9px}
+.qm-timeline .qm-card2{margin:9px 10px 8px;padding:9px 12px 8px}
+.qm-timeline .qm-chead{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:6px}
+.qm-timeline .qm-ch-l{font-size:11px;font-weight:650;color:var(--t1);letter-spacing:.01em}
+.qm-timeline .qm-ch-s{font-size:9.5px;color:var(--t3);margin-top:2px;font-variant-numeric:tabular-nums}
+.qm-timeline .qm-chead-r{text-align:right}
+.qm-timeline .qm-big{font-size:22px;font-weight:660;line-height:.92;letter-spacing:-.016em;color:var(--t1);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.qm-timeline .qm-big span{font-size:12.5px;font-weight:600;color:var(--t3);margin-left:1px}
+.qm-timeline .qm-warn{display:flex;align-items:center;justify-content:space-between;gap:8px;height:19px;margin-bottom:3px}
+.qm-timeline .qm-warn-l{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:var(--amberTx);font-weight:550}
+.qm-timeline .qm-warn-l b{font-weight:750;font-variant-numeric:tabular-nums}
+.qm-timeline .qm-warn-r{font-size:10px;color:var(--t3);font-variant-numeric:tabular-nums}
+.qm-timeline .qm-chart{display:block;color:var(--ink)}
+.qm-timeline .qm-cone{display:block;color:var(--ink);margin-top:-2px}
+
+/* ---------- gantt ---------- */
+.qm-timeline .qm-gantt{position:relative;padding-bottom:3px}
+.qm-timeline .qm-now{position:absolute;left:336px;top:14px;bottom:3px;width:1px;background:var(--ink);opacity:.34;z-index:2;pointer-events:none}
+.qm-timeline .qm-grid{position:absolute;top:16px;bottom:3px;width:1px;background:var(--ink);opacity:.07;z-index:0;pointer-events:none}
+.qm-timeline .qm-row{display:grid;grid-template-columns:144px 172px 34px;column-gap:6px;padding:0 8px 0 14px;position:relative;z-index:1}
+.qm-timeline .qm-row.qm-sr:hover,.qm-timeline .qm-row.qm-ar:hover,.qm-timeline .qm-row.qm-pr:hover{background:var(--hover)}
+.qm-timeline .qm-cg{min-width:0;display:flex;flex-direction:column;justify-content:center}
+.qm-timeline .qm-ct{position:relative;display:flex;flex-direction:column;justify-content:center}
+.qm-timeline .qm-cd{display:flex;flex-direction:column;justify-content:center;align-items:flex-end;text-align:right}
+.qm-timeline .qm-ruler{height:17px;align-items:center}
+.qm-timeline .qm-ruler .qm-cg,.qm-timeline .qm-ruler .qm-ct,.qm-timeline .qm-ruler .qm-cd{justify-content:center}
+.qm-timeline .qm-seclabel{font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--t3)}
+.qm-timeline .qm-tk{position:absolute;top:50%;transform:translateY(-50%);font-size:8.5px;color:var(--t4);font-variant-numeric:tabular-nums;white-space:nowrap}
+.qm-timeline .qm-tk.is-now{color:var(--t2);font-weight:650;transform:translateY(-50%)}
+.qm-timeline .qm-zoom{font-size:8.5px;font-weight:700;letter-spacing:.06em;color:var(--t4)}
+.qm-timeline .qm-grp{position:relative;border-top:.5px solid var(--hair2)}
+.qm-timeline .qm-grp.qm-blocked{box-shadow:inset 2px 0 0 var(--amber);background:color-mix(in srgb,var(--amber) 5%,transparent)}
+.qm-timeline .qm-rail{position:absolute;width:1px;background:var(--ink);opacity:.17;z-index:1}
+.qm-timeline .qm-sr{height:32px}
+.qm-timeline .qm-pr{height:22px}
+.qm-timeline .qm-ar{height:19px}
+.qm-timeline .qm-sn{display:flex;align-items:center;font-size:12.5px;font-weight:620;color:var(--t1);letter-spacing:.004em;white-space:nowrap}
+.qm-timeline .qm-sp{font-size:9.5px;color:var(--t3);margin-top:1.5px;font-family:var(--fm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qm-timeline .qm-sr.is-idle .qm-sn{color:var(--t2);font-weight:560}
+.qm-timeline .qm-dot{width:6px;height:6px;border-radius:50%;margin-right:6px;flex:0 0 6px;position:relative}
+.qm-timeline .qm-dot.d-busy{background:var(--blue)}
+.qm-timeline .qm-dot.d-idle{background:var(--grey)}
+.qm-timeline .qm-dot.d-wait{background:var(--amber);box-shadow:0 0 0 3px var(--amberBg)}
+.qm-timeline .qm-chip{margin-left:6px;font-size:9px;font-weight:700;padding:1.5px 4.5px;border-radius:3.5px;background:var(--amberBg);border:.5px solid var(--amberLn);color:var(--amberTx);letter-spacing:.02em}
+.qm-timeline .qm-tl1{position:relative;height:15px}
+.qm-timeline .qm-tl2{font-size:9.5px;color:var(--t3);text-align:right;margin-top:1.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.qm-timeline .qm-tl2.is-amber code{color:var(--amberTx);font-size:9.5px;font-weight:600}
+.qm-timeline .qm-bar{position:absolute;right:0;top:50%;transform:translateY(-50%);border-radius:2.5px;display:block}
+.qm-timeline .qm-bar.b-sess{height:9px;background:linear-gradient(90deg,color-mix(in srgb,var(--blue) 14%,transparent),var(--blue));box-shadow:inset 0 0 0 .5px color-mix(in srgb,var(--blue) 45%,transparent)}
+.qm-timeline .qm-bar.b-wait{height:9px;background:repeating-linear-gradient(-45deg,var(--amber) 0 3px,color-mix(in srgb,var(--amber) 34%,transparent) 3px 6.5px);box-shadow:inset 0 0 0 .5px var(--amber)}
+.qm-timeline .qm-bar.b-idle{height:9px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--ink) 8%,transparent) 30px,color-mix(in srgb,var(--ink) 20%,transparent));border-radius:0 2.5px 2.5px 0}
+.qm-timeline .qm-bar.b-ag{height:7px;background:var(--blue)}
+.qm-timeline .qm-bar.b-done{height:7px;background:transparent;box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--blue) 52%,transparent)}
+.qm-timeline .qm-clipchev{position:absolute;left:0;top:50%;transform:translateY(-50%);color:var(--t4)}
+.qm-timeline .qm-dv{font-size:10.5px;color:var(--t2);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.01em}
+.qm-timeline .qm-dv.is-strong{font-size:11px;font-weight:650;color:var(--t1)}
+.qm-timeline .qm-dv.c-wf{color:var(--purple);font-weight:650}
+.qm-timeline .qm-dv.c-wait{color:var(--amberTx)}
+.qm-timeline .qm-dv2{font-size:8px;font-weight:800;letter-spacing:.1em;margin-top:2.5px}
+.qm-timeline .qm-dv2.c-busy{color:color-mix(in srgb,var(--blue) 82%,transparent)}
+.qm-timeline .qm-dv2.c-idle{color:var(--t4)}
+.qm-timeline .qm-dv2.c-wait{color:var(--amberTx)}
+/* phase */
+.qm-timeline .qm-pr .qm-cg{flex-direction:row;align-items:center;gap:6px;padding-left:19px}
+.qm-timeline .qm-pr .qm-cg::before{content:"";position:absolute;left:23px;top:50%;width:8px;height:1px;background:var(--ink);opacity:.17}
+.qm-timeline .qm-wfic{display:flex;color:var(--purple);flex:0 0 11px}
+.qm-timeline .qm-pn{font-size:11px;font-weight:650;color:var(--t1);letter-spacing:.005em;white-space:nowrap}
+.qm-timeline .qm-pips{flex:0 0 57px;margin-left:1px}
+.qm-timeline .qm-wfid{position:absolute;right:69px;top:50%;transform:translateY(-50%);font-family:var(--fm);font-size:9px;color:var(--t4);white-space:nowrap}
+.qm-timeline .qm-brk{position:absolute;right:0;top:50%;transform:translateY(-50%);display:block;height:9px}
+/* agents */
+.qm-timeline .qm-ar .qm-cg{flex-direction:row;align-items:center}
+.qm-timeline .qm-ar.lvl2 .qm-cg{padding-left:34px}
+.qm-timeline .qm-ar.lvl2 .qm-cg::before{content:"";position:absolute;left:39px;top:50%;width:8px;height:1px;background:var(--ink);opacity:.17}
+.qm-timeline .qm-ar.lvl1 .qm-cg{padding-left:19px}
+.qm-timeline .qm-ar.lvl1 .qm-cg::before{content:"";position:absolute;left:23px;top:50%;width:8px;height:1px;background:var(--ink);opacity:.17}
+.qm-timeline .qm-an{font-size:10px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;letter-spacing:.002em}
+.qm-timeline .qm-ar.is-done .qm-an{color:var(--t4)}
+.qm-timeline .qm-ar.is-done .qm-dv{color:var(--t4)}
+.qm-timeline .qm-ar .qm-tl1{height:19px}
+
+/* ---------- 7 day ---------- */
+.qm-timeline .qm-w7h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+.qm-timeline .qm-w7m{font-size:9.5px;color:var(--t3);font-variant-numeric:tabular-nums}
+.qm-timeline .qm-mrow{display:flex;align-items:center;gap:8px;height:17px}
+.qm-timeline .qm-ml{flex:0 0 78px;font-size:10.5px;color:var(--t2)}
+.qm-timeline .qm-meter{position:relative;flex:1;height:5px;border-radius:2.5px;background:color-mix(in srgb,var(--ink) 10%,transparent)}
+.qm-timeline .qm-mfill{position:absolute;left:0;top:0;bottom:0;border-radius:2.5px;background:var(--blue);display:block}
+.qm-timeline .qm-mfill.is-g{background:var(--green)}
+.qm-timeline .qm-mpace{position:absolute;top:-3px;bottom:-3px;width:1px;background:var(--ink);opacity:.42;display:block}
+.qm-timeline .qm-mv{flex:0 0 30px;text-align:right;font-size:10.5px;font-weight:600;color:var(--t1);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.qm-timeline .qm-mleg{display:flex;align-items:center;gap:5px;font-size:9px;color:var(--t4);margin-top:5px}
+.qm-timeline .qm-legtick{width:1px;height:8px;background:var(--ink);opacity:.42;display:block;flex:0 0 1px}
+
+/* ---------- footer ---------- */
+.qm-timeline .qm-foot{display:flex;align-items:center;gap:8px;height:31px;padding:0 9px;border-top:.5px solid var(--hair);background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.qm-timeline .qm-fb{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:var(--t2);border-radius:5px;padding:0;cursor:default}
+.qm-timeline .qm-fb:hover{background:var(--hover);color:var(--t1)}
+.qm-timeline .qm-fsep{width:.5px;height:14px;background:var(--hair)}
+.qm-timeline .qm-ft{display:inline-flex;align-items:center;gap:4px;font-size:10.5px;color:var(--t2);font-variant-numeric:tabular-nums}
+.qm-timeline .qm-fspacer{flex:1}
+@media (max-width:520px){.qm-timeline .qm-varkeys{grid-template-columns:1fr}}
+</style>
+
+<section>
+<div class="qm-h2">01 · <b>選單列圖示</b> — 三個方案</div>
+<p class="qm-sub">固定寬度，22pt 內容高度（實機 33pt 選單列）。左側那一格永遠是「狀態槽」：正常時顯示資訊，被擋住時整格變成<b>實心琥珀色</b>——實心色塊在淺色列、深色列、任何桌布上都讀得出來，而純文字色不行。順序由左至右為 <code>A / B / C</code>。</p>
+<div class="qm-strips">
+  <div class="qm-striprow qm-sw-d"><div class="qm-mbar is-dark"><span class="qm-mb-apple"><svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true"><path d="M9.4,8.4c0-1.6,1.3-2.4,1.4-2.4c-0.8-1.1-1.9-1.3-2.3-1.3c-1-0.1-1.9,0.6-2.4,0.6c-0.5,0-1.3-0.6-2.1-0.6c-1.1,0-2.1,0.6-2.7,1.6c-1.1,2-0.3,4.9,0.8,6.5c0.5,0.8,1.2,1.7,2,1.6c0.8,0,1.1-0.5,2.1-0.5c1,0,1.2,0.5,2.1,0.5c0.9,0,1.4-0.8,2-1.6c0.6-0.9,0.8-1.8,0.8-1.8C10.9,10.9,9.4,10.3,9.4,8.4z M7.8,3.7c0.4-0.5,0.7-1.3,0.6-2c-0.6,0-1.4,0.4-1.8,0.9C6.2,3.1,5.9,3.8,6,4.5C6.7,4.6,7.4,4.2,7.8,3.7z" fill="currentColor"/></svg></span><span class="qm-mb-app">Claude Code</span><span class="qm-mb-menu">檔案</span><span class="qm-mb-menu">編輯</span><span class="qm-mb-menu">顯示</span><span class="qm-mb-menu">視窗</span><span class="qm-mb-gap"></span><span class="qm-mb-item" style="width:54px"><svg width="54" height="22" viewBox="0 0 54 22" aria-label="5 小時視窗剩 2 小時 12 分">
+<g transform="translate(11,11)"><circle r="6.6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.3"/>
+<circle r="6.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="23.2 41.5" transform="rotate(-90)"/></g>
+<text x="21" y="15" font-size="11" font-weight="600" fill="currentColor" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:36px"><svg width="36" height="22" viewBox="0 0 36 22" aria-label="已用 28%，剩 2 小時 12 分">
+<rect x="1" y="4" width="3.4" height="14" rx="1.7" fill="currentColor" fill-opacity=".24"/>
+<rect x="1" y="14.1" width="3.4" height="3.9" rx="1.7" fill="currentColor"/>
+<text x="8.5" y="10.3" font-size="9" font-weight="650" fill="currentColor" style="font-variant-numeric:tabular-nums">28%</text>
+<text x="8.5" y="19.4" font-size="9" font-weight="500" fill="currentColor" fill-opacity=".66" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:80px"><svg width="80" height="22" viewBox="0 0 80 22" aria-label="已用 28%，視窗將於重置前用盡">
+<g transform="translate(1.5,5)"><path d="M2.2,3 L2.2,1 L4.2,2.8 M9.4,3 L9.4,1 L7.4,2.8" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1.3" y="2.7" width="9" height="8.3" rx="2.9" fill="none" stroke="currentColor" stroke-width="1.15"/>
+<circle cx="4.2" cy="6.5" r=".95" fill="currentColor"/><circle cx="7.4" cy="6.5" r=".95" fill="currentColor"/></g>
+<text x="15" y="14.9" font-size="10.5" font-weight="620" fill="currentColor" style="font-variant-numeric:tabular-nums">28%</text><g transform="translate(42,7)">
+<rect x="0" y="0" width="36" height="8" rx="2.6" fill="currentColor" fill-opacity=".2"/>
+<path d="M0,2.6 A2.6,2.6 0 0 1 2.6,0 H20.2 V8 H2.6 A2.6,2.6 0 0 1 0,5.4 Z" fill="currentColor" fill-opacity=".58"/>
+<path d="M25.8,0 H33.4 A2.6,2.6 0 0 1 36,2.6 V5.4 A2.6,2.6 0 0 1 33.4,8 H25.8 Z" fill="#FF453A" fill-opacity=".72"/>
+<path d="M20.2,0 L17.8,-3.6 L22.6,-3.6 Z" fill="currentColor"/></g></svg></span><span class="qm-mb-item" style="width:20px"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.6,7.8 A10.5,10.5 0 0 1 17.4,7.8"/><path d="M5.6,10.8 A6.3,6.3 0 0 1 14.4,10.8"/></g><circle cx="10" cy="14.4" r="1.55" fill="currentColor"/></svg></span><span class="qm-mb-item" style="width:26px"><svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="6.9" width="21" height="9.6" rx="2.7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.1"/><rect x="2.7" y="8.6" width="12" height="6.2" rx="1.5" fill="currentColor"/><path d="M23.5,10.1 A2.7,2.7 0 0 1 23.5,13.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="qm-mb-item qm-mb-clock" style="width:54px">週四 1:28</span></div></div>
+  <div class="qm-striprow qm-sw-l"><div class="qm-mbar is-light"><span class="qm-mb-apple"><svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true"><path d="M9.4,8.4c0-1.6,1.3-2.4,1.4-2.4c-0.8-1.1-1.9-1.3-2.3-1.3c-1-0.1-1.9,0.6-2.4,0.6c-0.5,0-1.3-0.6-2.1-0.6c-1.1,0-2.1,0.6-2.7,1.6c-1.1,2-0.3,4.9,0.8,6.5c0.5,0.8,1.2,1.7,2,1.6c0.8,0,1.1-0.5,2.1-0.5c1,0,1.2,0.5,2.1,0.5c0.9,0,1.4-0.8,2-1.6c0.6-0.9,0.8-1.8,0.8-1.8C10.9,10.9,9.4,10.3,9.4,8.4z M7.8,3.7c0.4-0.5,0.7-1.3,0.6-2c-0.6,0-1.4,0.4-1.8,0.9C6.2,3.1,5.9,3.8,6,4.5C6.7,4.6,7.4,4.2,7.8,3.7z" fill="currentColor"/></svg></span><span class="qm-mb-app">Claude Code</span><span class="qm-mb-menu">檔案</span><span class="qm-mb-menu">編輯</span><span class="qm-mb-menu">顯示</span><span class="qm-mb-menu">視窗</span><span class="qm-mb-gap"></span><span class="qm-mb-item" style="width:54px"><svg width="54" height="22" viewBox="0 0 54 22" aria-label="5 小時視窗剩 2 小時 12 分">
+<g transform="translate(11,11)"><circle r="6.6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.3"/>
+<circle r="6.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="23.2 41.5" transform="rotate(-90)"/></g>
+<text x="21" y="15" font-size="11" font-weight="600" fill="currentColor" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:36px"><svg width="36" height="22" viewBox="0 0 36 22" aria-label="已用 28%，剩 2 小時 12 分">
+<rect x="1" y="4" width="3.4" height="14" rx="1.7" fill="currentColor" fill-opacity=".24"/>
+<rect x="1" y="14.1" width="3.4" height="3.9" rx="1.7" fill="currentColor"/>
+<text x="8.5" y="10.3" font-size="9" font-weight="650" fill="currentColor" style="font-variant-numeric:tabular-nums">28%</text>
+<text x="8.5" y="19.4" font-size="9" font-weight="500" fill="currentColor" fill-opacity=".66" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:80px"><svg width="80" height="22" viewBox="0 0 80 22" aria-label="已用 28%，視窗將於重置前用盡">
+<g transform="translate(1.5,5)"><path d="M2.2,3 L2.2,1 L4.2,2.8 M9.4,3 L9.4,1 L7.4,2.8" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round" stroke-linecap="round"/>
+<rect x="1.3" y="2.7" width="9" height="8.3" rx="2.9" fill="none" stroke="currentColor" stroke-width="1.15"/>
+<circle cx="4.2" cy="6.5" r=".95" fill="currentColor"/><circle cx="7.4" cy="6.5" r=".95" fill="currentColor"/></g>
+<text x="15" y="14.9" font-size="10.5" font-weight="620" fill="currentColor" style="font-variant-numeric:tabular-nums">28%</text><g transform="translate(42,7)">
+<rect x="0" y="0" width="36" height="8" rx="2.6" fill="currentColor" fill-opacity=".2"/>
+<path d="M0,2.6 A2.6,2.6 0 0 1 2.6,0 H20.2 V8 H2.6 A2.6,2.6 0 0 1 0,5.4 Z" fill="currentColor" fill-opacity=".58"/>
+<path d="M25.8,0 H33.4 A2.6,2.6 0 0 1 36,2.6 V5.4 A2.6,2.6 0 0 1 33.4,8 H25.8 Z" fill="#FF453A" fill-opacity=".72"/>
+<path d="M20.2,0 L17.8,-3.6 L22.6,-3.6 Z" fill="currentColor"/></g></svg></span><span class="qm-mb-item" style="width:20px"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.6,7.8 A10.5,10.5 0 0 1 17.4,7.8"/><path d="M5.6,10.8 A6.3,6.3 0 0 1 14.4,10.8"/></g><circle cx="10" cy="14.4" r="1.55" fill="currentColor"/></svg></span><span class="qm-mb-item" style="width:26px"><svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="6.9" width="21" height="9.6" rx="2.7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.1"/><rect x="2.7" y="8.6" width="12" height="6.2" rx="1.5" fill="currentColor"/><path d="M23.5,10.1 A2.7,2.7 0 0 1 23.5,13.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="qm-mb-item qm-mb-clock" style="width:54px">週四 1:28</span></div></div>
+  <div class="qm-striprow qm-sw-p"><div class="qm-mbar is-dark"><span class="qm-mb-apple"><svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true"><path d="M9.4,8.4c0-1.6,1.3-2.4,1.4-2.4c-0.8-1.1-1.9-1.3-2.3-1.3c-1-0.1-1.9,0.6-2.4,0.6c-0.5,0-1.3-0.6-2.1-0.6c-1.1,0-2.1,0.6-2.7,1.6c-1.1,2-0.3,4.9,0.8,6.5c0.5,0.8,1.2,1.7,2,1.6c0.8,0,1.1-0.5,2.1-0.5c1,0,1.2,0.5,2.1,0.5c0.9,0,1.4-0.8,2-1.6c0.6-0.9,0.8-1.8,0.8-1.8C10.9,10.9,9.4,10.3,9.4,8.4z M7.8,3.7c0.4-0.5,0.7-1.3,0.6-2c-0.6,0-1.4,0.4-1.8,0.9C6.2,3.1,5.9,3.8,6,4.5C6.7,4.6,7.4,4.2,7.8,3.7z" fill="currentColor"/></svg></span><span class="qm-mb-app">Claude Code</span><span class="qm-mb-menu">檔案</span><span class="qm-mb-menu">編輯</span><span class="qm-mb-menu">顯示</span><span class="qm-mb-menu">視窗</span><span class="qm-mb-gap"></span><span class="qm-mb-item" style="width:54px"><svg width="54" height="22" viewBox="0 0 54 22" aria-label="1 個 session 等待你">
+<rect x="0" y="2.4" width="54" height="17.2" rx="5" fill="#FF9F0A"/>
+<circle cx="11" cy="11" r="5.9" fill="#241A06"/><path d="M11,7.9 L11,11.6" stroke="#FF9F0A" stroke-width="1.7" stroke-linecap="round"/>
+<circle cx="11" cy="14.2" r=".95" fill="#FF9F0A"/>
+<text x="20.5" y="14.9" font-size="10.5" font-weight="700" fill="#241A06">待你 1</text></svg></span><span class="qm-mb-item" style="width:36px"><svg width="36" height="22" viewBox="0 0 36 22" aria-label="1 個 session 等待你">
+<rect x="1" y="4" width="3.4" height="14" rx="1.7" fill="#FF9F0A"/>
+<text x="8.5" y="10.1" font-size="9" font-weight="650" fill="currentColor" style="font-variant-numeric:tabular-nums">28%</text>
+<rect x="7" y="11.7" width="29" height="9.3" rx="2.6" fill="#FF9F0A"/>
+<text x="9.6" y="18.9" font-size="8.5" font-weight="700" fill="#241A06">待你1</text></svg></span><span class="qm-mb-item" style="width:80px"><svg width="80" height="22" viewBox="0 0 80 22" aria-label="1 個 session 等待你">
+<rect x="0" y="2.8" width="36" height="16.4" rx="4.6" fill="#FF9F0A"/>
+<circle cx="9.4" cy="11" r="5.2" fill="#241A06"/><path d="M9.4,8.3 L9.4,11.4" stroke="#FF9F0A" stroke-width="1.5" stroke-linecap="round"/>
+<circle cx="9.4" cy="13.6" r=".85" fill="#FF9F0A"/>
+<text x="16" y="14.5" font-size="9" font-weight="700" fill="#241A06">待你</text><g transform="translate(42,7)">
+<rect x="0" y="0" width="36" height="8" rx="2.6" fill="currentColor" fill-opacity=".2"/>
+<path d="M0,2.6 A2.6,2.6 0 0 1 2.6,0 H20.2 V8 H2.6 A2.6,2.6 0 0 1 0,5.4 Z" fill="currentColor" fill-opacity=".58"/>
+<path d="M25.8,0 H33.4 A2.6,2.6 0 0 1 36,2.6 V5.4 A2.6,2.6 0 0 1 33.4,8 H25.8 Z" fill="#FF453A" fill-opacity=".72"/>
+<path d="M20.2,0 L17.8,-3.6 L22.6,-3.6 Z" fill="currentColor"/></g></svg></span><span class="qm-mb-item" style="width:20px"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.6,7.8 A10.5,10.5 0 0 1 17.4,7.8"/><path d="M5.6,10.8 A6.3,6.3 0 0 1 14.4,10.8"/></g><circle cx="10" cy="14.4" r="1.55" fill="currentColor"/></svg></span><span class="qm-mb-item" style="width:26px"><svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="6.9" width="21" height="9.6" rx="2.7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.1"/><rect x="2.7" y="8.6" width="12" height="6.2" rx="1.5" fill="currentColor"/><path d="M23.5,10.1 A2.7,2.7 0 0 1 23.5,13.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="qm-mb-item qm-mb-clock" style="width:54px">週四 1:28</span></div></div>
+</div>
+<div class="qm-varkeys">
+  <div class="qm-vk is-pick"><h4><i>A</i>倒數環　<span style="font-size:10px;font-weight:600;color:#0071E3">建議出貨</span></h4><p>環 = 5 小時視窗已過 56%，文字 = 還剩多久。一個圖形 + 四個字元，最好讀。被擋住時整顆變實心琥珀膠囊，暗色文字寫「待你 1」。</p><span class="qm-w">54 × 22 pt · 固定</span></div>
+  <div class="qm-vk"><h4><i>B</i>雙行讀數</h4><p>Stats 的兩行文字慣用法，最省空間。上行額度、下行剩餘時間，左邊 3.4pt 直立量表當狀態槽。被擋住時下行換成琥珀實心徽章。</p><span class="qm-w">36 × 22 pt · 固定</span></div>
+  <div class="qm-vk"><h4><i>C</i>微型時間軸</h4><p>面板主題的縮影：36pt 條 = 5 小時視窗，三角形 = 現在，紅色尾巴 = 預估用盡到重置之間的斷線區。燒得太快時不用打開面板就看得到。</p><span class="qm-w">80 × 22 pt · 固定</span></div>
+</div>
+</section>
+
+<section>
+<div class="qm-h2">02 · <b>下拉面板</b> — 384 × 實際尺寸（1pt = 1px）</div>
+<p class="qm-sub">深色與淺色材質各一份，放在自繪桌布上模擬 NSVisualEffectView。整個面板由<b>一條時間脊椎</b>組織：上方是 5 小時視窗的燃燒曲線，往下經過一個放大錐（×20）接到最近 15 分鐘的 agent 甘特圖，而 <b>NOW 縱線貫穿全部列</b>。</p>
+<div class="qm-stage">
+  <div class="qm-tile qm-wall-d"><div class="qm-mbar is-dark"><span class="qm-mb-apple"><svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true"><path d="M9.4,8.4c0-1.6,1.3-2.4,1.4-2.4c-0.8-1.1-1.9-1.3-2.3-1.3c-1-0.1-1.9,0.6-2.4,0.6c-0.5,0-1.3-0.6-2.1-0.6c-1.1,0-2.1,0.6-2.7,1.6c-1.1,2-0.3,4.9,0.8,6.5c0.5,0.8,1.2,1.7,2,1.6c0.8,0,1.1-0.5,2.1-0.5c1,0,1.2,0.5,2.1,0.5c0.9,0,1.4-0.8,2-1.6c0.6-0.9,0.8-1.8,0.8-1.8C10.9,10.9,9.4,10.3,9.4,8.4z M7.8,3.7c0.4-0.5,0.7-1.3,0.6-2c-0.6,0-1.4,0.4-1.8,0.9C6.2,3.1,5.9,3.8,6,4.5C6.7,4.6,7.4,4.2,7.8,3.7z" fill="currentColor"/></svg></span><span class="qm-mb-app">Claude Code</span><span class="qm-mb-menu">檔案</span><span class="qm-mb-menu">編輯</span><span class="qm-mb-gap"></span><span class="qm-mb-item is-sel" style="width:54px"><svg width="54" height="22" viewBox="0 0 54 22" aria-label="5 小時視窗剩 2 小時 12 分">
+<g transform="translate(11,11)"><circle r="6.6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.3"/>
+<circle r="6.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="23.2 41.5" transform="rotate(-90)"/></g>
+<text x="21" y="15" font-size="11" font-weight="600" fill="currentColor" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:20px"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.6,7.8 A10.5,10.5 0 0 1 17.4,7.8"/><path d="M5.6,10.8 A6.3,6.3 0 0 1 14.4,10.8"/></g><circle cx="10" cy="14.4" r="1.55" fill="currentColor"/></svg></span><span class="qm-mb-item" style="width:26px"><svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="6.9" width="21" height="9.6" rx="2.7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.1"/><rect x="2.7" y="8.6" width="12" height="6.2" rx="1.5" fill="currentColor"/><path d="M23.5,10.1 A2.7,2.7 0 0 1 23.5,13.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="qm-mb-item qm-mb-clock" style="width:54px">週四 1:28</span></div><div class="qm-pop">
+<i class="qm-notch"></i>
+<div class="qm-bodywrap">
+
+<div class="qm-title">
+  <div class="qm-tl"><svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M3.1,4.4 L3.1,1.6 L5.6,4.0 M11.9,4.4 L11.9,1.6 L9.4,4.0" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"/><rect x="2.1" y="3.9" width="10.8" height="9.6" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="5.5" cy="8.3" r="1.15" fill="currentColor"/><circle cx="9.5" cy="8.3" r="1.15" fill="currentColor"/></svg></div>
+  <div class="qm-tc">QuotaMonster</div>
+  <div class="qm-tr"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M8.6,5 A3.6,3.6 0 1 1 7.3,2.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M8.7,0.7 L8.7,2.6 L6.8,2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></svg><span>3 分鐘前</span></div>
+</div>
+
+<div class="qm-rollup">
+  <span class="qm-rc"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><rect x=".9" y="1.6" width="8.2" height="6.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3,4.2 L4.3,5.4 L3,6.6" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>4 sessions</span>
+  <span class="qm-rc"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M5,1.4 A3.6,3.6 0 0 1 8.6,5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>5 agents 執行中</span>
+  <span class="qm-rc is-amber"><svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M5,0.6 L9.5,8.4 L0.5,8.4 Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M5,3.3 L5,5.7" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="5" cy="7.1" r=".68" fill="currentColor"/></svg>1 待你回應</span>
+</div>
+
+<div class="qm-alert">
+  <div class="qm-aic"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.1" fill="currentColor"/><path d="M10,5.3 L10,11" stroke="var(--matSolid)" stroke-width="2.1" stroke-linecap="round"/><circle cx="10" cy="14.2" r="1.15" fill="var(--matSolid)"/></svg></div>
+  <div class="qm-atx">
+    <div class="qm-at1">f1-e3 <em>正在等你的許可</em></div>
+    <div class="qm-at2">permission prompt · <code>Bash git push --force</code></div>
+  </div>
+  <div class="qm-ar2"><span class="qm-adur">2m</span><svg width="7" height="11" viewBox="0 0 7 11" aria-hidden="true"><path d="M1.4,1.4 L5.4,5.5 L1.4,9.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+</div>
+
+<div class="qm-card">
+  <div class="qm-chead">
+    <div>
+      <div class="qm-ch-l">5 小時視窗</div>
+      <div class="qm-ch-s">22:40 → 03:40 · 時間已過 56%</div>
+    </div>
+    <div class="qm-chead-r">
+      <div class="qm-big">28<span>%</span></div>
+      <div class="qm-ch-s">2h 12m 後重置</div>
+    </div>
+  </div>
+  <div class="qm-warn">
+    <span class="qm-warn-l"><svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M5,0.6 L9.5,8.4 L0.5,8.4 Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M5,3.3 L5,5.7" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="5" cy="7.1" r=".68" fill="currentColor"/></svg>重置前將有 <b>1h 25m</b> 無額度可用</span>
+    <span class="qm-warn-r">近 12m 用掉 18%</span>
+  </div>
+  <svg class="qm-chart" width="340" height="84" viewBox="0 0 340 84" aria-label="5 小時額度視窗燃燒曲線">
+<defs>
+<linearGradient id="qmAD" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#0A84FF" stop-opacity=".50"/><stop offset="1" stop-color="#0A84FF" stop-opacity=".03"/>
+</linearGradient>
+<pattern id="qmHD" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="5" height="5" fill="#FF453A" fill-opacity=".055"/>
+<line x1="0" y1="0" x2="0" y2="5" stroke="#FF453A" stroke-opacity=".34" stroke-width="1"/>
+</pattern>
+</defs>
+<rect x="0" y="6" width="340" height="52" rx="3" fill="currentColor" fill-opacity=".045"/>
+<rect x="243.7" y="6" width="96.3" height="52" fill="url(#qmHD)"/>
+<line x1="0" y1="32" x2="340" y2="32" stroke="currentColor" stroke-opacity=".10" stroke-width="1" stroke-dasharray="1 4"/>
+<line x1="0" y1="6" x2="340" y2="6" stroke="#FF453A" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2.5 2.5"/>
+<text x="3" y="14.5" font-size="7.5" font-weight="600" fill="#FF453A" fill-opacity=".85" letter-spacing=".04em">100% 用盡</text>
+<path d="M0,58 L11.3,57.8 L22.7,57.5 L34,57.3 L45.3,57.1 L56.7,56.6 L68,56.4 L79.3,56.2 L90.7,55.7 L102,55.4 L113.3,55.2 L124.7,54.8 L136,54.4 L147.3,54.0 L158.7,53.7 L170,53.4 L176.8,53.0 L179.1,51.6 L181.3,50.2 L183.6,48.6 L185.9,47.1 L188.1,45.3 L190.4,43.4 L190.4,58 L0,58 Z" fill="url(#qmAD)"/>
+<path d="M0,58 L11.3,57.8 L22.7,57.5 L34,57.3 L45.3,57.1 L56.7,56.6 L68,56.4 L79.3,56.2 L90.7,55.7 L102,55.4 L113.3,55.2 L124.7,54.8 L136,54.4 L147.3,54.0 L158.7,53.7 L170,53.4 L176.8,53.0 L179.1,51.6 L181.3,50.2 L183.6,48.6 L185.9,47.1 L188.1,45.3 L190.4,43.4" fill="none" stroke="#0A84FF" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M190.4,43.4 L243.7,6" fill="none" stroke="#FF9F0A" stroke-width="1.5" stroke-dasharray="3 2.6" stroke-linecap="round"/>
+<line x1="243.7" y1="2" x2="243.7" y2="62" stroke="#FF453A" stroke-opacity=".8" stroke-width="1"/>
+<path d="M243.7,3.2 L246.6,6 L243.7,8.8 L240.8,6 Z" fill="#FF453A"/>
+<line x1="190.4" y1="0" x2="190.4" y2="66" stroke="currentColor" stroke-opacity=".55" stroke-width="1"/>
+<circle cx="190.4" cy="43.4" r="3.1" fill="#0A84FF" stroke="currentColor" stroke-opacity=".9" stroke-width="1.4"/>
+<line x1="0" y1="58" x2="340" y2="58" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<line x1="0" y1="58" x2="0" y2="61.5" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<line x1="339.5" y1="58" x2="339.5" y2="61.5" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<text x="0" y="70.5" font-size="8.5" fill="currentColor" fill-opacity=".45" style="font-variant-numeric:tabular-nums">22:40 開始</text>
+<text x="190.4" y="70.5" text-anchor="middle" font-size="8.5" font-weight="600" fill="currentColor" fill-opacity=".8" style="font-variant-numeric:tabular-nums">現在 01:28</text>
+<text x="245" y="70.5" text-anchor="start" font-size="8.5" font-weight="600" fill="#FF453A" style="font-variant-numeric:tabular-nums">02:15 用盡</text>
+<text x="340" y="70.5" text-anchor="end" font-size="8.5" fill="currentColor" fill-opacity=".45" style="font-variant-numeric:tabular-nums">03:40 重置</text>
+<path d="M173.4,76 L173.4,81 L190.4,81 L190.4,76" fill="none" stroke="currentColor" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>
+</svg>
+</div>
+
+<svg class="qm-cone" width="384" height="17" viewBox="0 0 384 17" aria-hidden="true">
+<defs><linearGradient id="qmCD" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#0A84FF" stop-opacity=".17"/><stop offset="1" stop-color="#0A84FF" stop-opacity=".02"/>
+</linearGradient></defs>
+<path d="M195.4,0 L212.4,0 L336,17 L164,17 Z" fill="url(#qmCD)"/>
+<path d="M195.4,0 L164,17" stroke="currentColor" stroke-opacity=".22" stroke-width="1" fill="none"/>
+<path d="M212.4,0 L336,17" stroke="currentColor" stroke-opacity=".22" stroke-width="1" fill="none"/>
+</svg>
+
+<div class="qm-gantt">
+  <i class="qm-grid" style="left:221px"></i>
+  <i class="qm-grid" style="left:278px"></i>
+  <i class="qm-now"></i>
+
+  <div class="qm-row qm-ruler">
+    <div class="qm-cg"><span class="qm-seclabel">LIVE SESSIONS</span></div>
+    <div class="qm-ct"><span class="qm-tk" style="left:0">−15m</span><span class="qm-tk" style="left:57.3px;transform:translateX(-50%)">−10m</span><span class="qm-tk" style="left:114.7px;transform:translateX(-50%)">−5m</span><span class="qm-tk is-now" style="right:0">現在</span></div>
+    <div class="qm-cd"><span class="qm-zoom">×20</span></div>
+  </div>
+
+  <div class="qm-grp">
+    <i class="qm-rail" style="left:23px;top:15px;height:28px"></i>
+    <i class="qm-rail" style="left:39px;top:50px;height:90px"></i>
+
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-busy"></i>usage-97</div>
+        <div class="qm-sp">~/Antigravity/usage</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-sess" style="width:137.6px"></i></div>
+        <div class="qm-tl2">context 34%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong">12m</div><div class="qm-dv2 c-busy">BUSY</div></div>
+    </div>
+
+    <div class="qm-row qm-pr">
+      <div class="qm-cg"><span class="qm-wfic"><svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M1.4,2.4 h3.2 M1.4,5.5 h5.6 M1.4,8.6 h3.2" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="8.3" cy="2.4" r="1.5" fill="currentColor" fill-opacity=".9"/><circle cx="9.4" cy="5.5" r="1.5" fill="currentColor" fill-opacity=".9"/><circle cx="8.3" cy="8.6" r="1.5" fill="currentColor" fill-opacity=".45"/></svg></span><span class="qm-pn">Design</span><svg class="qm-pips" width="57" height="9" viewBox="0 0 57 9" aria-label="7 個 agent，3 完成"><rect x="0.0" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity="1"/><rect x="8.5" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity="1"/><rect x="17.0" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity="1"/><rect x="25.5" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity=".26"/><rect x="34.0" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity=".26"/><rect x="42.5" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity=".26"/><rect x="51.0" y="0" width="6" height="9" rx="1.6" fill="#BF5AF2" fill-opacity=".26"/></svg></div>
+      <div class="qm-ct"><span class="qm-wfid">wf_79e5d247</span><i class="qm-brk"><svg width="63" height="9" viewBox="0 0 63 9"><path d="M.9,1 L.9,8 M.9,4.5 L62.1,4.5 M62.1,1 L62.1,8" stroke="#BF5AF2" stroke-opacity=".8" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></i></div>
+      <div class="qm-cd"><span class="qm-dv c-wf">3/7</span></div>
+    </div>
+
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">dynamic-island</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:48.2px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">4m12</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">apple-hig-native</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:43.6px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">3m48</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">max-density</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:40.3px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">3m31</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">creature-motif</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:33.4px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">2m55</span></div></div>
+    <div class="qm-row qm-ar lvl2 is-done"><div class="qm-cg"><span class="qm-an">state-machine-kinetic</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-done" style="width:57.7px;right:7.6px"></i></div></div><div class="qm-cd"><span class="qm-dv">5m02</span></div></div>
+  </div>
+
+  <div class="qm-grp qm-blocked">
+    <i class="qm-rail" style="left:23px;top:15px;height:27px"></i>
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-wait"></i>f1-e3<span class="qm-chip">待你回應</span></div>
+        <div class="qm-sp">~/Antigravity/F1</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-wait" style="width:22.9px"></i></div>
+        <div class="qm-tl2 is-amber"><code>git push --force</code></div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong c-wait">2m</div><div class="qm-dv2 c-wait">WAIT</div></div>
+    </div>
+    <div class="qm-row qm-ar lvl1"><div class="qm-cg"><span class="qm-an">general-purpose</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:15.3px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">1m20</span></div></div>
+  </div>
+
+  <div class="qm-grp">
+    <div class="qm-row qm-sr is-idle">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-idle"></i>obsidian-4a</div>
+        <div class="qm-sp">~/Obsidian</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-idle" style="width:172px"></i><svg class="qm-clipchev" width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M6.2,1.2 L3,4.5 L6.2,7.8 M8.4,1.2 L5.2,4.5 L8.4,7.8" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="qm-tl2">context 12%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv">41m</div><div class="qm-dv2 c-idle">IDLE</div></div>
+    </div>
+  </div>
+
+  <div class="qm-grp">
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-busy"></i>wrapx-comsol</div>
+        <div class="qm-sp">~/wrapx-comsol</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-sess" style="width:34.4px"></i></div>
+        <div class="qm-tl2">context 61%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong">3m</div><div class="qm-dv2 c-busy">BUSY</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="qm-card qm-card2">
+  <div class="qm-w7h"><span class="qm-seclabel">7 天額度</span><span class="qm-w7m">週六 1:59pm 重置 · 4d 14h</span></div>
+  <div class="qm-mrow"><span class="qm-ml">全模型</span><span class="qm-meter"><i class="qm-mfill" style="width:18%"></i><i class="qm-mpace" style="left:34.5%"></i></span><span class="qm-mv">18%</span></div>
+  <div class="qm-mrow"><span class="qm-ml">Fable · Opus 5</span><span class="qm-meter"><i class="qm-mfill is-g" style="width:1%;min-width:3px"></i><i class="qm-mpace" style="left:34.5%"></i></span><span class="qm-mv">1%</span></div>
+  <div class="qm-mleg"><i class="qm-legtick"></i>刻度 = 時間進度 35%，兩者皆低於配速</div>
+</div>
+
+<div class="qm-foot">
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M5.1,1.4 h2.8 l-.5,3.3 2.2,1.9 v1 H4 v-1 l2.2,-1.9 z M6.5,7.6 v4" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+  <span class="qm-fsep"></span>
+  <span class="qm-ft">每 30s 更新<svg width="8" height="5" viewBox="0 0 8 5" aria-hidden="true"><path d="M1,1 L4,4 L7,1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  <span class="qm-fspacer"></span>
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M1.3,3.6 h10.4 M1.3,9.4 h10.4" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="4.5" cy="3.6" r="1.85" fill="var(--matSolid)" stroke="currentColor" stroke-width="1.15"/><circle cx="8.6" cy="9.4" r="1.85" fill="var(--matSolid)" stroke="currentColor" stroke-width="1.15"/></svg></button>
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3.3,3.5 A4.6,4.6 0 1 0 9.7,3.5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M6.5,1.2 v4.6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></button>
+</div>
+
+</div>
+</div><div class="qm-cap">Dark material · vibrancy</div></div>
+  <div class="qm-tile qm-wall-l"><div class="qm-mbar is-light"><span class="qm-mb-apple"><svg width="13" height="16" viewBox="0 0 13 16" aria-hidden="true"><path d="M9.4,8.4c0-1.6,1.3-2.4,1.4-2.4c-0.8-1.1-1.9-1.3-2.3-1.3c-1-0.1-1.9,0.6-2.4,0.6c-0.5,0-1.3-0.6-2.1-0.6c-1.1,0-2.1,0.6-2.7,1.6c-1.1,2-0.3,4.9,0.8,6.5c0.5,0.8,1.2,1.7,2,1.6c0.8,0,1.1-0.5,2.1-0.5c1,0,1.2,0.5,2.1,0.5c0.9,0,1.4-0.8,2-1.6c0.6-0.9,0.8-1.8,0.8-1.8C10.9,10.9,9.4,10.3,9.4,8.4z M7.8,3.7c0.4-0.5,0.7-1.3,0.6-2c-0.6,0-1.4,0.4-1.8,0.9C6.2,3.1,5.9,3.8,6,4.5C6.7,4.6,7.4,4.2,7.8,3.7z" fill="currentColor"/></svg></span><span class="qm-mb-app">Claude Code</span><span class="qm-mb-menu">檔案</span><span class="qm-mb-menu">編輯</span><span class="qm-mb-gap"></span><span class="qm-mb-item is-sel" style="width:54px"><svg width="54" height="22" viewBox="0 0 54 22" aria-label="5 小時視窗剩 2 小時 12 分">
+<g transform="translate(11,11)"><circle r="6.6" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.3"/>
+<circle r="6.6" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-dasharray="23.2 41.5" transform="rotate(-90)"/></g>
+<text x="21" y="15" font-size="11" font-weight="600" fill="currentColor" style="font-variant-numeric:tabular-nums">2h12</text></svg></span><span class="qm-mb-item" style="width:20px"><svg width="20" height="22" viewBox="0 0 20 22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M2.6,7.8 A10.5,10.5 0 0 1 17.4,7.8"/><path d="M5.6,10.8 A6.3,6.3 0 0 1 14.4,10.8"/></g><circle cx="10" cy="14.4" r="1.55" fill="currentColor"/></svg></span><span class="qm-mb-item" style="width:26px"><svg width="26" height="22" viewBox="0 0 26 22" aria-hidden="true"><rect x="1" y="6.9" width="21" height="9.6" rx="2.7" fill="none" stroke="currentColor" stroke-opacity=".5" stroke-width="1.1"/><rect x="2.7" y="8.6" width="12" height="6.2" rx="1.5" fill="currentColor"/><path d="M23.5,10.1 A2.7,2.7 0 0 1 23.5,13.4" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1.1" stroke-linecap="round"/></svg></span><span class="qm-mb-item qm-mb-clock" style="width:54px">週四 1:28</span></div><div class="qm-pop is-light">
+<i class="qm-notch"></i>
+<div class="qm-bodywrap">
+
+<div class="qm-title">
+  <div class="qm-tl"><svg width="15" height="15" viewBox="0 0 15 15" aria-hidden="true"><path d="M3.1,4.4 L3.1,1.6 L5.6,4.0 M11.9,4.4 L11.9,1.6 L9.4,4.0" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round" stroke-linecap="round"/><rect x="2.1" y="3.9" width="10.8" height="9.6" rx="3.4" fill="none" stroke="currentColor" stroke-width="1.25"/><circle cx="5.5" cy="8.3" r="1.15" fill="currentColor"/><circle cx="9.5" cy="8.3" r="1.15" fill="currentColor"/></svg></div>
+  <div class="qm-tc">QuotaMonster</div>
+  <div class="qm-tr"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M8.6,5 A3.6,3.6 0 1 1 7.3,2.2" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M8.7,0.7 L8.7,2.6 L6.8,2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></svg><span>3 分鐘前</span></div>
+</div>
+
+<div class="qm-rollup">
+  <span class="qm-rc"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><rect x=".9" y="1.6" width="8.2" height="6.8" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M3,4.2 L4.3,5.4 L3,6.6" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg>4 sessions</span>
+  <span class="qm-rc"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><circle cx="5" cy="5" r="3.6" fill="none" stroke="currentColor" stroke-width="1.1"/><path d="M5,1.4 A3.6,3.6 0 0 1 8.6,5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg>5 agents 執行中</span>
+  <span class="qm-rc is-amber"><svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M5,0.6 L9.5,8.4 L0.5,8.4 Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M5,3.3 L5,5.7" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="5" cy="7.1" r=".68" fill="currentColor"/></svg>1 待你回應</span>
+</div>
+
+<div class="qm-alert">
+  <div class="qm-aic"><svg width="20" height="20" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="9.1" fill="currentColor"/><path d="M10,5.3 L10,11" stroke="var(--matSolid)" stroke-width="2.1" stroke-linecap="round"/><circle cx="10" cy="14.2" r="1.15" fill="var(--matSolid)"/></svg></div>
+  <div class="qm-atx">
+    <div class="qm-at1">f1-e3 <em>正在等你的許可</em></div>
+    <div class="qm-at2">permission prompt · <code>Bash git push --force</code></div>
+  </div>
+  <div class="qm-ar2"><span class="qm-adur">2m</span><svg width="7" height="11" viewBox="0 0 7 11" aria-hidden="true"><path d="M1.4,1.4 L5.4,5.5 L1.4,9.6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+</div>
+
+<div class="qm-card">
+  <div class="qm-chead">
+    <div>
+      <div class="qm-ch-l">5 小時視窗</div>
+      <div class="qm-ch-s">22:40 → 03:40 · 時間已過 56%</div>
+    </div>
+    <div class="qm-chead-r">
+      <div class="qm-big">28<span>%</span></div>
+      <div class="qm-ch-s">2h 12m 後重置</div>
+    </div>
+  </div>
+  <div class="qm-warn">
+    <span class="qm-warn-l"><svg width="10" height="9" viewBox="0 0 10 9" aria-hidden="true"><path d="M5,0.6 L9.5,8.4 L0.5,8.4 Z" fill="currentColor" fill-opacity=".22" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M5,3.3 L5,5.7" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="5" cy="7.1" r=".68" fill="currentColor"/></svg>重置前將有 <b>1h 25m</b> 無額度可用</span>
+    <span class="qm-warn-r">近 12m 用掉 18%</span>
+  </div>
+  <svg class="qm-chart" width="340" height="84" viewBox="0 0 340 84" aria-label="5 小時額度視窗燃燒曲線">
+<defs>
+<linearGradient id="qmAL" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#0071E3" stop-opacity=".50"/><stop offset="1" stop-color="#0071E3" stop-opacity=".03"/>
+</linearGradient>
+<pattern id="qmHL" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+<rect width="5" height="5" fill="#D70015" fill-opacity=".055"/>
+<line x1="0" y1="0" x2="0" y2="5" stroke="#D70015" stroke-opacity=".34" stroke-width="1"/>
+</pattern>
+</defs>
+<rect x="0" y="6" width="340" height="52" rx="3" fill="currentColor" fill-opacity=".045"/>
+<rect x="243.7" y="6" width="96.3" height="52" fill="url(#qmHL)"/>
+<line x1="0" y1="32" x2="340" y2="32" stroke="currentColor" stroke-opacity=".10" stroke-width="1" stroke-dasharray="1 4"/>
+<line x1="0" y1="6" x2="340" y2="6" stroke="#D70015" stroke-opacity=".55" stroke-width="1" stroke-dasharray="2.5 2.5"/>
+<text x="3" y="14.5" font-size="7.5" font-weight="600" fill="#D70015" fill-opacity=".85" letter-spacing=".04em">100% 用盡</text>
+<path d="M0,58 L11.3,57.8 L22.7,57.5 L34,57.3 L45.3,57.1 L56.7,56.6 L68,56.4 L79.3,56.2 L90.7,55.7 L102,55.4 L113.3,55.2 L124.7,54.8 L136,54.4 L147.3,54.0 L158.7,53.7 L170,53.4 L176.8,53.0 L179.1,51.6 L181.3,50.2 L183.6,48.6 L185.9,47.1 L188.1,45.3 L190.4,43.4 L190.4,58 L0,58 Z" fill="url(#qmAL)"/>
+<path d="M0,58 L11.3,57.8 L22.7,57.5 L34,57.3 L45.3,57.1 L56.7,56.6 L68,56.4 L79.3,56.2 L90.7,55.7 L102,55.4 L113.3,55.2 L124.7,54.8 L136,54.4 L147.3,54.0 L158.7,53.7 L170,53.4 L176.8,53.0 L179.1,51.6 L181.3,50.2 L183.6,48.6 L185.9,47.1 L188.1,45.3 L190.4,43.4" fill="none" stroke="#0071E3" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+<path d="M190.4,43.4 L243.7,6" fill="none" stroke="#B86E00" stroke-width="1.5" stroke-dasharray="3 2.6" stroke-linecap="round"/>
+<line x1="243.7" y1="2" x2="243.7" y2="62" stroke="#D70015" stroke-opacity=".8" stroke-width="1"/>
+<path d="M243.7,3.2 L246.6,6 L243.7,8.8 L240.8,6 Z" fill="#D70015"/>
+<line x1="190.4" y1="0" x2="190.4" y2="66" stroke="currentColor" stroke-opacity=".55" stroke-width="1"/>
+<circle cx="190.4" cy="43.4" r="3.1" fill="#0071E3" stroke="currentColor" stroke-opacity=".9" stroke-width="1.4"/>
+<line x1="0" y1="58" x2="340" y2="58" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<line x1="0" y1="58" x2="0" y2="61.5" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<line x1="339.5" y1="58" x2="339.5" y2="61.5" stroke="currentColor" stroke-opacity=".26" stroke-width="1"/>
+<text x="0" y="70.5" font-size="8.5" fill="currentColor" fill-opacity=".45" style="font-variant-numeric:tabular-nums">22:40 開始</text>
+<text x="190.4" y="70.5" text-anchor="middle" font-size="8.5" font-weight="600" fill="currentColor" fill-opacity=".8" style="font-variant-numeric:tabular-nums">現在 01:28</text>
+<text x="245" y="70.5" text-anchor="start" font-size="8.5" font-weight="600" fill="#D70015" style="font-variant-numeric:tabular-nums">02:15 用盡</text>
+<text x="340" y="70.5" text-anchor="end" font-size="8.5" fill="currentColor" fill-opacity=".45" style="font-variant-numeric:tabular-nums">03:40 重置</text>
+<path d="M173.4,76 L173.4,81 L190.4,81 L190.4,76" fill="none" stroke="currentColor" stroke-opacity=".38" stroke-width="1" stroke-linecap="round"/>
+</svg>
+</div>
+
+<svg class="qm-cone" width="384" height="17" viewBox="0 0 384 17" aria-hidden="true">
+<defs><linearGradient id="qmCL" x1="0" y1="0" x2="0" y2="1">
+<stop offset="0" stop-color="#0071E3" stop-opacity=".17"/><stop offset="1" stop-color="#0071E3" stop-opacity=".02"/>
+</linearGradient></defs>
+<path d="M195.4,0 L212.4,0 L336,17 L164,17 Z" fill="url(#qmCL)"/>
+<path d="M195.4,0 L164,17" stroke="currentColor" stroke-opacity=".22" stroke-width="1" fill="none"/>
+<path d="M212.4,0 L336,17" stroke="currentColor" stroke-opacity=".22" stroke-width="1" fill="none"/>
+</svg>
+
+<div class="qm-gantt">
+  <i class="qm-grid" style="left:221px"></i>
+  <i class="qm-grid" style="left:278px"></i>
+  <i class="qm-now"></i>
+
+  <div class="qm-row qm-ruler">
+    <div class="qm-cg"><span class="qm-seclabel">LIVE SESSIONS</span></div>
+    <div class="qm-ct"><span class="qm-tk" style="left:0">−15m</span><span class="qm-tk" style="left:57.3px;transform:translateX(-50%)">−10m</span><span class="qm-tk" style="left:114.7px;transform:translateX(-50%)">−5m</span><span class="qm-tk is-now" style="right:0">現在</span></div>
+    <div class="qm-cd"><span class="qm-zoom">×20</span></div>
+  </div>
+
+  <div class="qm-grp">
+    <i class="qm-rail" style="left:23px;top:15px;height:28px"></i>
+    <i class="qm-rail" style="left:39px;top:50px;height:90px"></i>
+
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-busy"></i>usage-97</div>
+        <div class="qm-sp">~/Antigravity/usage</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-sess" style="width:137.6px"></i></div>
+        <div class="qm-tl2">context 34%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong">12m</div><div class="qm-dv2 c-busy">BUSY</div></div>
+    </div>
+
+    <div class="qm-row qm-pr">
+      <div class="qm-cg"><span class="qm-wfic"><svg width="11" height="11" viewBox="0 0 11 11" aria-hidden="true"><path d="M1.4,2.4 h3.2 M1.4,5.5 h5.6 M1.4,8.6 h3.2" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="8.3" cy="2.4" r="1.5" fill="currentColor" fill-opacity=".9"/><circle cx="9.4" cy="5.5" r="1.5" fill="currentColor" fill-opacity=".9"/><circle cx="8.3" cy="8.6" r="1.5" fill="currentColor" fill-opacity=".45"/></svg></span><span class="qm-pn">Design</span><svg class="qm-pips" width="57" height="9" viewBox="0 0 57 9" aria-label="7 個 agent，3 完成"><rect x="0.0" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity="1"/><rect x="8.5" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity="1"/><rect x="17.0" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity="1"/><rect x="25.5" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity=".26"/><rect x="34.0" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity=".26"/><rect x="42.5" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity=".26"/><rect x="51.0" y="0" width="6" height="9" rx="1.6" fill="#8E3FD4" fill-opacity=".26"/></svg></div>
+      <div class="qm-ct"><span class="qm-wfid">wf_79e5d247</span><i class="qm-brk"><svg width="63" height="9" viewBox="0 0 63 9"><path d="M.9,1 L.9,8 M.9,4.5 L62.1,4.5 M62.1,1 L62.1,8" stroke="#8E3FD4" stroke-opacity=".8" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg></i></div>
+      <div class="qm-cd"><span class="qm-dv c-wf">3/7</span></div>
+    </div>
+
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">dynamic-island</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:48.2px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">4m12</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">apple-hig-native</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:43.6px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">3m48</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">max-density</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:40.3px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">3m31</span></div></div>
+    <div class="qm-row qm-ar lvl2"><div class="qm-cg"><span class="qm-an">creature-motif</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:33.4px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">2m55</span></div></div>
+    <div class="qm-row qm-ar lvl2 is-done"><div class="qm-cg"><span class="qm-an">state-machine-kinetic</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-done" style="width:57.7px;right:7.6px"></i></div></div><div class="qm-cd"><span class="qm-dv">5m02</span></div></div>
+  </div>
+
+  <div class="qm-grp qm-blocked">
+    <i class="qm-rail" style="left:23px;top:15px;height:27px"></i>
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-wait"></i>f1-e3<span class="qm-chip">待你回應</span></div>
+        <div class="qm-sp">~/Antigravity/F1</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-wait" style="width:22.9px"></i></div>
+        <div class="qm-tl2 is-amber"><code>git push --force</code></div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong c-wait">2m</div><div class="qm-dv2 c-wait">WAIT</div></div>
+    </div>
+    <div class="qm-row qm-ar lvl1"><div class="qm-cg"><span class="qm-an">general-purpose</span></div><div class="qm-ct"><div class="qm-tl1"><i class="qm-bar b-ag" style="width:15.3px;right:0.0px"></i></div></div><div class="qm-cd"><span class="qm-dv">1m20</span></div></div>
+  </div>
+
+  <div class="qm-grp">
+    <div class="qm-row qm-sr is-idle">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-idle"></i>obsidian-4a</div>
+        <div class="qm-sp">~/Obsidian</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-idle" style="width:172px"></i><svg class="qm-clipchev" width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M6.2,1.2 L3,4.5 L6.2,7.8 M8.4,1.2 L5.2,4.5 L8.4,7.8" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        <div class="qm-tl2">context 12%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv">41m</div><div class="qm-dv2 c-idle">IDLE</div></div>
+    </div>
+  </div>
+
+  <div class="qm-grp">
+    <div class="qm-row qm-sr">
+      <div class="qm-cg">
+        <div class="qm-sn"><i class="qm-dot d-busy"></i>wrapx-comsol</div>
+        <div class="qm-sp">~/wrapx-comsol</div>
+      </div>
+      <div class="qm-ct">
+        <div class="qm-tl1"><i class="qm-bar b-sess" style="width:34.4px"></i></div>
+        <div class="qm-tl2">context 61%</div>
+      </div>
+      <div class="qm-cd"><div class="qm-dv is-strong">3m</div><div class="qm-dv2 c-busy">BUSY</div></div>
+    </div>
+  </div>
+</div>
+
+<div class="qm-card qm-card2">
+  <div class="qm-w7h"><span class="qm-seclabel">7 天額度</span><span class="qm-w7m">週六 1:59pm 重置 · 4d 14h</span></div>
+  <div class="qm-mrow"><span class="qm-ml">全模型</span><span class="qm-meter"><i class="qm-mfill" style="width:18%"></i><i class="qm-mpace" style="left:34.5%"></i></span><span class="qm-mv">18%</span></div>
+  <div class="qm-mrow"><span class="qm-ml">Fable · Opus 5</span><span class="qm-meter"><i class="qm-mfill is-g" style="width:1%;min-width:3px"></i><i class="qm-mpace" style="left:34.5%"></i></span><span class="qm-mv">1%</span></div>
+  <div class="qm-mleg"><i class="qm-legtick"></i>刻度 = 時間進度 35%，兩者皆低於配速</div>
+</div>
+
+<div class="qm-foot">
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M5.1,1.4 h2.8 l-.5,3.3 2.2,1.9 v1 H4 v-1 l2.2,-1.9 z M6.5,7.6 v4" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round" stroke-linecap="round"/></svg></button>
+  <span class="qm-fsep"></span>
+  <span class="qm-ft">每 30s 更新<svg width="8" height="5" viewBox="0 0 8 5" aria-hidden="true"><path d="M1,1 L4,4 L7,1" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+  <span class="qm-fspacer"></span>
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M1.3,3.6 h10.4 M1.3,9.4 h10.4" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="4.5" cy="3.6" r="1.85" fill="var(--matSolid)" stroke="currentColor" stroke-width="1.15"/><circle cx="8.6" cy="9.4" r="1.85" fill="var(--matSolid)" stroke="currentColor" stroke-width="1.15"/></svg></button>
+  <button class="qm-fb" type="button"><svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true"><path d="M3.3,3.5 A4.6,4.6 0 1 0 9.7,3.5" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><path d="M6.5,1.2 v4.6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg></button>
+</div>
+
+</div>
+</div><div class="qm-cap">Light material · vibrancy</div></div>
+</div>
+</section>
+</div>

@@ -1,0 +1,919 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>完成訊號 · 餘光（選單列方向）</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   QuotaMonster — 「session 工作完成了」的選單列訊號，方向：餘光 / Afterglow
+   全部選擇器掛在 .fx 底下（沿用 alert-mockups / menubar-mockups 的檔案慣例）。
+   獨立檔：沒有網路、沒有 CDN、CSS 與 SVG 全部內嵌、沒有 emoji。
+   1 CSS px == 1 pt。所有「真實尺寸」的圖示都是 22×22px，就是它在選單列上的大小。
+   深色是預設也是唯一算數的那一版；淺色在最後當附錄，刻意畫小。
+   ═════════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0d11}
+.fx{
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  --page:#0b0d11; --ink:#E4E8EE; --dim:#98A1AE; --dim2:#69727F; --dim3:#4B535F;
+  --line:#1B1F27; --line2:#13171d; --card:#121620;
+  /* 丁香紫 —— 這一頁唯一的新顏色。srgb(0.88,0.55,1.00)，色相 284°。 */
+  --lil:#E08CFF; --lil-fade:#F1CBFF; --lil-soft:rgba(224,140,255,.13); --lil-line:rgba(224,140,255,.38);
+  /* 警示琥珀 = GlyphRenderer.alert, srgb(1.00,0.62,0.04)。這一頁不准拿它來做完成訊號。 */
+  --amber:#FF9E0A; --amber-soft:rgba(255,158,10,.12); --amber-line:rgba(255,158,10,.36);
+  /* 額度色階 = QuotaPalette（深色列那一組）。這一頁也不准拿它們來做完成訊號。 */
+  --q-blue:#2975F2; --q-green:#4DD67A; --q-red:#FF615C;
+  background:var(--page);color:var(--ink);
+  font:13px/1.62 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC","Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  padding:38px 24px 96px;
+}
+.fx .wrap{max-width:1180px;margin:0 auto}
+
+/* ───────── 版式 ───────── */
+.fx h1{font:650 27px/1.2 inherit;letter-spacing:-.024em;margin-bottom:9px}
+.fx h1 span{color:var(--dim);font-weight:400}
+.fx .lede{color:var(--dim);font-size:13.8px;max-width:78ch}
+.fx .lede b{color:var(--ink);font-weight:600}
+.fx .lede em{font-style:normal;color:var(--lil)}
+.fx .lede i{font-style:normal;color:var(--amber)}
+.fx h2{font:700 10.5px/1.4 var(--mono);letter-spacing:.18em;text-transform:uppercase;color:var(--dim2);
+  margin:56px 0 0;border-top:1px solid var(--line);padding-top:18px;display:flex;align-items:center;gap:10px}
+.fx h2 u{text-decoration:none;color:var(--lil)}
+.fx .h2n{font-size:13.2px;color:var(--dim);margin:9px 0 20px;max-width:82ch}
+.fx .h2n b{color:var(--ink);font-weight:600}
+.fx .h2n code,.fx code{font:500 11.5px/1 var(--mono);color:#9FC9E8}
+.fx h3{font:650 14.5px/1.35 inherit;letter-spacing:-.012em;margin:0 0 6px}
+.fx p{max-width:80ch}
+.fx .cap{font:500 11px/1.6 var(--mono);color:var(--dim2);letter-spacing:.012em;margin-top:10px}
+.fx .cap b{color:var(--ink);font-weight:600}
+.fx .cap i{font-style:normal;color:var(--lil)}
+.fx .cap u{text-decoration:none;color:var(--amber)}
+
+/* 頭上的固定前提 */
+.fx .inv{margin:20px 0 0;padding:12px 15px;border:1px dashed var(--line);border-radius:9px;
+  font-size:11.8px;line-height:1.85;color:var(--dim2);display:flex;flex-wrap:wrap;gap:3px 18px}
+.fx .inv b{color:var(--dim);font-weight:600}
+.fx .inv span{white-space:nowrap}
+.fx .inv em{font-style:normal;color:var(--lil);opacity:.9}
+
+/* ───────── 桌面舞台 ───────── */
+.fx .stage{position:relative;border-radius:13px;overflow:hidden;box-shadow:0 0 0 1px #1E222A,0 24px 60px rgba(0,0,0,.5)}
+.fx .wall{position:absolute;inset:0;
+  background:
+    radial-gradient(130% 95% at 82% 122%,rgba(126,66,148,.44) 0%,rgba(126,66,148,0) 60%),
+    radial-gradient(95% 72% at 10% -4%,rgba(28,72,112,.58) 0%,rgba(28,72,112,0) 68%),
+    linear-gradient(157deg,#101627 0%,#151c2f 30%,#1c2036 56%,#281f3c 79%,#33253c 100%)}
+.fx .wall::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.32) 0%,rgba(0,0,0,0) 13%)}
+.fx .stage--lt .wall{background:
+    radial-gradient(112% 82% at 86% 112%,rgba(255,224,184,.86) 0%,rgba(255,224,184,0) 62%),
+    linear-gradient(150deg,#c6d3e3 0%,#d8dde6 34%,#e7e1da 64%,#f1e5d7 100%)}
+.fx .stage--lt .wall::after{background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,0) 13%)}
+
+/* 選單列 —— 高度 25pt，就是真的那麼高 */
+.fx .mb{position:relative;height:25px;display:flex;align-items:center;gap:15px;padding:0 8px 0 13px;
+  font-size:12.5px;line-height:1;white-space:nowrap}
+.fx .mb--dk{background:rgba(16,16,20,.62);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(255,255,255,.90);
+  box-shadow:inset 0 -.5px 0 rgba(255,255,255,.13)}
+.fx .mb--lt{background:rgba(250,250,252,.74);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(0,0,0,.84);
+  box-shadow:inset 0 -.5px 0 rgba(0,0,0,.14)}
+.fx .mb b{font-weight:600}
+.fx .mb__sp{flex:1;min-width:0}
+.fx .mb__r{display:flex;align-items:center;gap:12px;flex:none}
+.fx .mb__ico{opacity:.8;display:flex}
+.fx .mb__clock{font-variant-numeric:tabular-nums;opacity:.92}
+.fx .mb__slot{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:none;position:relative}
+
+/* 窗 */
+.fx .win{position:absolute;border-radius:9px;overflow:hidden;
+  box-shadow:0 26px 62px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.10)}
+.fx .win__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 11px;overflow:hidden;
+  background:rgba(41,43,50,.94);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.4)}
+.fx .win__bar span{width:10px;height:10px;border-radius:50%;flex:none}
+.fx .win__t{margin-left:8px;font:500 10.5px/1 inherit;color:rgba(255,255,255,.44);white-space:nowrap;flex:none}
+.fx .win__b{padding:11px 13px;font:11px/1.64 var(--mono);color:#5F6875;white-space:pre;overflow:hidden;
+  background:rgba(13,14,18,.96)}
+.fx .win__b .g{color:#4E7D5E}.fx .win__b .b{color:#4E6E8E}.fx .win__b .w{color:#8892A0}
+.fx .win__b .d{color:#3C434E}.fx .win__b .v{color:#8E5BA8}
+.fx .win--code .win__b{background:rgba(18,19,25,.97);color:#6A7382}
+.fx .win--code .win__b .k{color:#7A5E9E}.fx .win--code .win__b .s{color:#4E7D5E}
+
+/* 指到圖示的細線 + 註解 */
+.fx .point{position:absolute;pointer-events:none}
+.fx .point__ln{position:absolute;background:var(--lil-line)}
+.fx .point__tx{position:absolute;font:500 10.5px/1.45 var(--mono);color:var(--lil);letter-spacing:.02em;
+  white-space:nowrap;background:rgba(11,13,17,.82);padding:3px 7px;border-radius:5px;
+  border:1px solid var(--lil-line)}
+
+/* tooltip（macOS 樣式，游標停在圖示上時系統畫的那個） */
+.fx .tip{position:absolute;background:rgba(40,42,48,.97);color:rgba(255,255,255,.93);
+  font:11.5px/1.35 -apple-system,"PingFang TC",sans-serif;padding:4px 8px;border-radius:5px;
+  box-shadow:0 4px 14px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.14);white-space:nowrap}
+.fx .tip i{font-style:normal;color:var(--lil)}
+
+/* ───────── 放大檢視 ───────── */
+.fx .zoom{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 17px 15px}
+.fx .zoom__hd{display:flex;align-items:baseline;gap:9px;margin-bottom:13px}
+.fx .zoom__n{font:700 9.5px/1 var(--mono);letter-spacing:.15em;color:var(--lil)}
+.fx .zoom__t{font:600 12.5px/1 inherit;letter-spacing:-.008em}
+.fx .zoom__x{margin-left:auto;font:500 10px/1 var(--mono);color:var(--dim3);letter-spacing:.06em}
+.fx .zoom__body{display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap}
+.fx .big{width:176px;height:176px;flex:none;border-radius:9px;background:#15161b;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.055)}
+.fx .big svg{display:block;image-rendering:auto}
+.fx .zoom__notes{font-size:12.2px;color:var(--dim);line-height:1.68;min-width:180px;flex:1}
+.fx .zoom__notes b{color:var(--ink);font-weight:600}
+.fx .zoom__notes em{font-style:normal;color:var(--lil)}
+.fx .zoom__notes u{text-decoration:none;color:var(--amber)}
+.fx .zoom__notes p+p{margin-top:8px}
+
+/* ───────── 卡片格 ───────── */
+.fx .grid{display:grid;gap:16px}
+.fx .grid--3{grid-template-columns:repeat(3,1fr)}
+.fx .grid--4{grid-template-columns:repeat(4,1fr)}
+.fx .grid--2{grid-template-columns:repeat(2,1fr)}
+.fx .card{background:var(--card);border:1px solid var(--line);border-radius:11px;overflow:hidden;
+  display:flex;flex-direction:column}
+.fx .card__mb{position:relative;height:74px;overflow:hidden}
+.fx .card__mb .wall{inset:0}
+.fx .card__in{padding:14px 15px 15px;flex:1;display:flex;flex-direction:column;gap:9px}
+.fx .card__row{display:flex;align-items:center;gap:13px}
+.fx .card__big{width:88px;height:88px;flex:none;border-radius:8px;background:#15161b;
+  display:flex;align-items:center;justify-content:center;box-shadow:inset 0 0 0 1px rgba(255,255,255,.055)}
+.fx .card__k{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim3)}
+.fx .card__k.is-lil{color:var(--lil)}
+.fx .card__k.is-amb{color:var(--amber)}
+.fx .card__d{font-size:12.2px;color:var(--dim);line-height:1.66}
+.fx .card__d b{color:var(--ink);font-weight:600}
+.fx .card__d em{font-style:normal;color:var(--lil)}
+.fx .card__d u{text-decoration:none;color:var(--amber)}
+.fx .card__d code{font-size:11px}
+
+/* 衰減時間軸 */
+.fx .decay{display:grid;grid-template-columns:repeat(4,1fr);gap:0;border:1px solid var(--line);
+  border-radius:11px;overflow:hidden;background:var(--card)}
+.fx .decay__c{padding:0;border-right:1px solid var(--line);display:flex;flex-direction:column}
+.fx .decay__c:last-child{border-right:0}
+.fx .decay__t{padding:12px 15px 0;display:flex;align-items:baseline;gap:8px}
+.fx .decay__t b{font:650 15px/1 var(--mono);letter-spacing:-.01em;color:var(--ink);font-variant-numeric:tabular-nums}
+.fx .decay__t span{font:500 10px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim3)}
+.fx .decay__mb{position:relative;height:60px;margin:12px 0 0;overflow:hidden}
+.fx .decay__big{height:110px;display:flex;align-items:center;justify-content:center;background:#15161b;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+.fx .decay__x{padding:12px 15px 15px;font-size:12px;color:var(--dim);line-height:1.62;flex:1}
+.fx .decay__x b{color:var(--ink);font-weight:600}
+.fx .decay__x em{font-style:normal;color:var(--lil)}
+.fx .decay__bar{height:3px;background:rgba(255,255,255,.07)}
+.fx .decay__bar i{display:block;height:3px}
+
+/* 並排比對表 */
+.fx table{width:100%;border-collapse:collapse;margin-top:16px;font-size:12.4px}
+.fx th,.fx td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.fx thead th{font:700 9.5px/1.3 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim3);
+  border-bottom:1px solid #262c36}
+.fx thead th.amb{color:var(--amber)}
+.fx thead th.lil{color:var(--lil)}
+.fx td:first-child{color:var(--dim2);width:150px;font-weight:600}
+.fx td b{color:var(--ink);font-weight:600}
+.fx td em{font-style:normal;color:var(--lil)}
+.fx td u{text-decoration:none;color:var(--amber)}
+.fx tbody tr:last-child td{border-bottom:0}
+
+/* 色相盤 */
+.fx .hue{display:flex;gap:18px;align-items:flex-start;flex-wrap:wrap}
+/* 標籤會從 228px 的環往外長到半徑 ~148px，所以外面一定要留一圈空間，
+   否則最左邊那顆（丁香 284°）會被切掉，而那正是這一段唯一要講的東西。 */
+.fx .wheelbox{position:relative;width:350px;height:318px;flex:none;
+  display:flex;align-items:center;justify-content:center}
+.fx .wheel{position:relative;width:228px;height:228px;flex:none}
+.fx .wheel__r{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 0deg,
+    hsl(0 92% 58%),hsl(40 92% 55%),hsl(80 80% 50%),hsl(120 72% 48%),hsl(160 72% 46%),
+    hsl(200 82% 52%),hsl(240 86% 60%),hsl(280 86% 64%),hsl(320 88% 60%),hsl(360 92% 58%));
+  -webkit-mask:radial-gradient(circle,transparent 0 63px,#000 63.6px);
+  mask:radial-gradient(circle,transparent 0 63px,#000 63.6px);opacity:.30}
+.fx .wheel__gap{position:absolute;inset:0;border-radius:50%;
+  background:conic-gradient(from 217deg,rgba(224,140,255,.34) 0deg 144deg,transparent 144deg 360deg);
+  -webkit-mask:radial-gradient(circle,transparent 0 63px,#000 63.6px);
+  mask:radial-gradient(circle,transparent 0 63px,#000 63.6px)}
+.fx .wheel__mk{position:absolute;left:50%;top:50%;width:0;height:0}
+.fx .wheel__mk i{position:absolute;display:block;width:13px;height:13px;border-radius:50%;
+  margin:-6.5px 0 0 -6.5px;box-shadow:0 0 0 2px #0b0d11}
+.fx .wheel__mk b{position:absolute;font:600 10px/1.3 var(--mono);letter-spacing:.03em;white-space:nowrap;
+  transform:translate(-50%,-50%)}
+.fx .wheel__c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:120px}
+.fx .wheel__c b{display:block;font:650 26px/1 var(--mono);color:var(--lil);letter-spacing:-.02em}
+.fx .wheel__c span{display:block;font:500 10px/1.5 var(--mono);letter-spacing:.11em;color:var(--dim3);
+  text-transform:uppercase;margin-top:7px}
+.fx .huetx{flex:1;min-width:300px;font-size:12.8px;color:var(--dim);line-height:1.72}
+.fx .huetx b{color:var(--ink);font-weight:600}
+.fx .huetx em{font-style:normal;color:var(--lil)}
+.fx .huetx p+p{margin-top:10px}
+.fx .sw{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.fx .sw span{font:500 10.5px/1 var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:6px;
+  padding:6px 9px 6px 7px;display:inline-flex;align-items:center;gap:7px;letter-spacing:.02em}
+.fx .sw i{width:11px;height:11px;border-radius:3px;display:block;flex:none}
+
+/* 註記欄 */
+.fx .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:20px}
+.fx .note{border:1px solid var(--line);border-radius:11px;padding:16px 17px 17px;background:var(--line2);
+  position:relative;overflow:hidden}
+.fx .note::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5px}
+.fx .note--pick::before{background:var(--lil)}
+.fx .note--drop::before{background:var(--dim3)}
+.fx .note--weak::before{background:var(--amber)}
+.fx .note__k{font:700 9.5px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;display:block;margin-bottom:11px}
+.fx .note--pick .note__k{color:var(--lil)}
+.fx .note--drop .note__k{color:var(--dim2)}
+.fx .note--weak .note__k{color:var(--amber)}
+.fx .note ul{list-style:none;font-size:12.3px;line-height:1.7;color:var(--dim)}
+.fx .note li{padding-left:15px;position:relative;margin-bottom:10px}
+.fx .note li:last-child{margin-bottom:0}
+.fx .note li::before{content:"";position:absolute;left:0;top:8px;width:5px;height:5px;border-radius:50%;
+  background:var(--dim3)}
+.fx .note--pick li::before{background:var(--lil)}
+.fx .note--weak li::before{background:var(--amber)}
+.fx .note b{color:var(--ink);font-weight:600}
+.fx .note em{font-style:normal;color:var(--lil)}
+.fx .note code{font-size:11px}
+
+/* 按鈕 */
+.fx .btn{font-family:inherit;background:none;border:1px solid var(--line);color:var(--dim);cursor:pointer;
+  font:500 11.5px/1 inherit;padding:7px 12px;border-radius:7px;display:inline-flex;align-items:center;gap:7px}
+.fx .btn:hover{color:var(--ink);border-color:#2b323d;background:rgba(255,255,255,.04)}
+.fx .btn svg{display:block;flex:none}
+.fx .bar{display:flex;align-items:center;gap:10px;margin:14px 0 0;flex-wrap:wrap}
+.fx .bar .hint{font:11px/1.5 var(--mono);color:var(--dim3);letter-spacing:.02em}
+
+/* 淺色附錄刻意畫小 */
+.fx .lt-wrap{--scale:.82}
+.fx .lt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.fx .lt-card{background:#EDEEF2;border:1px solid #DADCE3;border-radius:10px;overflow:hidden}
+.fx .lt-card__mb{position:relative;height:62px;overflow:hidden}
+.fx .lt-card__in{padding:11px 13px 13px;color:#4A5059;font-size:11.6px;line-height:1.6}
+.fx .lt-card__in b{color:#16181D;font-weight:600}
+.fx .lt-card__big{height:86px;display:flex;align-items:center;justify-content:center;background:#F7F7FA;
+  box-shadow:inset 0 1px 0 rgba(0,0,0,.06)}
+
+.fx .ft{margin-top:60px;border-top:1px solid var(--line);padding-top:18px;
+  font:11.5px/1.85 var(--mono);color:var(--dim3);letter-spacing:.012em}
+.fx .ft b{color:var(--dim);font-weight:600}
+
+/* ───────── 動畫 ───────── */
+/* 完成脈動：一個 Breath 週期（1.5s）。亮→最暗(0.45)→亮，
+   而**回來的時候是另一個顏色**。終點值就是靜止值 —— 它不可能停在半路。 */
+@keyframes fx-dip{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
+@keyframes fx-out{0%,49.9%{opacity:1}50%,100%{opacity:0}}
+@keyframes fx-in{0%,49.9%{opacity:0}50%,100%{opacity:1}}
+.fx .fx-dip{animation:fx-dip 1.5s ease-in-out .55s 1 both}
+.fx .fx-was{animation:fx-out 1.5s linear .55s 1 both}
+.fx .fx-now{animation:fx-in  1.5s linear .55s 1 both}
+/* T1 呼吸：同一條曲線，但**重複**，而且只動 chevron。 */
+@keyframes fx-breathe{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
+.fx .fx-breathe{animation:fx-breathe 1.5s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){
+  .fx .fx-dip,.fx .fx-was,.fx .fx-now,.fx .fx-breathe{animation:none}
+  .fx .fx-was{opacity:0}
+}
+
+@media (max-width:1040px){
+  .fx .grid--3,.fx .grid--4,.fx .notes,.fx .lt-grid{grid-template-columns:1fr 1fr}
+  .fx .decay{grid-template-columns:1fr 1fr}
+}
+@media (max-width:660px){
+  .fx .grid--3,.fx .grid--4,.fx .grid--2,.fx .notes,.fx .lt-grid,.fx .decay{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body class="fx">
+<div class="wrap">
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<header>
+  <h1>完成訊號 · 餘光 <span>（Afterglow · 選單列方向）</span></h1>
+  <p class="lede">
+    「<i>有人在等你</i>」用<b>琥珀</b>、畫在 <code>r=7.25</code> 的<b>外圈</b>、<b>會重複呼吸</b>。<br>
+    「<em>這一輪做完了</em>」用<b>丁香紫</b>、畫在 <code>r≤2.15</code> 的<b>核心那隻生物</b>身上、<b>只眨一次</b>，
+    然後在十分鐘內退回墨色。<br>
+    兩者共用同一顆 22pt 圖示，但佔的是<b>互不重疊的像素</b>、走的是<b>相反的色溫</b>、
+    用的是<b>相反的節奏</b>——而且因為 G7（有人被擋住就整批丟掉完成訊號），它們在結構上<b>不可能同時出現</b>。
+  </p>
+  <p class="inv">
+    <b>不可動的前提：</b>
+    <span><em>·</em> 幾何凍結，只能改顏色／不透明度／節奏</span>
+    <span><em>·</em> 琥珀 <code>#FF9E0A</code> 屬於「等你」</span>
+    <span><em>·</em> 藍 <code>#2975F2</code>／綠 <code>#4DD67A</code>／紅 <code>#FF615C</code> 屬於額度</span>
+    <span><em>·</em> 選單列項目固定 22pt，禁止 <code>.variableLength</code></span>
+    <span><em>·</em> 面板高度一格都不能再加</span>
+    <span><em>·</em> 不准有浮窗、不准有 osascript</span>
+    <span><em>·</em> 動的那幾秒之外不留任何重複性計時器</span>
+  </p>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>01</u> 真實尺寸 · 它剛剛發生的那一刻</h2>
+<p class="h2n">
+  下面這塊是真的桌面比例：選單列 25pt 高，圖示 22×22pt，就是你螢幕右上角那顆。
+  一個跑了 <b>11 分 04 秒</b>的 session 剛剛寫完最後一段話並進入 <code>.idle</code>，
+  九十秒的沉澱窗口關閉，它還在 idle、transcript 尾端是 <code>end_turn</code>、你人在機器前但正在看別的 app ——
+  於是圖示<b>眨一次眼，睜開的時候核心變成丁香紫</b>，同時響一聲 <code>Purr</code>（不是 T1 的 <code>Submarine</code>）。
+</p>
+
+<div class="stage" style="height:322px">
+  <div class="wall"></div>
+  <div class="mb mb--dk">
+    <b>Visual Studio Code</b><span>檔案</span><span>編輯</span><span>選取</span><span>檢視</span><span>執行</span><span>終端機</span>
+    <div class="mb__sp"></div>
+    <div class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1zm0 3.1a5.6 5.6 0 013.8 1.5l-1.1 1.2A4 4 0 008 7.8a4 4 0 00-2.7 1.1L4.2 7.7A5.6 5.6 0 018 6.2z"/></svg></span>
+      <span class="mb__ico"><svg width="19" height="15" viewBox="0 0 22 16" fill="none" stroke="currentColor" stroke-width="1.1"><rect x="1.2" y="4.4" width="15.4" height="7.2" rx="2.2"/><path d="M18.6 7.2v1.6" stroke-linecap="round" opacity=".55"/><rect x="2.8" y="6" width="9.2" height="4" rx="1.1" fill="currentColor" stroke="none"/></svg></span>
+      <span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="7.2" cy="7.2" r="4.6"/><path d="M10.6 10.6L14 14" stroke-linecap="round"/></svg></span>
+      <span class="mb__slot" id="s1-slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","anim":true}'></span>
+      <span class="mb__clock">週五 02:41</span>
+    </div>
+  </div>
+
+  <div class="win win--code" style="left:26px;top:48px;width:508px;height:206px">
+    <div class="win__bar"><span style="background:#FF5F57"></span><span style="background:#FEBC2E"></span><span style="background:#28C840"></span><span class="win__t">NotificationEngine.swift — usage</span></div>
+    <div class="win__b"><span class="k">/// 完成訊號：見證過的 </span><span class="s">working → idle</span><span class="k"> 邊緣。</span>
+<span class="k">/// unattendedSince 由進入 .working 時重設 ——</span>
+<span class="k">/// 包含從 .waiting 出來那一次，因為那正是你本人</span>
+<span class="k">/// 剛剛照顧過這個 session。</span>
+struct Track {
+    var phase: Phase
+    var unattendedSince: Date?
+    var witnessedWorking: Bool
+}</div>
+  </div>
+
+  <div class="win" style="right:26px;top:126px;width:498px;height:170px">
+    <div class="win__bar"><span style="background:#FF5F57"></span><span style="background:#FEBC2E"></span><span style="background:#28C840"></span><span class="win__t">ghostty — PEO — claude</span></div>
+    <div class="win__b"><span class="d">›</span> <span class="w">把 hole-detection 的 RF-DETR 權重換成 v3</span>
+<span class="g">✓</span> <span class="w">scripts/train_rfdetr.py</span> <span class="d">（改了 4 處）</span>
+<span class="g">✓</span> <span class="w">weights/ 下的舊權重已歸檔</span>
+<span class="g">✓</span> <span class="w">62 個測試全綠</span>
+<span class="v">●</span> <span class="w">換完了。mAP@50 從 .781 → .824。</span>
+<span class="d">──────────────────────────────────────</span>
+<span class="d">›</span> <span class="d">_</span></div>
+  </div>
+
+  <div class="tip" style="right:74px;top:30px">
+    <i>✓</i> 1 個 session 剛完成 · usage · 11m04s · 5 小時剩 72% · 7 天剩 82%
+  </div>
+</div>
+<p class="cap">
+  真實尺寸 · 深色選單列 · 1 CSS px = 1 pt。<i>丁香紫只出現在 <code>r≤2.15</code> 的核心</i>，
+  兩條額度弧（<b>藍</b>＝剩 72%）一個像素都沒動 —— 完成訊號與額度講的不是同一件事，
+  所以不准共用同一片表面。<b>tooltip 是免費的</b>：數量、是哪一個、多久以前，全部在那裡，一個像素都不用花。
+</p>
+
+<div class="bar">
+  <button class="btn" type="button" data-replay><svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M13.6 8a5.6 5.6 0 11-1.9-4.2"/><path d="M13.9 1.9v3.2h-3.2"/></svg>重播那一眨（1.5 秒）</button>
+  <span class="hint">曲線＝<code>Breath.opacity(atFrame:)</code>，12 格 / 1.5 秒，與 T1 同一條 —— 但只跑一次，而且落在新顏色上。</span>
+</div>
+
+<div style="margin-top:18px" class="zoom">
+  <div class="zoom__hd">
+    <span class="zoom__n">放大</span><span class="zoom__t">同一顆圖示，8×</span>
+    <span class="zoom__x">22pt → 176px</span>
+  </div>
+  <div class="zoom__body">
+    <div class="big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":176}'></div>
+    <div class="big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"none","size":176}'></div>
+    <div class="zoom__notes">
+      <p><b>左＝剛完成，右＝平常。</b>兩張圖的差別<em>只有生物的填色</em>：
+        <code>#FFFFFF</code> → <code>#E08CFF</code>。弧、暗軌、50% 標記、agent 軌道，全部一個位元都沒改。</p>
+      <p><b>為什麼敢染生物？</b>repo 裡寫著「<b>生物不染色</b>」，理由是：弧與生物染成<b>同一個顏色</b>時，
+        22pt 下兩者的界線會整個消失，變成一坨。那條規則反過來念就是這個方向的立論 ——
+        染上一個<em>全 app 都沒有任何別的東西用過的顏色</em>，效果正好相反：界線變成整顆圖示裡<b>最銳利</b>的一條。</p>
+      <p><b>而且它是唯一還空著的表面。</b>外弧＝5 小時額度，內弧＝7 天額度，底部軌道＝agent 數，
+        外圈＝警示。生物只編碼「姿態」（站著／醒著／前傾／睡著），<b>從來沒有編碼過顏色</b>。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>02</u> 它需要的三種狀態</h2>
+<p class="h2n">
+  一個完成 / 兩個完成 / 完成了但別的還在跑。第二格是這個方向最需要老實交代的一格。
+</p>
+
+<div class="grid grid--3">
+  <div class="card">
+    <div class="card__mb">
+      <div class="wall"></div>
+      <div class="mb mb--dk"><b>Ghostty</b><span>Shell</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1z"/></svg></span>
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh"}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="card__in">
+      <span class="card__k is-lil">狀態 A · 一個完成</span>
+      <div class="card__row">
+        <div class="card__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":88}'></div>
+        <p class="card__d">生物染成丁香紫、<b>姿態回到 <code>.still</code></b>、底部 agent 軌道空了。
+          三件事講同一句話：<em>機器安靜下來了</em>。</p>
+      </div>
+      <p class="card__d">姿態與空軌道是<b>本來就有的資訊</b>，完成訊號只是把它從「有東西消失了」翻成「有事情完成了」——
+        前者是減法，眼睛抓不到；後者是加法。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__mb">
+      <div class="wall"></div>
+      <div class="mb mb--dk"><b>Ghostty</b><span>Shell</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1z"/></svg></span>
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh"}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="card__in">
+      <span class="card__k is-lil">狀態 B · 兩個在 90 秒內完成</span>
+      <div class="card__row">
+        <div class="card__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":88}'></div>
+        <p class="card__d"><b>和左邊那格一模一樣。</b>這是刻意的，而且必須講明白：
+          <em>圖示說得出「完成了」，說不出「幾個」，也說不出「哪一個」。</em></p>
+      </div>
+      <p class="card__d">數量與身分走三條不花像素的通道：<b>只響一聲</b>（G2 合併門檻 = 2）、
+        <b>tooltip</b>（「2 個 session 剛完成 · usage、PEO」）、<b>面板</b>。
+        這與 <code>GlyphGeometry.agentUnits</code> 已經承認過的事情是同一類：
+        5、10、15 隻 agent 畫出來一模一樣，「這是算術問題，不是品味問題」。</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__mb">
+      <div class="wall"></div>
+      <div class="mb mb--dk"><b>Ghostty</b><span>Shell</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1z"/></svg></span>
+        <span class="mb__slot" data-glyph='{"five":0.44,"seven":0.82,"agents":5,"fin":"fresh"}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="card__in">
+      <span class="card__k is-lil">狀態 C · 完成一個，別的還在跑</span>
+      <div class="card__row">
+        <div class="card__big" data-glyph='{"five":0.44,"seven":0.82,"agents":5,"fin":"fresh","size":88}'></div>
+        <p class="card__d">生物是紫的（<em>有一件事完成了</em>），但<b>前傾</b>而且底部是<b>整條橫槓</b>
+          （<b>還有 4 隻以上在跑</b>）。額度掉到 44%，弧同時轉綠。</p>
+      </div>
+      <p class="card__d">三個獨立訊號疊在 22pt 上而不互相吃掉，靠的是它們<b>本來就在不同半徑</b>：
+        <code>7.25</code> 弧 / <code>4.15</code> 弧 / <code>≤2.15</code> 生物 / 底部開口的軌道。
+        這是幾何凍結<b>幫忙</b>而不是擋路的一次。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>03</u> 衰減 —— 一個永遠不退的「剛完成」就是一句永遠的謊</h2>
+<p class="h2n">
+  三段，全部由 <code>now − finishedAt</code> <b>算出來</b>，不是動畫出來的：app 本來就每 3 秒刷新一次，
+  顏色在每一次既有的刷新裡重新求值。<b>沒有新的計時器</b>，那 1.5 秒的眨眼之外圖示完全靜止。
+</p>
+
+<div class="decay">
+  <div class="decay__c">
+    <div class="decay__t"><b>0s</b><span>眨一次</span></div>
+    <div class="decay__mb"><div class="wall"></div>
+      <div class="mb mb--dk"><div class="mb__sp"></div><div class="mb__r">
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","anim":true}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="decay__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":88,"anim":true}'></div>
+    <div class="decay__x"><b>一個 Breath 週期</b>：亮 → <code>0.45</code> → 亮。
+      最暗的那一格正是換色的那一格，所以顏色是<b>在你最看不見的時候換掉</b>的，不是閃一下。
+      <em>動畫的終點值就是靜止值</em>。加一聲 <code>Purr</code>。</div>
+    <div class="decay__bar"><i style="width:100%;background:var(--lil)"></i></div>
+  </div>
+
+  <div class="decay__c">
+    <div class="decay__t"><b>30s</b><span>滿色</span></div>
+    <div class="decay__mb"><div class="wall"></div>
+      <div class="mb mb--dk"><div class="mb__sp"></div><div class="mb__r">
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh"}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="decay__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":88}'></div>
+    <div class="decay__x"><code>#E08CFF</code> 滿色，撐到 <b>180 秒</b>。
+      這個數字不是新的 —— 它就是 <code>minUnattendedRun</code>，也是實測「使用者自己回到那個 session」
+      的中位數 <b>174s</b>。在那之前抬頭看一眼，訊號還是熱的。</div>
+    <div class="decay__bar"><i style="width:100%;background:var(--lil)"></i></div>
+  </div>
+
+  <div class="decay__c">
+    <div class="decay__t"><b>4m</b><span>退色</span></div>
+    <div class="decay__mb"><div class="wall"></div>
+      <div class="mb mb--dk"><div class="mb__sp"></div><div class="mb__r">
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"faded"}'></span>
+        <span class="mb__clock">02:45</span></div></div>
+    </div>
+    <div class="decay__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"faded","size":88}'></div>
+    <div class="decay__x"><code>#F1CBFF</code> ＝ 丁香紫<b>混向墨色 45%</b>。
+      ⚠️ <b>刻意不用降低不透明度</b>：<code>freshness == .expired</code> 已經佔用了
+      「生物 alpha 0.45」這個外觀，再用一次就會變成「讀數不可信」與「剛完成過」長得一樣。
+      同一個 <code>0.45</code>（<code>Breath.minOpacity</code>），換一種用法。</div>
+    <div class="decay__bar"><i style="width:100%;background:var(--lil-fade)"></i></div>
+  </div>
+
+  <div class="decay__c">
+    <div class="decay__t"><b>10m</b><span>沒了</span></div>
+    <div class="decay__mb"><div class="wall"></div>
+      <div class="mb mb--dk"><div class="mb__sp"></div><div class="mb__r">
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"none"}'></span>
+        <span class="mb__clock">02:51</span></div></div>
+    </div>
+    <div class="decay__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"none","size":88}'></div>
+    <div class="decay__x"><b>回到墨色，不留痕跡。</b><code>600s = 2 × 300s</code>
+      （G8 的 <code>lastSpokeAt</code> 冷卻）—— 跨過兩個冷卻期之後，這件事在結構上已經不可能是
+      app 最後說過的話了。<b>耐久紀錄在面板</b>，選單列只負責「新不新」。</div>
+    <div class="decay__bar"><i style="width:100%;background:rgba(255,255,255,.12)"></i></div>
+  </div>
+</div>
+<p class="cap">
+  上排真實尺寸，下排 4× · <b>三段是離散的，不是連續淡出</b> —— 連續淡出需要一個一直在跑的計時器，
+  而且人眼讀不出「現在淡到哪」。三段可以讀：<i>滿色＝剛剛</i>、<i>淡色＝剛才</i>、<i>沒有＝過去了</i>。
+</p>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>04</u> 和 T1「有人在等你」並排 —— 它們憑什麼不會被搞混</h2>
+<p class="h2n">
+  左邊是現況的警示狀態（<b>滿環 + 三個 chevron，沒有生物</b>，四次爆發最多 24 秒）。
+  右邊是完成訊號。放在同一條選單列上比，看一秒。
+</p>
+
+<div class="grid grid--2">
+  <div class="card">
+    <div class="card__mb" style="height:88px">
+      <div class="wall"></div>
+      <div class="mb mb--dk"><b>Visual Studio Code</b><span>檔案</span><span>編輯</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1z"/></svg></span>
+        <span class="mb__slot" data-glyph='{"blocked":1,"breathe":true}'></span>
+        <span class="mb__clock">週五 02:41</span></div></div>
+      <div class="tip" style="right:62px;top:30px;background:rgba(40,42,48,.97)">⚠︎ 1 個 session 在等你 · usage</div>
+    </div>
+    <div class="card__in">
+      <span class="card__k is-amb">T1 · 有人在等你（現況，不動）</span>
+      <div class="card__row">
+        <div class="card__big" data-glyph='{"blocked":1,"breathe":true,"size":88}'></div>
+        <div class="card__big" data-glyph='{"blocked":3,"breathe":true,"size":88}'></div>
+        <p class="card__d">琥珀 · <b>外圈 <code>r=7.25</code></b> ·
+          <u>重複呼吸</u>（4 次爆發，60s / 300s 再推）· 生物<b>整個不見</b>。<br>
+          右邊是 3 個被擋住＝外圈切三段。</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card__mb" style="height:88px">
+      <div class="wall"></div>
+      <div class="mb mb--dk"><b>Visual Studio Code</b><span>檔案</span><span>編輯</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__ico"><svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M8 12.6a1 1 0 100-2 1 1 0 000 2zM8 3.1c2.3 0 4.4.9 6 2.4l-1.1 1.2A7 7 0 008 4.7a7 7 0 00-4.9 2L2 5.5A8.7 8.7 0 018 3.1z"/></svg></span>
+        <span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh"}'></span>
+        <span class="mb__clock">週五 02:41</span></div></div>
+      <div class="tip" style="right:62px;top:30px"><i>✓</i> 1 個 session 剛完成 · usage · 11m04s</div>
+    </div>
+    <div class="card__in">
+      <span class="card__k is-lil">完成 · 餘光（新）</span>
+      <div class="card__row">
+        <div class="card__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","size":88}'></div>
+        <div class="card__big" data-glyph='{"five":0.44,"seven":0.82,"agents":5,"fin":"fresh","size":88}'></div>
+        <p class="card__d">丁香紫 · <b>核心 <code>r≤2.15</code></b> ·
+          <em>眨一次就定色</em> · 外圈、兩條弧、agent 軌道<b>原封不動</b>。<br>
+          右邊是「完成一個、還有 5 隻在跑」。</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<table>
+  <thead><tr><th>分辨的依據</th><th class="amb">T1 · 等你</th><th class="lil">完成 · 餘光</th></tr></thead>
+  <tbody>
+    <tr><td>佔哪些像素</td><td><b>外圈</b> <code>r=7.25</code>（最外緣）</td><td><b>核心</b> <code>r≤2.15</code>（正中央）。中間隔著一整條 <code>r=4.15</code> 的內弧。</td></tr>
+    <tr><td>色相</td><td><b>37°</b> 暖橘黃 —— 全人類的警示色</td><td><b>284°</b> 冷紫 —— 與琥珀差 <b>112°</b>，離任何一個額度色階最近也有 <b>67°</b></td></tr>
+    <tr><td>節奏</td><td><b>重複</b>：1.5s 週期 × 4 次爆發，事件後 60s、300s 各再推一次，最多 24 秒的動作</td><td><b>一次</b>：1.5s，落在新顏色上就停。之後只會<b>更淡</b>，永遠不會再動</td></tr>
+    <tr><td>生物在不在</td><td><b>不在。</b>警示狀態把整張圖換成滿環 + chevron</td><td><b>在，而且它就是訊號本身。</b></td></tr>
+    <tr><td>會不會同時出現</td><td colspan="2"><b>不會，而且是結構上不會。</b>G7：flush 時只要任何一個 <code>needsHuman</code> 為真，整批完成事件<b>丟掉</b>（不是排隊）。
+      琥珀在說更急的事的時候，這 20×20pt 上不准有第二個人講話。</td></tr>
+    <tr><td>聲音</td><td><code>Submarine</code></td><td><code>Purr</code> —— 低、短、不上揚。<b>而且最多一聲</b></td></tr>
+    <tr><td>通道上限</td><td>浮窗 + 音效 + 離開時補一則 osascript</td><td><b>只有選單列 + 最多一聲。</b>永遠不開浮窗、永遠不進通知中心歷史</td></tr>
+  </tbody>
+</table>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>05</u> 為什麼是丁香紫 —— 這題其實是被逼出來的</h2>
+<p class="h2n">
+  「還剩什麼顏色可以用」不是品味問題，是<b>色相環上還剩哪一段空的</b>。四個色相已經有主人。
+</p>
+
+<div class="hue">
+  <div class="wheelbox">
+    <div class="wheel">
+      <div class="wheel__r"></div>
+      <div class="wheel__gap"></div>
+      <div class="wheel__mk">
+        <i style="background:#FF615C;transform:rotate(1deg) translateY(-88px)"></i>
+        <b style="transform:rotate(1deg) translateY(-114px) rotate(-1deg) translate(-50%,-50%);color:#FF615C">紅 1°</b>
+        <i style="background:#FF9E0A;transform:rotate(37deg) translateY(-88px)"></i>
+        <b style="transform:rotate(37deg) translateY(-116px) rotate(-37deg) translate(-50%,-50%);color:#FF9E0A">琥珀 37°</b>
+        <i style="background:#4DD67A;transform:rotate(145deg) translateY(-88px)"></i>
+        <b style="transform:rotate(145deg) translateY(-116px) rotate(-145deg) translate(-50%,-50%);color:#4DD67A">綠 145°</b>
+        <i style="background:#2975F2;transform:rotate(217deg) translateY(-88px)"></i>
+        <b style="transform:rotate(217deg) translateY(-116px) rotate(-217deg) translate(-50%,-50%);color:#2975F2">藍 217°</b>
+        <i style="background:#E08CFF;transform:rotate(284deg) translateY(-88px);box-shadow:0 0 0 2px #0b0d11,0 0 12px rgba(224,140,255,.8)"></i>
+        <b style="transform:rotate(284deg) translateY(-142px) rotate(-284deg) translate(-50%,-50%);color:#E08CFF">丁香 284°</b>
+      </div>
+      <div class="wheel__c"><b>144°</b><span>唯一的空檔</span></div>
+    </div>
+  </div>
+
+  <div class="huetx">
+    <p><b>四個已被佔用的色相之間，缺口只有三段：</b>
+      37→145 是 <b>108°</b>（但整段都是黃綠，既貼著琥珀又貼著 <code>tight</code> 綠）、
+      145→217 是 <b>72°</b>（青綠／青，被夾在兩個額度色中間，22pt 下會讀成「某個我叫不出名字的額度顏色」）、
+      <em>217→361 是 144°</em>，是唯一一段沒有任何鄰居的空地。</p>
+    <p><b>取它的中段。</b><code>#E08CFF = srgb(0.88, 0.55, 1.00)</code>，色相 <b>284°</b>：
+      離藍 67°、離紅 77°、離琥珀 112°、離綠 139°。這是能同時離四個主人都最遠的那一點。</p>
+    <p><b>亮度也要能打。</b>相對亮度 <code>L≈0.42</code>，與琥珀的 <code>0.46</code> 同一級距 ——
+      在深色選單列（有效亮度約 0.05）上對比約 <b>4:1</b>，跟已經在用的琥珀是同一個量級。
+      刻意選了偏亮偏粉的那一版而不是正紫：<b>純藍紫在深色列上會變成一團泥</b>。</p>
+    <p><b>而且它是冷色。</b>暖色（琥珀、紅）讀起來是「警告」，冷色讀起來是「狀態」。
+      完成是好消息，它不該讓人心跳加速 —— 這是色相之外，第二個把它和 T1 分開的維度。</p>
+    <div class="sw">
+      <span><i style="background:#FF9E0A"></i>#FF9E0A · 37° · 等你</span>
+      <span><i style="background:#2975F2"></i>#2975F2 · 217° · 額度</span>
+      <span><i style="background:#4DD67A"></i>#4DD67A · 145° · 額度</span>
+      <span><i style="background:#FF615C"></i>#FF615C · 1° · 額度</span>
+      <span style="border-color:var(--lil-line);color:var(--lil)"><i style="background:#E08CFF"></i>#E08CFF · 284° · 完成（新）</span>
+      <span style="border-color:var(--lil-line);color:var(--lil)"><i style="background:#F1CBFF"></i>#F1CBFF · 退色版</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>06</u> 淺色選單列（附錄 · 刻意畫小）</h2>
+<p class="h2n">
+  使用者的選單列是深色的，這一節只是證明它在另一邊不會壞掉。
+  丁香紫換成 <code>#9E23C9 = srgb(0.62, 0.14, 0.79)</code>（同色相，壓暗到在淺底上有 5.4:1），
+  退色版混向墨色 45% → <code>#47105B</code>。
+</p>
+
+<div class="lt-grid">
+  <div class="lt-card">
+    <div class="lt-card__mb stage--lt"><div class="wall"></div>
+      <div class="mb mb--lt"><b>Finder</b><span>檔案</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","dark":false}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="lt-card__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"fresh","dark":false,"size":72}'></div>
+    <div class="lt-card__in"><b>剛完成 · 0–3 分鐘</b><br>淺底上紫要壓暗，不能直接搬深色那一版。</div>
+  </div>
+  <div class="lt-card">
+    <div class="lt-card__mb stage--lt"><div class="wall"></div>
+      <div class="mb mb--lt"><b>Finder</b><span>檔案</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__slot" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"faded","dark":false}'></span>
+        <span class="mb__clock">02:45</span></div></div>
+    </div>
+    <div class="lt-card__big" data-glyph='{"five":0.72,"seven":0.82,"agents":0,"fin":"faded","dark":false,"size":72}'></div>
+    <div class="lt-card__in"><b>退色 · 3–10 分鐘</b><br>混向墨色＝往「正常」靠，不是往「淡掉」靠。</div>
+  </div>
+  <div class="lt-card">
+    <div class="lt-card__mb stage--lt"><div class="wall"></div>
+      <div class="mb mb--lt"><b>Finder</b><span>檔案</span><div class="mb__sp"></div>
+        <div class="mb__r"><span class="mb__slot" data-glyph='{"blocked":1,"breathe":true,"dark":false}'></span>
+        <span class="mb__clock">02:41</span></div></div>
+    </div>
+    <div class="lt-card__big" data-glyph='{"blocked":1,"breathe":true,"dark":false,"size":72}'></div>
+    <div class="lt-card__in"><b>對照：T1 警示</b><br>琥珀在淺底上不變（它不走 template，本來就是實色）。</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════════ -->
+<h2><u>07</u> 選了什麼 · 拒絕了什麼 · 誠實的弱點</h2>
+
+<div class="notes">
+  <div class="note note--pick">
+    <span class="note__k">選了</span>
+    <ul>
+      <li><b>把訊號放在生物身上</b>，因為那是整顆圖示裡唯一沒有被任何語意佔用的表面 —— 它只編碼姿態，從未編碼顏色。</li>
+      <li><b>丁香紫 <code>#E08CFF</code>（284°）</b>，因為 217→361 這 144° 是色相環上唯一沒有鄰居的空地，284° 是它的中段。</li>
+      <li><b>一個 Breath 週期的「眨眼」</b>，而且<em>換色發生在最暗的那一格</em> —— 不是閃，是眨完睜開變了個樣子。動畫的終點值就是靜止值。</li>
+      <li><b>三段離散衰減</b> 180s → 600s → 無，全部由 <code>now − finishedAt</code> 在既有的 3 秒刷新裡算出來。<b>不新增任何計時器。</b></li>
+      <li><b>退色用「混向墨色」而不是「降不透明度」</b>，因為 alpha 0.45 已經被 <code>freshness == .expired</code> 佔走了。</li>
+      <li><b>數量與身分交給 tooltip 與面板</b>，那兩條通道一個像素都不用花。</li>
+      <li><b>音效 <code>Purr</code></b>，低而短，與 <code>Submarine</code> 不同；且最多一聲。</li>
+    </ul>
+  </div>
+
+  <div class="note note--drop">
+    <span class="note__k">拒絕了</span>
+    <ul>
+      <li><b>綠色（全世界的「完成」色）。</b><code>tight</code> 就是綠 <code>#4DD67A</code>。綠生物貼著綠弧 = repo 早就寫下來的那個失敗：22pt 下界線全消失。</li>
+      <li><b>任何新形狀</b>：打勾、圓點、徽章。幾何凍結，而且 counter A/B 已經在 1x 的 2.0pt 下限以下，<b>沒有空像素了</b>。</li>
+      <li><b>沿用現有的 <code>pulse()</code>（整張圖暗一下再回來）。</b>它 1.5 秒後把資訊歸零，什麼都沒留下 —— 使用者要的正是「錯過的那一眼還能補看」。</li>
+      <li><b>琥珀＋不同節奏。</b>使用者已經釘死：琥珀只屬於「等你」。節奏差異在餘光裡讀不出來。</li>
+      <li><b>青綠 / teal。</b>坐在藍與綠那 72° 的夾縫裡，會被讀成「某一格我認不出來的額度顏色」。</li>
+      <li><b>數字徽章。</b>寬度固定 22pt，<code>.variableLength</code> 會推動選單列上每一個鄰居。</li>
+      <li><b>把弧染成紫色。</b>弧只講額度。共用表面＝兩個意思打架。</li>
+      <li><b>撐到你打開面板才消（已讀回執）。</b>你不開面板它就永遠亮著 —— 那正是把瞬時訊號養成徽章、再把眼睛訓練成忽略它的那條路。</li>
+    </ul>
+  </div>
+
+  <div class="note note--weak">
+    <span class="note__k">弱點（誠實）</span>
+    <ul>
+      <li><b>它說不出幾個，也說不出哪一個。</b>1 個完成與 5 個完成是同一批像素。這個訊號是一個<b>指標</b>，不是一則訊息 —— 真正的內容在面板。</li>
+      <li><b>它沒有辦法自己把眼睛叫過來。</b>生物只有 4.10pt 寬。把視線帶上去的其實是那一聲 <code>Purr</code>，
+        而 G5/G6 只讓它在「人在、但在看別的 app」時響。<b>被動通道的觸及率＝「剛好抬頭的人」</b>，這一點沒有辦法量測，也沒有辦法保證。</li>
+      <li><b>色覺。</b>丁香對墨色是色相＋亮度雙變，紅綠色盲大致保得住，但 tritanopia 會讓丁香塌向灰粉。
+        因為幾何凍結，<b>沒有形狀後援</b>。這是記在帳上的代價。</li>
+      <li><b>我在彎一條寫著理由的規則。</b>「生物不染色」是實測寫下來的。我的反論（用一個沒人用過的顏色，效果相反）是<b>推理，不是量測</b>。
+        上線前必須跑 <code>--render &lt;dir&gt; --dark</code> 並在 <b>1x</b> 下看 —— 不是 8x。1x 的生物只有約 4 個裝置像素寬，
+        紫色在那裡有沒有活下來，只有那張圖說了算。</li>
+      <li><b>淺色列上的中間段幾乎等於沒有。</b>畫出來就看得到（見第 06 節）：
+        <code>#47105B</code> 在淺底上跟純黑差得太少，「退色」與「沒了」在 22pt 下分不太開。
+        深色列（使用者那一邊）沒有這個問題，因為 <code>#F1CBFF</code> 離白還有明顯的粉。
+        <b>淺色那一版實際上只有兩段，不是三段</b> —— 要嘛接受，要嘛淺色版另外挑一個混色目標。</li>
+      <li><b>10 分鐘之後訊號就沒了。</b>離開一小時再回來的人，在選單列上什麼都看不到 ——
+        這是刻意的（G5 也是丟掉而不是延後），但它確實意味著這個方向<b>對長時間離開的人完全無效</b>。</li>
+    </ul>
+  </div>
+</div>
+
+<p class="ft">
+  <b>檔案：</b>finished-mockups/glyph-signal.html · 獨立檔，沒有網路請求 · 1 CSS px = 1 pt<br>
+  <b>幾何全部照抄：</b><code>GlyphGeometry</code>（canvas 22、centre 11,11、outerArc r7.25/w1.50、innerArc r4.15/w1.40、
+  gauge 220°↷260°、agentRail −67.65°↷44.7°、生物 8.95–13.05 × 9.858–12.90、冠葉 r0.95 @ 9.90/12.10）<br>
+  <b>顏色照抄：</b><code>GlyphRenderer.alert</code> 與 <code>QuotaPalette</code>（深色列那一組）· <b>唯一的新值：</b><code>#E08CFF</code> / <code>#9E23C9</code><br>
+  <b>這一頁沒有回答的事：</b>面板要怎麼呈現耐久紀錄（使用者已拒絕加卡片，所以那要另外想）、以及 T2 <code>batchDrained</code> 併入完成事件之後的細節行。
+</p>
+
+</div>
+
+<script>
+(function(){
+  /* ── 幾何：全部照抄 GlyphGeometry，不重新發明 ───────────────────────── */
+  var C=11, RO=7.25, WO=1.50, RI=4.15, WI=1.40;
+  var GSTART=220, GSWEEP=260, HALF=90;
+  var RAIL={start:-67.65, sweep:44.7};
+  var GAP=27.936, CEIL=6;
+
+  var AMBER='#FF9E0A';
+  var LILAC ={dark:'#E08CFF', light:'#9E23C9'};   /* srgb(0.88,0.55,1.00) / (0.62,0.14,0.79) */
+  var FADE  ={dark:'#F1CBFF', light:'#47105B'};   /* 45% 混向墨色 —— 不是降 alpha */
+  var TIER={
+    comfortable:{dark:'#2975F2', light:'#004CBF'},
+    tight      :{dark:'#4DD67A', light:'#219952'},
+    critical   :{dark:'#FF615C', light:'#D12121'}
+  };
+
+  function f(n){ return Math.round(n*1000)/1000; }
+  function pt(r,deg){ var a=deg*Math.PI/180; return [C+r*Math.cos(a), C-r*Math.sin(a)]; }
+  /* 順時針掃（角度遞減），與 Swift 的 appendArc(clockwise:true) 一致。 */
+  function arcD(r,start,sweep){
+    if(sweep<=0.01) return null;
+    var p0=pt(r,start), p1=pt(r,start-sweep), large=sweep>180?1:0;
+    return 'M'+f(p0[0])+' '+f(p0[1])+'A'+r+' '+r+' 0 '+large+' 1 '+f(p1[0])+' '+f(p1[1]);
+  }
+  function tierOf(v){ if(v==null) return null; if(v<0.20) return 'critical'; if(v<=0.50) return 'tight'; return 'comfortable'; }
+
+  /* 一條量表：暗軌永遠在（耗盡不能讀成渲染失敗）→ 亮段 → 50% 標記 */
+  function band(r,w,rem,ink,trackA,tint,lit){
+    var s='<path d="'+arcD(r,GSTART,GSWEEP)+'" fill="none" stroke="'+ink+'" stroke-opacity="'+trackA
+         +'" stroke-width="'+w+'" stroke-linecap="round"/>';
+    if(rem==null) return s;                       /* 不知道就只畫軌道 */
+    var sw=GSWEEP*Math.max(0,Math.min(1,rem));
+    if(sw>0.5){
+      s+='<path d="'+arcD(r,GSTART,sw)+'" fill="none" stroke="'+(tint||ink)+'" stroke-opacity="'+lit
+        +'" stroke-width="'+w+'" stroke-linecap="round"/>';
+    }
+    var m=pt(r,HALF);
+    s+='<circle cx="'+f(m[0])+'" cy="'+f(m[1])+'" r="'+(w/2)+'" fill="'+(tint||ink)
+      +'" fill-opacity="'+(rem>=0.5 ? lit*0.42 : lit)+'"/>';
+    return s;
+  }
+
+  function railG(agents,ink,railA){
+    var s='<path d="'+arcD(RO,RAIL.start,RAIL.sweep)+'" fill="none" stroke="'+ink+'" stroke-opacity="'+railA
+         +'" stroke-width="'+WO+'" stroke-linecap="round"/>';
+    var angles=null, merged=false;
+    if(agents>=4) merged=true;
+    else if(agents===3) angles=[-109.857,-90,-70.143];
+    else if(agents===2) angles=[-103.968,-76.032];
+    else if(agents===1) angles=[-90];
+    if(merged){
+      s+='<path d="'+arcD(RO,RAIL.start,RAIL.sweep)+'" fill="none" stroke="'+ink
+        +'" stroke-width="'+WO+'" stroke-linecap="round"/>';
+    } else if(angles){
+      for(var i=0;i<angles.length;i++){
+        var p=pt(RO,angles[i]);
+        s+='<circle cx="'+f(p[0])+'" cy="'+f(p[1])+'" r="'+(WO/2)+'" fill="'+ink+'"/>';
+      }
+    }
+    return s;
+  }
+
+  /* 生物。規格座標本來就是 y 向下，與 SVG 同向，所以這裡不需要 up() 翻轉。 */
+  function creature(posture, fill, opacity){
+    var rise=(posture==='awake'||posture==='driving')?0.30:0;
+    var tilt=(posture==='driving')?0.28:0;                 /* 5° 前傾用冠部水平位移近似 */
+    var sq  =(posture==='asleep')?0.86:1;
+    var foot=12.90;
+    function y(sy){ return foot + (sy-foot)*sq - rise; }
+    var top=y(9.858), bottom=y(12.90), lobeY=y(10.35);
+    return '<g fill="'+fill+'" fill-opacity="'+opacity+'">'
+      + '<rect x="8.95" y="'+f(top)+'" width="4.1" height="'+f(bottom-top)+'" rx="0.95" ry="0.95"/>'
+      + '<circle cx="'+f(9.90+tilt)+'" cy="'+f(lobeY)+'" r="0.95"/>'
+      + '<circle cx="'+f(12.10+tilt)+'" cy="'+f(lobeY)+'" r="0.95"/>'
+      + '</g>';
+  }
+
+  /* 警示狀態：滿環或等分段 + 三個向右的 chevron。呼吸只動 chevron。 */
+  function alertG(blocked, breathe){
+    var s='';
+    if(blocked<2){
+      s+='<circle cx="11" cy="11" r="'+RO+'" fill="none" stroke="'+AMBER+'" stroke-width="'+WO+'"/>';
+    } else {
+      var n=Math.min(blocked,CEIL), sweep=360/n-GAP;
+      var first=(n%2===0)?HALF:HALF+180/n;
+      for(var i=0;i<n;i++){
+        var centre=first+i*360/n;
+        s+='<path d="'+arcD(RO,centre+sweep/2,sweep)+'" fill="none" stroke="'+AMBER
+          +'" stroke-width="'+WO+'" stroke-linecap="round"/>';
+      }
+    }
+    s+='<g class="'+(breathe?'fx-breathe':'')+'" fill="none" stroke="'+AMBER
+      +'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">';
+    [7.6,10.2,12.8].forEach(function(x){
+      s+='<polyline points="'+x+',7.8 '+(x+2.4)+',11 '+x+',14.2"/>';
+    });
+    return s+'</g>';
+  }
+
+  function glyph(o){
+    var dark   = (o.dark===undefined)?true:o.dark;
+    var size   = o.size||22;
+    var stale  = !!o.stale;
+    var ink    = dark?'#FFFFFF':'#000000';
+    var trackA = (dark?0.40:0.24)*(stale?0.66:1);
+    var railA  = dark?0.48:0.32;
+    var lit    = stale?0.45:1;
+    var inner='';
+
+    if(o.blocked>0){
+      inner = alertG(o.blocked, o.breathe);
+    } else {
+      var vals=[]; if(o.five!=null) vals.push(o.five); if(o.seven!=null) vals.push(o.seven);
+      var t = (stale||!vals.length) ? null : tierOf(Math.min.apply(null,vals));
+      var tint = t ? TIER[t][dark?'dark':'light'] : null;
+      inner += band(RO,WO,(o.five===undefined?null:o.five),ink,trackA,tint,lit);
+      inner += band(RI,WI,(o.seven===undefined?null:o.seven),ink,trackA,tint,lit);
+      inner += railG(o.agents||0, ink, railA);
+
+      var posture = o.exhausted ? 'asleep'
+                  : ((o.agents||0)<1 ? 'still' : ((o.agents||0)<=3 ? 'awake' : 'driving'));
+      var lil = LILAC[dark?'dark':'light'];
+      if(o.anim){
+        /* 眨眼：整組走 Breath 曲線，換色發生在最暗的那一格 */
+        inner += '<g class="fx-dip">'
+               +   '<g class="fx-was">'+creature(posture, ink, stale?0.45:1)+'</g>'
+               +   '<g class="fx-now">'+creature(posture, lil, 1)+'</g>'
+               + '</g>';
+      } else {
+        var col = o.fin==='fresh' ? lil
+                : o.fin==='faded' ? FADE[dark?'dark':'light'] : ink;
+        inner += creature(posture, col, stale?0.45:1);
+      }
+    }
+    return '<svg width="'+size+'" height="'+size+'" viewBox="0 0 22 22" aria-hidden="true" '
+         + 'style="display:block">'+inner+'</svg>';
+  }
+
+  function mount(){
+    var nodes=document.querySelectorAll('[data-glyph]');
+    for(var i=0;i<nodes.length;i++){
+      var o;
+      try{ o=JSON.parse(nodes[i].getAttribute('data-glyph')); }catch(e){ continue; }
+      nodes[i].innerHTML = glyph(o);
+    }
+  }
+  mount();
+
+  /* 重播＝重新掛載，讓 CSS 動畫從頭跑（不需要任何計時器） */
+  var btns=document.querySelectorAll('[data-replay]');
+  for(var b=0;b<btns.length;b++){ btns[b].addEventListener('click', mount); }
+})();
+</script>
+
+<noscript>
+  <p style="max-width:80ch;margin:24px auto;color:#98A1AE;font:13px/1.7 -apple-system,'PingFang TC',sans-serif">
+    這一頁的圖示是用內嵌 JavaScript 依 <code>GlyphGeometry</code> 的數值即時畫出來的（沒有網路請求）。
+    關掉 JavaScript 就只會看到文字。
+  </p>
+</noscript>
+</body>
+</html>

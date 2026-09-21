@@ -1,0 +1,625 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Toast — QuotaMonster T1 提示視窗</title><style>
+/* ==========================================================================
+   QuotaMonster · T1 提示視窗 · 方向「TOAST」
+   所有選擇器都掛在 .tst 底下（沿用 panel-mockups 的檔案慣例）。
+   本頁 1 CSS px = 1 pt。沒有外部資源，CSS 與 SVG 全部內嵌。
+   ========================================================================== */
+.tst{
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* 警示琥珀＝ GlyphRenderer.alert，srgb(1.00,0.62,0.04)。全 app 只有「等你」用它。 */
+  --amber:#FF9E0A;
+  --page:#0d0f12; --pink:#e9edf3; --pdim:#8d96a3; --pln:#20262e; --ppnl:#14181d;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background:var(--page);color:var(--pink);padding:34px 20px 80px;font-size:13.5px;line-height:1.6;}
+.tst *{box-sizing:border-box;margin:0;padding:0;}
+.tst .wrap{max-width:1040px;margin:0 auto;}
+
+/* ---- 頁面排版 ---- */
+.tst h1{font:650 26px/1.22 inherit;letter-spacing:-.022em;margin:0 0 8px;}
+.tst h1 span{color:var(--pdim);font-weight:400;}
+.tst .lede{color:var(--pdim);max-width:70ch;margin:0 0 6px;}
+.tst .lede b{color:var(--pink);font-weight:600;}
+.tst h2{font:600 10.5px/1.4 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--amber);
+  margin:54px 0 4px;padding-bottom:9px;border-bottom:1px solid var(--pln);}
+.tst h3{font:600 13px/1.5 inherit;margin:26px 0 5px;}
+.tst .sub{color:var(--pdim);max-width:76ch;margin:8px 0 16px;font-size:12.6px;}
+.tst .sub b{color:var(--pink);font-weight:600;}
+.tst .cap{font:11px/1.45 var(--mono);color:var(--pdim);letter-spacing:.02em;margin:9px 0 0;}
+.tst .cap b{color:var(--pink);font-weight:600;}
+.tst .cap em{font-style:normal;color:var(--amber);}
+.tst .meta{display:inline-block;font:600 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--pdim);border:1px solid var(--pln);border-radius:4px;padding:4px 7px;margin:0 6px 0 0;}
+.tst code{font:11.5px var(--mono);color:var(--amber);}
+
+/* ==========================================================================
+   螢幕：所有場景都是 1040pt 寬的真實尺寸畫面，只有高度（裁切範圍）不同。
+   桌布固定 1040×340 靠右上對齊，所以每一條都是同一面桌布的同一塊。
+   ========================================================================== */
+.tst .scr{position:relative;width:1040px;height:340px;border-radius:9px;overflow:hidden;
+  border:1px solid #000;box-shadow:0 20px 50px rgba(0,0,0,.55);
+  background-color:#0b1018;
+  background-image:
+    radial-gradient(760px 420px at 78% -12%,rgba(92,116,168,.52) 0,rgba(92,116,168,0) 70%),
+    radial-gradient(620px 520px at 12% 96%,rgba(58,74,112,.46) 0,rgba(58,74,112,0) 72%),
+    radial-gradient(900px 600px at 50% 120%,rgba(20,26,40,.9) 0,rgba(20,26,40,0) 70%),
+    linear-gradient(168deg,#13182a 0%,#161d30 38%,#1b2235 62%,#0e121c 100%);
+  background-size:1040px 340px;background-position:100% 0;background-repeat:no-repeat;}
+.tst .scr--band{height:150px;}
+.tst .scr--tall{height:186px;}
+
+/* ---- 選單列：24pt，macOS 現行高度 ---- */
+.tst .mb{position:absolute;inset:0 0 auto 0;height:24px;z-index:20;display:flex;align-items:center;
+  padding:0 10px 0 13px;background:rgba(0,0,0,.40);
+  -webkit-backdrop-filter:blur(24px) saturate(170%);backdrop-filter:blur(24px) saturate(170%);
+  color:rgba(255,255,255,.90);font-size:12.5px;}
+.tst .mb--light{background:rgba(252,252,253,.72);color:rgba(0,0,0,.84);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.12);}
+.tst .mb__apple{opacity:.92;margin-right:14px;display:flex;}
+.tst .mb__menus{display:flex;gap:16px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;opacity:.9;}
+.tst .mb__menus b{font-weight:650;}
+.tst .mb__right{display:flex;align-items:center;gap:12px;flex:none;}
+.tst .mb__right svg{display:block;opacity:.86;}
+.tst .mb__clock{font-size:12.5px;opacity:.94;font-variant-numeric:tabular-nums;white-space:nowrap;}
+/* 狀態列項目：警示狀態的標記，非 template、不透明琥珀（GlyphRenderer 的註解） */
+.tst .mb__qm{width:22px;height:22px;color:var(--amber);display:block;flex:none;opacity:1;}
+
+/* ---- 背景視窗：一律去飽和。未聚焦視窗本來就沒有顏色，
+       而整個畫面上唯一該有顏色的東西是那條提示。 ---- */
+.tst .win{position:absolute;border-radius:10px;overflow:hidden;filter:saturate(.12);
+  box-shadow:0 26px 60px rgba(0,0,0,.55),0 0 0 .5px rgba(255,255,255,.09);}
+.tst .win__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 10px;
+  background:#2b2e33;border-bottom:.5px solid rgba(255,255,255,.07);}
+.tst .win__dot{width:9px;height:9px;border-radius:50%;background:#54585e;flex:none;}
+.tst .win__ttl{font-size:10.5px;color:rgba(255,255,255,.44);margin-left:6px;}
+.tst .win__body{padding:11px 13px;font:11px/1.72 var(--mono);color:rgba(255,255,255,.40);white-space:nowrap;}
+.tst .win__body u{text-decoration:none;color:rgba(255,255,255,.68);}
+.tst .win__body s{text-decoration:none;color:rgba(255,255,255,.22);}
+.tst .win--edit{left:150px;top:48px;width:750px;height:252px;background:#1b1e23;z-index:3;}
+.tst .win--term{left:34px;top:214px;width:420px;height:160px;background:#16181c;z-index:2;}
+
+/* ==========================================================================
+   提示視窗本體
+   1 個 session：380 × 38pt ／ ≥3：380 × 56pt
+   寬度與下拉面板完全相同（PanelView.width = 380）。
+   ========================================================================== */
+.tst .tt{
+  --mat:rgba(32,32,36,.88); --edge:rgba(255,255,255,.14);
+  --fg:rgba(255,255,255,.95); --fg2:rgba(255,255,255,.63); --fg3:rgba(255,255,255,.45);
+  --fg4:rgba(255,255,255,.26); --on-amber:#1B1405;
+  --amber-txt:#FFB13C;
+  position:relative;width:380px;display:flex;align-items:flex-start;
+  padding:8px 8px 8px 10px;border-radius:12px;
+  background:linear-gradient(90deg,rgba(255,158,10,.115) 0,rgba(255,158,10,0) 132px),var(--mat);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  /* 描邊用 inset shadow 而不是 border：border 會把視窗實際撐成 40pt。 */
+  box-shadow:inset 0 0 0 .5px var(--edge),0 14px 36px rgba(0,0,0,.52),0 2px 8px rgba(0,0,0,.36);
+  color:var(--fg);}
+.tst .tt--light{
+  --mat:rgba(249,249,251,.90); --edge:rgba(0,0,0,.14);
+  --fg:rgba(0,0,0,.90); --fg2:rgba(0,0,0,.58); --fg3:rgba(0,0,0,.42); --fg4:rgba(0,0,0,.20);
+  --amber-txt:#9A5A08;
+  background:linear-gradient(90deg,rgba(255,158,10,.13) 0,rgba(255,158,10,0) 132px),var(--mat);
+  box-shadow:inset 0 0 0 .5px var(--edge),0 14px 34px rgba(30,24,12,.26),0 2px 8px rgba(30,24,12,.16);}
+
+/* 左緣琥珀條：與面板阻塞卡（PanelView.blockedBanner）同一個語彙 */
+.tst .tt__rail{flex:none;width:2.5px;align-self:stretch;border-radius:2px;background:var(--amber);opacity:.9;margin-right:9px;}
+/* 標記：與選單列上那一顆 1:1 同尺寸、同幾何（22pt 畫布、r=7.25、stroke 1.5） */
+.tst .tt__gl{flex:none;width:22px;height:22px;margin-right:9px;color:var(--amber);display:block;}
+.tst .tt__main{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;}
+.tst .tt__l1{height:22px;display:flex;align-items:center;min-width:0;}
+.tst .tt__proj{flex:0 1 auto;min-width:0;font-size:13px;font-weight:600;letter-spacing:-.005em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.tst .tt__sep{flex:none;width:2.5px;height:2.5px;border-radius:50%;background:var(--fg4);margin:0 7px;}
+.tst .tt__why{flex:none;font-size:11.5px;color:var(--fg2);position:relative;top:.5px;}
+.tst .tt__age{flex:none;margin-left:9px;font:11.5px/1 var(--mono);font-variant-numeric:tabular-nums;
+  color:var(--fg3);position:relative;top:.5px;}
+.tst .tt__age.is-long{color:var(--amber-txt);}      /* 超過 5 分鐘＝設計文件再推一次的門檻 */
+.tst .tt__sum{flex:none;font-size:13px;font-weight:600;letter-spacing:-.005em;}
+.tst .tt__sum em{font-style:normal;font-family:var(--mono);font-variant-numeric:tabular-nums;}
+
+/* ≥3 合併版：證據行要走滿整條的寬度（按鈕底下那一段也要用得到），
+   所以多包一層直排；左邊縮 31pt（標記 22 + 間距 9）對齊上面那行的文字欄。 */
+.tst .tt__col{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;}
+.tst .tt__row{display:flex;align-items:flex-start;}
+.tst .tt--sum .tt__strip{padding-left:31px;}
+
+/* 證據行：≥3 時，把摘要沒說的每一筆都說出來 */
+.tst .tt__strip{height:15px;display:flex;align-items:center;font-size:9.5px;color:var(--fg3);
+  white-space:nowrap;overflow:hidden;}
+.tst .tt__strip span{flex:none;}   /* 不准壓縮：壓了就會疊字，量出來的寬度也會騙人 */
+.tst .tt__strip b{font-weight:600;color:var(--fg2);}
+.tst .tt__strip u{text-decoration:none;font:9.5px/1 var(--mono);font-variant-numeric:tabular-nums;}
+.tst .tt__strip .lead,.tst .tt__strip .lead b{color:var(--fg);}
+.tst .tt__strip .tgt{flex:none;width:3px;height:3px;border-radius:50%;background:var(--amber);margin-right:5px;}
+.tst .tt__strip i{flex:none;width:2.5px;height:2.5px;border-radius:50%;background:var(--fg4);margin:0 7px;}
+
+.tst .tt__act{flex:none;height:22px;display:flex;align-items:center;gap:4px;margin-left:10px;}
+.tst .tt__go{height:22px;display:inline-flex;align-items:center;gap:4px;padding:0 9px;border:0;border-radius:6px;
+  background:var(--amber);color:var(--on-amber);font-family:inherit;font-size:11.5px;font-weight:600;
+  letter-spacing:.01em;cursor:pointer;white-space:nowrap;}
+.tst .tt__go svg{display:block;}
+.tst .tt__x{width:20px;height:20px;display:grid;place-items:center;border:0;border-radius:5px;
+  background:transparent;color:var(--fg3);cursor:pointer;}
+.tst .tt__x:hover{background:rgba(255,255,255,.11);color:var(--fg);}
+.tst .tt--light .tt__x:hover{background:rgba(0,0,0,.07);}
+
+/* 定位：右緣對齊選單列上 QuotaMonster 圖示的右緣，其下 6pt。
+   194.7pt＝實測圖示右緣距螢幕右緣的距離（選單列右側各項寬度加總）。 */
+.tst .drop{position:absolute;z-index:30;right:194.7px;top:30px;}
+.tst .drop .tt + .tt{margin-top:7px;}
+
+/* 動畫：只有標記裡的三個 chevron 會呼吸（與選單列圖示同一條規則）。 */
+@keyframes tstBreath{0%,100%{opacity:1}50%{opacity:.34}}
+.tst .chev{animation:tstBreath 1.9s ease-in-out infinite;}
+@media (prefers-reduced-motion:reduce){.tst .chev{animation:none;}}
+
+/* ---- 規格 / 生命週期 ---- */
+.tst .plate{background:var(--ppnl);border:1px solid var(--pln);border-radius:12px;padding:26px 24px;}
+.tst .ruler{position:relative;width:380px;margin:0 0 9px 78px;height:12px;}
+.tst .ruler::before{content:"";position:absolute;left:0;right:0;top:6px;border-top:1px solid var(--amber);opacity:.5;}
+.tst .ruler::after{content:"";position:absolute;left:0;right:0;top:1px;height:10px;
+  border-left:1px solid var(--amber);border-right:1px solid var(--amber);opacity:.5;}
+.tst .ruler span{position:absolute;left:50%;top:-2px;transform:translateX(-50%);background:var(--ppnl);
+  padding:0 7px;font:10.5px/1 var(--mono);color:var(--amber);}
+.tst .vrow{display:flex;align-items:flex-start;gap:11px;margin-left:56px;}
+.tst .vruler{position:relative;width:11px;flex:none;}
+.tst .vruler::before{content:"";position:absolute;top:0;bottom:0;left:5px;border-left:1px solid var(--amber);opacity:.5;}
+.tst .vruler::after{content:"";position:absolute;top:0;bottom:0;left:0;width:10px;
+  border-top:1px solid var(--amber);border-bottom:1px solid var(--amber);opacity:.5;}
+.tst .vruler span{position:absolute;right:14px;top:50%;transform:translateY(-50%);white-space:nowrap;
+  font:10.5px/1 var(--mono);color:var(--amber);}
+.tst table{border-collapse:collapse;font:12px/1.55 var(--mono);width:100%;max-width:760px;margin:20px 0 0;}
+.tst th{text-align:left;color:var(--pdim);font-weight:600;border-bottom:1px solid var(--pln);padding:6px 12px 6px 0;}
+.tst td{padding:5px 12px 5px 0;border-bottom:1px solid var(--pln);vertical-align:top;color:var(--pink);}
+.tst td.d{color:var(--pdim);}
+.tst .frames{display:flex;flex-direction:column;gap:15px;}
+.tst .frame{display:flex;align-items:center;gap:26px;}
+.tst .frame .stage{width:380px;flex:none;}
+.tst .frame .cap{margin:0;flex:1 1 auto;}
+.tst .f1{opacity:.42;transform:translateY(-7px);}
+.tst .f3{opacity:.16;transform:translateY(-5px);}
+
+/* ---- 筆記 ---- */
+.tst .notes{display:flex;gap:40px;flex-wrap:wrap;}
+.tst .notes>div{flex:1 1 420px;min-width:300px;}
+.tst ol,.tst ul{list-style:none;}
+.tst li{position:relative;padding-left:26px;margin:0 0 13px;color:var(--pdim);font-size:12.9px;line-height:1.62;}
+.tst li b{color:var(--pink);font-weight:600;}
+.tst .yes{counter-reset:n;}
+.tst .yes li::before{content:counter(n);counter-increment:n;position:absolute;left:0;top:1px;
+  font:600 10px/16px var(--mono);width:16px;height:16px;text-align:center;border-radius:4px;
+  background:rgba(255,158,10,.15);color:var(--amber);}
+.tst .no li::before{content:"×";position:absolute;left:0;top:1px;font:600 11px/16px var(--mono);
+  width:16px;height:16px;text-align:center;border-radius:4px;background:rgba(255,255,255,.07);color:var(--pdim);}
+.tst .risk{border:1px solid rgba(255,158,10,.34);background:rgba(255,158,10,.055);border-radius:10px;
+  padding:19px 22px;margin:18px 0 0;max-width:880px;}
+.tst .risk h4{font:600 10.5px/1.4 var(--mono);letter-spacing:.15em;text-transform:uppercase;color:var(--amber);margin:0 0 10px;}
+.tst .risk p{color:var(--pdim);font-size:12.9px;margin:0 0 9px;}
+.tst .risk p b{color:var(--pink);font-weight:600;}
+.tst .risk p:last-child{margin-bottom:0;}
+</style></head>
+<body><div class="tst"><div class="wrap">
+
+<h1>Toast <span>· QuotaMonster T1 提示視窗</span></h1>
+<p class="lede">一條 <b>380 × 38pt</b> 的橫幅，從選單列圖示正下方 6pt 滑出來。一行字、一個按鈕、8 秒後自己收起。
+賭的是<b>最小的佔地</b>與<b>最熟的形狀</b>——它不試圖成為第二個面板，只負責在一秒內把你從別的事情裡叫回來，然後讓開。</p>
+<p class="lede">寬度刻意與下拉面板相同（<code>PanelView.width = 380</code>）：同一個 session 在提示與面板裡落在同一欄。</p>
+<p class="cap" style="margin-top:16px"><span class="meta">Real size</span>本頁 1 CSS px = 1 pt，請以 100% 縮放檢視。深色為預設；淺色只作參考，放在最後。</p>
+
+<!-- ====================================================================
+     情境一：一個 session 在等
+     ==================================================================== -->
+<h2>情境一 · 一個 session 在等你</h2>
+<p class="sub">整面桌面，真實尺寸。前景是你正在做的事（未聚焦視窗一律去飽和，紅綠燈本來就是灰的）；
+琥珀是整個畫面上唯一的顏色，所以餘光就抓得到。</p>
+
+<div class="scr">
+  <div class="mb">
+    <span class="mb__apple"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M9.2 7.9c0-1.6 1.3-2.4 1.4-2.4-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6C.7 7.9 1.6 11 2.8 12.7c.6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.3-.6s1.4.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM7.7 3.1c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.3-.7 2.1.8.1 1.6-.4 2.1-1z" fill="currentColor"/></svg></span>
+    <div class="mb__menus"><b>Xcode</b><span>檔案</span><span>編輯</span><span>顯示</span><span>產品</span><span>視窗</span><span>輔助說明</span></div>
+    <div class="mb__right">
+      <!-- QuotaMonster：警示狀態。1 個阻塞 → 閉環（alertSegments：blocked < 2 → closedRing） -->
+      <svg class="mb__qm" viewBox="0 0 22 22" aria-label="QuotaMonster 警示中">
+        <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.4" y="3.2" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.6" cy="5.2" r="1.3" fill="currentColor"/><rect x="1.4" y="8.8" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="11.4" cy="10.8" r="1.3" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.1a10 10 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M3.6 6.9a6.2 6.2 0 0 1 8.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x=".6" y="1.4" width="21" height="9.2" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3" width="13" height="6" rx="1.8" fill="currentColor"/><path d="M23.2 4.3v3.4a2.4 2.4 0 0 0 0-3.4z" fill="currentColor"/></svg>
+      <span class="mb__clock">週五 下午4:42</span>
+    </div>
+  </div>
+
+  <div class="win win--term">
+    <div class="win__bar"><i class="win__dot"></i><i class="win__dot"></i><i class="win__dot"></i><span class="win__ttl">usage — claude</span></div>
+    <div class="win__body">
+      <div><s>&gt;</s> 把提示視窗的 T1 骨架接上 StatusItemController</div>
+      <div><s>●</s> Edit(StatusItemController.swift)</div>
+      <div>&nbsp;</div>
+      <div><u>? 允許 Bash 執行 swift build -c release ？</u></div>
+      <div><s>&nbsp;&nbsp;› 1. 允許　2. 永遠允許　3. 不要</s></div>
+    </div>
+  </div>
+  <div class="win win--edit">
+    <div class="win__bar"><i class="win__dot"></i><i class="win__dot"></i><i class="win__dot"></i><span class="win__ttl">GroupBuyApp — ContentView.swift</span></div>
+    <div class="win__body">
+      <div><s>17</s> &nbsp;struct ContentView: View {</div>
+      <div><s>18</s> &nbsp;&nbsp;&nbsp;&nbsp;@State private var groups: [GroupBuy] = []</div>
+      <div><s>19</s> &nbsp;&nbsp;&nbsp;&nbsp;@Environment(\.scenePhase) private var phase</div>
+      <div><s>20</s></div>
+      <div><s>21</s> &nbsp;&nbsp;&nbsp;&nbsp;var body: some View {</div>
+      <div><s>22</s> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NavigationStack {</div>
+      <div><s>23</s> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;List(groups) { g in</div>
+      <div><s>24</s> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;GroupRow(group: g)</div>
+      <div><s>25</s> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</div>
+      <div><s>26</s> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.navigationTitle("團購")</div>
+    </div>
+  </div>
+
+  <div class="drop">
+    <div class="tt">
+      <i class="tt__rail"></i>
+      <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+        <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <div class="tt__main"><div class="tt__l1">
+        <span class="tt__proj">usage</span><i class="tt__sep"></i>
+        <span class="tt__why">等你批准工具</span><span class="tt__age">1m 12s</span>
+      </div></div>
+      <div class="tt__act">
+        <button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap"><b>380 × 38 pt</b> · 選單列下方 6pt · 右緣對齊選單列圖示右緣（不是螢幕右緣——那是系統通知的位置，這一條要一眼就看得出是誰發的）</p>
+
+<!-- ====================================================================
+     情境二：兩個
+     ==================================================================== -->
+<h2>情境二 · 兩個 session 在等你</h2>
+<p class="sub">兩個以下不合併——設計文件的合併門檻是 <b>≥3</b>。兩條各自完整，各自帶自己的「跳過去」，
+因為它們是兩個不同的去處。<b>等最久的在上面</b>（不是最新的在上面）：先處理擋最久的那個。
+選單列圖示同時變成兩段——環的等分數就是等待數。</p>
+<div class="scr scr--tall">
+  <div class="mb">
+    <span class="mb__apple"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M9.2 7.9c0-1.6 1.3-2.4 1.4-2.4-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6C.7 7.9 1.6 11 2.8 12.7c.6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.3-.6s1.4.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM7.7 3.1c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.3-.7 2.1.8.1 1.6-.4 2.1-1z" fill="currentColor"/></svg></span>
+    <div class="mb__menus"><b>Xcode</b><span>檔案</span><span>編輯</span><span>顯示</span><span>產品</span><span>視窗</span><span>輔助說明</span></div>
+    <div class="mb__right">
+      <svg class="mb__qm" viewBox="0 0 22 22" aria-label="QuotaMonster 警示中 · 2">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3.964 9.250A7.25 7.25 0 0 1 18.036 9.250"/><path d="M18.036 12.750A7.25 7.25 0 0 1 3.964 12.750"/></g>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.4" y="3.2" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.6" cy="5.2" r="1.3" fill="currentColor"/><rect x="1.4" y="8.8" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="11.4" cy="10.8" r="1.3" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.1a10 10 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M3.6 6.9a6.2 6.2 0 0 1 8.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x=".6" y="1.4" width="21" height="9.2" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3" width="13" height="6" rx="1.8" fill="currentColor"/><path d="M23.2 4.3v3.4a2.4 2.4 0 0 0 0-3.4z" fill="currentColor"/></svg>
+      <span class="mb__clock">週五 下午4:42</span>
+    </div>
+  </div>
+  <div class="win win--edit" style="top:44px;height:200px">
+    <div class="win__bar"><i class="win__dot"></i><i class="win__dot"></i><i class="win__dot"></i><span class="win__ttl">GroupBuyApp — ContentView.swift</span></div>
+    <div class="win__body"><div><s>17</s> &nbsp;struct ContentView: View {</div><div><s>18</s> &nbsp;&nbsp;&nbsp;&nbsp;@State private var groups: [GroupBuy] = []</div><div><s>19</s> &nbsp;&nbsp;&nbsp;&nbsp;@Environment(\.scenePhase) private var phase</div></div>
+  </div>
+  <div class="drop">
+    <div class="tt">
+      <i class="tt__rail"></i>
+      <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3.964 9.250A7.25 7.25 0 0 1 18.036 9.250"/><path d="M18.036 12.750A7.25 7.25 0 0 1 3.964 12.750"/></g>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <div class="tt__main"><div class="tt__l1">
+        <span class="tt__proj">Auto_trading</span><i class="tt__sep"></i>
+        <span class="tt__why">在問你問題</span><span class="tt__age is-long">7m 41s</span>
+      </div></div>
+      <div class="tt__act">
+        <button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+    <div class="tt">
+      <i class="tt__rail"></i>
+      <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M3.964 9.250A7.25 7.25 0 0 1 18.036 9.250"/><path d="M18.036 12.750A7.25 7.25 0 0 1 3.964 12.750"/></g>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <div class="tt__main"><div class="tt__l1">
+        <span class="tt__proj">usage</span><i class="tt__sep"></i>
+        <span class="tt__why">等你批准工具</span><span class="tt__age">1m 12s</span>
+      </div></div>
+      <div class="tt__act">
+        <button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap"><b>380 × 38 pt × 2，間距 7pt（總高 83pt）</b> · 等最久的在上 · <em>7m 41s</em> 已過 5 分鐘門檻，數字轉琥珀</p>
+
+<!-- ====================================================================
+     情境三：≥3 合併
+     ==================================================================== -->
+<h2>情境三 · 三個以上 → 合併成一則</h2>
+<p class="sub">設計文件：同類事件 ≥3 合成一則摘要。合併最容易變成謊話，所以這裡只長高 18pt，
+多出來的那一行不是裝飾，是<b>證據</b>：摘要說數量，證據行把每一筆都說完。</p>
+<div class="scr scr--band">
+  <div class="mb">
+    <span class="mb__apple"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M9.2 7.9c0-1.6 1.3-2.4 1.4-2.4-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6C.7 7.9 1.6 11 2.8 12.7c.6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.3-.6s1.4.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM7.7 3.1c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.3-.7 2.1.8.1 1.6-.4 2.1-1z" fill="currentColor"/></svg></span>
+    <div class="mb__menus"><b>Xcode</b><span>檔案</span><span>編輯</span><span>顯示</span><span>產品</span><span>視窗</span><span>輔助說明</span></div>
+    <div class="mb__right">
+      <svg class="mb__qm" viewBox="0 0 22 22" aria-label="QuotaMonster 警示中 · 3">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M4.032 13.002A7.25 7.25 0 0 1 9.250 3.964"/><path d="M16.218 16.033A7.25 7.25 0 0 1 5.782 16.033"/><path d="M12.750 3.964A7.25 7.25 0 0 1 17.968 13.002"/></g>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.4" y="3.2" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.6" cy="5.2" r="1.3" fill="currentColor"/><rect x="1.4" y="8.8" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="11.4" cy="10.8" r="1.3" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.1a10 10 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M3.6 6.9a6.2 6.2 0 0 1 8.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x=".6" y="1.4" width="21" height="9.2" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3" width="13" height="6" rx="1.8" fill="currentColor"/><path d="M23.2 4.3v3.4a2.4 2.4 0 0 0 0-3.4z" fill="currentColor"/></svg>
+      <span class="mb__clock">週五 下午4:42</span>
+    </div>
+  </div>
+  <div class="win win--edit" style="top:44px;height:200px">
+    <div class="win__bar"><i class="win__dot"></i><i class="win__dot"></i><i class="win__dot"></i><span class="win__ttl">GroupBuyApp — ContentView.swift</span></div>
+    <div class="win__body"><div><s>17</s> &nbsp;struct ContentView: View {</div><div><s>18</s> &nbsp;&nbsp;&nbsp;&nbsp;@State private var groups: [GroupBuy] = []</div><div><s>19</s> &nbsp;&nbsp;&nbsp;&nbsp;@Environment(\.scenePhase) private var phase</div></div>
+  </div>
+  <div class="drop">
+    <div class="tt tt--sum">
+      <i class="tt__rail"></i>
+      <div class="tt__col">
+        <div class="tt__row">
+          <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M4.032 13.002A7.25 7.25 0 0 1 9.250 3.964"/><path d="M16.218 16.033A7.25 7.25 0 0 1 5.782 16.033"/><path d="M12.750 3.964A7.25 7.25 0 0 1 17.968 13.002"/></g>
+            <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+          <div class="tt__main"><div class="tt__l1"><span class="tt__sum"><em>3</em> 個 session 在等你</span></div></div>
+          <div class="tt__act">
+            <button class="tt__go">跳到等最久的<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="tt__strip">
+          <i class="tgt"></i><span class="lead"><b>usage</b> 批准 <u>7m 41s</u></span>
+          <i></i><span><b>F1</b> 提問 <u>2m 10s</u></span>
+          <i></i><span><b>PEO</b> 批准 <u>40s</u></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap"><b>380 × 56 pt</b>（比一行版高 18pt） · 證據行 9.5pt，照等待時間由長到短 · 開頭的<em>琥珀小點</em>標出按鈕會跳到哪一筆</p>
+
+<h3>溢位：六個在等的時候</h3>
+<p class="sub">證據行有多少寬度就列多少筆（可用 319pt），剩下的收成「還有 N 個」。
+<b>被收起來的永遠是排序最尾端、等最短的那幾筆</b>，而且數量有講出來——沒有任何一筆被無聲吃掉。
+要完整清單就點文字區開面板。選單列的環最多等分六段（<code>alertSegmentCeiling = 6</code>），兩邊仍然對得上。</p>
+<div class="scr scr--band" style="height:112px">
+  <div class="mb">
+    <span class="mb__apple"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M9.2 7.9c0-1.6 1.3-2.4 1.4-2.4-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6C.7 7.9 1.6 11 2.8 12.7c.6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.3-.6s1.4.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM7.7 3.1c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.3-.7 2.1.8.1 1.6-.4 2.1-1z" fill="currentColor"/></svg></span>
+    <div class="mb__menus"><b>Xcode</b><span>檔案</span><span>編輯</span><span>顯示</span><span>產品</span><span>視窗</span><span>輔助說明</span></div>
+    <div class="mb__right">
+      <svg class="mb__qm" viewBox="0 0 22 22" aria-label="QuotaMonster 警示中 · 6">
+        <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+          <path d="M8.998 4.032A7.25 7.25 0 0 1 13.002 4.032"/><path d="M3.964 9.250A7.25 7.25 0 0 1 5.967 5.782"/><path d="M5.967 16.218A7.25 7.25 0 0 1 3.964 12.750"/><path d="M13.002 17.968A7.25 7.25 0 0 1 8.998 17.968"/><path d="M18.036 12.750A7.25 7.25 0 0 1 16.033 16.218"/><path d="M16.033 5.782A7.25 7.25 0 0 1 18.036 9.250"/></g>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.4" y="3.2" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.6" cy="5.2" r="1.3" fill="currentColor"/><rect x="1.4" y="8.8" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="11.4" cy="10.8" r="1.3" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.1a10 10 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M3.6 6.9a6.2 6.2 0 0 1 8.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x=".6" y="1.4" width="21" height="9.2" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3" width="13" height="6" rx="1.8" fill="currentColor"/><path d="M23.2 4.3v3.4a2.4 2.4 0 0 0 0-3.4z" fill="currentColor"/></svg>
+      <span class="mb__clock">週五 下午4:42</span>
+    </div>
+  </div>
+  <div class="drop">
+    <div class="tt tt--sum">
+      <i class="tt__rail"></i>
+      <div class="tt__col">
+        <div class="tt__row">
+          <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+            <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <path d="M8.998 4.032A7.25 7.25 0 0 1 13.002 4.032"/><path d="M3.964 9.250A7.25 7.25 0 0 1 5.967 5.782"/><path d="M5.967 16.218A7.25 7.25 0 0 1 3.964 12.750"/><path d="M13.002 17.968A7.25 7.25 0 0 1 8.998 17.968"/><path d="M18.036 12.750A7.25 7.25 0 0 1 16.033 16.218"/><path d="M16.033 5.782A7.25 7.25 0 0 1 18.036 9.250"/></g>
+            <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+          <div class="tt__main"><div class="tt__l1"><span class="tt__sum"><em>6</em> 個 session 在等你</span></div></div>
+          <div class="tt__act">
+            <button class="tt__go">跳到等最久的<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+          </div>
+        </div>
+        <div class="tt__strip">
+          <i class="tgt"></i><span class="lead"><b>usage</b> 批准 <u>12m 04s</u></span>
+          <i></i><span><b>F1</b> 提問 <u>6m 20s</u></span>
+          <i></i><span>還有 4 個</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap">這裡只放得下<b>兩筆具名 + 一個有數字的尾巴</b>——等久了時間字串會變長（<em>12m 04s</em>），
+能具名的就變少。放得下幾筆就列幾筆，收起來的永遠是等最短的那幾筆，而且數量有講。</p>
+
+<div class="risk">
+  <h4>合併不說謊的三個條件</h4>
+  <p><b>一、摘要行只講數量，不假裝自己是一個 session。</b>
+  「3 個 session 在等你」——它沒有專案名、沒有等待時間，因為它不是任何一個 session。
+  把三件事塞進一個名字，才是謊話的起點。</p>
+  <p><b>二、證據行把每一筆都說完：專案 + 在等什麼 + 等多久。</b>
+  規格要求的三個欄位一個都沒有因為合併而消失，只是換成 9.5pt。
+  三筆以內時，畫面上的資訊量與三條獨立橫幅<b>完全相同</b>——省下的是 72pt 的高度（三條獨立橫幅要 128pt，這裡 56pt）與兩個按鈕，不是事實。</p>
+  <p><b>三、按鈕說出自己會跳到哪一個。</b>
+  一個按鈕配三件事，唯一不說謊的辦法是明講它處理的是哪一件：「跳到等最久的」，
+  而那一筆在證據行裡由琥珀小點標出來。<b>「跳過去」在這裡會是謊話</b>，
+  所以這是三種情況中唯一改掉按鈕字樣的地方——動作沒變，只是不再含糊。</p>
+</div>
+
+<!-- ====================================================================
+     規格
+     ==================================================================== -->
+<h2>規格</h2>
+<div class="plate">
+  <div class="ruler"><span>380 pt</span></div>
+  <div class="vrow">
+    <div class="vruler" style="height:38px"><span>38 pt</span></div>
+    <div class="tt">
+      <i class="tt__rail"></i>
+      <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+        <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <div class="tt__main"><div class="tt__l1">
+        <span class="tt__proj">usage</span><i class="tt__sep"></i>
+        <span class="tt__why">等你批准工具</span><span class="tt__age">1m 12s</span>
+      </div></div>
+      <div class="tt__act">
+        <button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+  <table>
+    <tr><th style="width:132px">項目</th><th style="width:118px">尺寸</th><th>備註</th></tr>
+    <tr><td>視窗</td><td>380 × 38 pt</td><td class="d">≥3 → 380 × 56 pt；2 個 → 兩條 ×38 + 7pt 間距 = 83pt</td></tr>
+    <tr><td>圓角</td><td>12 pt</td><td class="d">與下拉面板同值，三種情況共用同一個形狀</td></tr>
+    <tr><td>內距</td><td>8 / 8 / 8 / 10</td><td class="d">上 右 下 左。描邊走 inset shadow，不佔尺寸</td></tr>
+    <tr><td>左緣琥珀條</td><td>2.5 pt</td><td class="d">對應面板阻塞卡的 3pt 左緣</td></tr>
+    <tr><td>標記</td><td>22 × 22 pt</td><td class="d">與選單列圖示 1:1，r=7.25 / stroke 1.5 / 環依阻塞數等分</td></tr>
+    <tr><td>專案名</td><td>13 pt / 600</td><td class="d">cwd 最後一段，可用約 82pt（~11 字元），超出截尾</td></tr>
+    <tr><td>等待原因</td><td>11.5 pt / 400</td><td class="d">「在問你問題」／「等你批准工具」，不截斷</td></tr>
+    <tr><td>等待時間</td><td>11.5 pt mono</td><td class="d">tabular；超過 5 分鐘轉琥珀</td></tr>
+    <tr><td>證據行</td><td>9.5 pt</td><td class="d">可用 319pt；三筆實測 260pt，放得下幾筆就列幾筆</td></tr>
+    <tr><td>跳過去</td><td>h 22 pt</td><td class="d">唯一填滿的色塊，固定最右</td></tr>
+    <tr><td>關閉</td><td>20 × 20 pt</td><td class="d">永遠可見，不是 hover 才出現；Esc 同效</td></tr>
+    <tr><td>位置</td><td>選單列下 6 pt</td><td class="d">右緣對齊選單列圖示右緣</td></tr>
+  </table>
+</div>
+
+<h2>生命週期</h2>
+<p class="sub">滑入 180ms、停留 8s、淡出 140ms，滑鼠移上去暫停計時。
+<b>敢自動收起，是因為它不是唯一的通道</b>：收起後選單列圖示仍然維持警示狀態，5 分鐘後再推一次
+（設計文件的節流規則），所以這條橫幅不必留在畫面上證明自己還在。</p>
+<div class="plate"><div class="frames">
+  <div class="frame"><div class="stage"><div class="tt f1">
+    <i class="tt__rail"></i>
+    <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+    <div class="tt__main"><div class="tt__l1"><span class="tt__proj">usage</span><i class="tt__sep"></i><span class="tt__why">等你批准工具</span><span class="tt__age">0s</span></div></div>
+    <div class="tt__act"><button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button></div>
+  </div></div><p class="cap">0 ms · 從選單列下緣滑出 8pt，180ms</p></div>
+
+  <div class="frame"><div class="stage"><div class="tt">
+    <i class="tt__rail"></i>
+    <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+    <div class="tt__main"><div class="tt__l1"><span class="tt__proj">usage</span><i class="tt__sep"></i><span class="tt__why">等你批准工具</span><span class="tt__age">4s</span></div></div>
+    <div class="tt__act"><button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button></div>
+  </div></div><p class="cap">0.18–8.18 s · 停留。只有標記裡的三個 chevron 在呼吸（1.9s），其餘完全靜止</p></div>
+
+  <div class="frame"><div class="stage"><div class="tt f3">
+    <i class="tt__rail"></i>
+    <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+    <div class="tt__main"><div class="tt__l1"><span class="tt__proj">usage</span><i class="tt__sep"></i><span class="tt__why">等你批准工具</span><span class="tt__age">8s</span></div></div>
+    <div class="tt__act"><button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button><button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button></div>
+  </div></div><p class="cap">8.18 s · 淡出 140ms。選單列圖示留著，5 分鐘後恰好再推一次</p></div>
+</div></div>
+
+<!-- ====================================================================
+     淺色（參考）
+     ==================================================================== -->
+<h2>淺色 · 參考</h2>
+<p class="sub">深色才是這個 app 的主場，淺色只給一個情境對照。
+標記與左緣條用的是<b>同一個琥珀 #FF9E0A</b>（選單列在淺色下畫的也是這個不透明色）；
+只有琥珀的<b>文字</b>會轉深（#9A5A08），否則在淺底上讀不出來。</p>
+<div class="scr scr--band" style="height:104px;background-image:
+   radial-gradient(700px 400px at 80% -20%,rgba(255,236,208,.95) 0,rgba(255,236,208,0) 70%),
+   radial-gradient(600px 460px at 10% 110%,rgba(206,216,236,.9) 0,rgba(206,216,236,0) 70%),
+   linear-gradient(160deg,#eceff5 0%,#e3e7f0 46%,#d9dee9 100%)">
+  <div class="mb mb--light">
+    <span class="mb__apple"><svg width="13" height="15" viewBox="0 0 13 15" aria-hidden="true"><path d="M9.2 7.9c0-1.6 1.3-2.4 1.4-2.4-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6C.7 7.9 1.6 11 2.8 12.7c.6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.3-.6s1.4.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM7.7 3.1c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.3-.7 2.1.8.1 1.6-.4 2.1-1z" fill="currentColor"/></svg></span>
+    <div class="mb__menus"><b>Xcode</b><span>檔案</span><span>編輯</span><span>顯示</span><span>產品</span><span>視窗</span><span>輔助說明</span></div>
+    <div class="mb__right">
+      <svg class="mb__qm" viewBox="0 0 22 22" aria-label="QuotaMonster 警示中">
+        <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden="true"><rect x="1.4" y="3.2" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.6" cy="5.2" r="1.3" fill="currentColor"/><rect x="1.4" y="8.8" width="13.2" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="11.4" cy="10.8" r="1.3" fill="currentColor"/></svg>
+      <svg width="16" height="12" viewBox="0 0 16 12" aria-hidden="true"><path d="M1 4.1a10 10 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M3.6 6.9a6.2 6.2 0 0 1 8.8 0" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><circle cx="8" cy="10" r="1.2" fill="currentColor"/></svg>
+      <svg width="25" height="12" viewBox="0 0 26 12" aria-hidden="true"><rect x=".6" y="1.4" width="21" height="9.2" rx="3" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3" width="13" height="6" rx="1.8" fill="currentColor"/><path d="M23.2 4.3v3.4a2.4 2.4 0 0 0 0-3.4z" fill="currentColor"/></svg>
+      <span class="mb__clock">週五 下午4:42</span>
+    </div>
+  </div>
+  <div class="drop">
+    <div class="tt tt--light">
+      <i class="tt__rail"></i>
+      <svg class="tt__gl" viewBox="0 0 22 22" aria-hidden="true">
+        <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        <g class="chev" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+      <div class="tt__main"><div class="tt__l1">
+        <span class="tt__proj">usage</span><i class="tt__sep"></i>
+        <span class="tt__why">等你批准工具</span><span class="tt__age is-long">7m 41s</span>
+      </div></div>
+      <div class="tt__act">
+        <button class="tt__go">跳過去<svg width="9" height="9" viewBox="0 0 9 9" aria-hidden="true"><path d="M2.3 6.7 6.7 2.3M3.4 2.3h3.3v3.3" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <button class="tt__x" aria-label="關閉"><svg width="10" height="10" viewBox="0 0 10 10" aria-hidden="true"><path d="M2.2 2.2 7.8 7.8M7.8 2.2 2.2 7.8" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/></svg></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ====================================================================
+     筆記
+     ==================================================================== -->
+<h2>選擇與捨棄</h2>
+<div class="notes">
+<div>
+  <h3 style="margin-top:6px">選擇了什麼</h3>
+  <ol class="yes">
+    <li><b>380 × 38 pt，與下拉面板同寬。</b>面板是 380pt，這條也是 380pt——兩者是同一個東西的兩種長度。
+      點開面板時同一個 session 落在同一欄，眼睛不用重新對位。</li>
+    <li><b>右緣對齊選單列圖示，不對齊螢幕邊緣。</b>系統通知貼右邊緣；這一條貼在自己的圖示正下方 6pt。
+      你先看到圖示變琥珀，視線直直往下就是它；而且一眼分得出「這不是系統通知，是 QuotaMonster」。</li>
+    <li><b>左邊那顆標記就是選單列上的那一顆，1:1 同尺寸（22pt）、同幾何。</b>
+      連環被阻塞數等分的規則都照 <code>GlyphGeometry.alertSegments</code>。
+      所以「有幾個在等」在你讀到任何一個字之前就已經傳達完了——這是一秒內看懂的主要機制。</li>
+    <li><b>琥珀只給訊號，不給裝飾。</b>額度色階（藍→綠→紅）一格都沒有出現，這個視窗與額度無關。
+      整條裡<b>唯一填滿的色塊是按鈕</b>：要找的東西就是最飽和的那一塊，不用掃描。</li>
+    <li><b>背景視窗一律去飽和。</b>未聚焦視窗的紅綠燈本來就是灰的，這裡連內容也壓成灰階。
+      這不只是排版好看——它是這個方向能成立的前提：琥珀必須是畫面上唯一的顏色。</li>
+    <li><b>一個動作 + 一個關閉，兩個都不用找。</b>按鈕 22pt 高、固定最右；關閉是 20 × 20pt 的點擊區，
+      <b>永遠可見</b>（不是 hover 才浮出來），Esc 同效。點文字區＝開面板。</li>
+    <li><b>8 秒自動收起。</b>敢自動收，是因為選單列圖示會一直維持警示狀態、5 分鐘後再推一次
+      （設計文件的節流規則）。持久性由圖示保證，這條橫幅只負責打斷，然後讓開。</li>
+    <li><b>等待時間超過 5 分鐘轉琥珀。</b>門檻與設計文件「5 分鐘後恰好再推一次」是同一個數字，
+      不另外發明一套。</li>
+    <li><b>只有三個 chevron 會呼吸。</b>與選單列圖示同一條規則（外圈與量表永遠不動）。
+      餘光抓得到的是這個微幅的節奏，不是整條在動；<code>prefers-reduced-motion</code> 下停止。</li>
+  </ol>
+</div>
+<div>
+  <h3 style="margin-top:6px">刻意捨棄了什麼</h3>
+  <ul class="no">
+    <li><b>倒數進度條。</b>一條會縮短的琥珀細線，是我唯一分不出來跟額度條的東西——面板的額度條就是 3pt 的彩色 capsule。
+      規則寫著「額度色階不得出現在這裡」，一個長得像量表的東西就算顏色對了也還是在稀釋訊號。刪掉。</li>
+    <li><b>五條疊起來。</b>設計文件講得很直白：十則橫幅是攻擊，不是通知。兩個以下才各自一條。</li>
+    <li><b>全圓角藥丸（r=19）。</b>一行的時候很漂亮，≥3 長到 56pt 就不再是藥丸。
+      三種情況必須是同一個形狀，所以取 12pt——與面板同一個圓角。</li>
+    <li><b>兩種圖示分「提問／批准」。</b>一秒內要認出來的東西只能有一個形狀。
+      種類交給文字（「在問你問題」／「等你批准工具」都是 5–6 個字），同一眼就讀完了。</li>
+    <li><b>等待時間旁邊配時鐘小圖示。</b>吃掉 14pt 寬度，換到的資訊是零——旁邊那個數字本來就是時間。</li>
+    <li><b>完整路徑。</b>只放 cwd 最後一段（與面板一致）。一行版留給專案名約 82pt（~11 字元），再長就截尾；
+      完整路徑在面板裡。</li>
+    <li><b>把額度也順便寫上去。</b>最想加、也最該砍的一項。這個視窗只回答一個問題：
+      「誰在等你、等多久、怎麼過去」。額度是 T3，它連在這裡出聲的資格都沒有。</li>
+    <li><b>emoji。</b>全部是行內 SVG，比照 SF Symbols 的筆重（stroke 1.5 / round cap）。</li>
+  </ul>
+  <h3>這個方向的弱點（誠實記錄）</h3>
+  <p class="sub" style="margin-bottom:0">38pt 高的東西，在 1512pt 寬的螢幕上就是小。
+  如果你正盯著螢幕左下角，這條橫幅有可能整整 8 秒都沒進到餘光——它靠的是「選單列圖示 + 短音 + 橫幅」三件事一起發生。
+  單看橫幅本身，<b>它的存在感是所有方向裡最低的</b>。這是「最小佔地」這個賭注的代價，不是調色能救回來的東西。</p>
+</div>
+</div>
+
+</div></div></body></html>

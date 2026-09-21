@@ -1,0 +1,415 @@
+<style>
+.qm-dense{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","IBM Plex Sans TC",sans-serif;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;line-height:1;color:#111;font-size:13px}
+.qm-dense *{box-sizing:border-box;margin:0;padding:0}
+.qm-dense .qm-note{font:500 10px/1.5 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;letter-spacing:.08em;text-transform:uppercase;color:#8a8a8f;margin:0 0 7px 2px}
+.qm-dense .qm-note b{color:#4a4a50;font-weight:700}
+.qm-dense .qm-wall{border-radius:14px;padding:16px;overflow:hidden;position:relative;box-shadow:0 1px 3px rgba(0,0,0,.14),0 8px 26px rgba(0,0,0,.10)}
+.qm-dense .qm-wall--dark{background:
+  radial-gradient(120% 95% at 12% 6%,#2c3d86 0%,rgba(44,61,134,0) 58%),
+  radial-gradient(105% 85% at 88% 18%,#7d2f5e 0%,rgba(125,47,94,0) 54%),
+  radial-gradient(95% 75% at 62% 98%,#0f5f72 0%,rgba(15,95,114,0) 60%),
+  linear-gradient(162deg,#171a30 0%,#0a0b16 58%,#141530 100%)}
+.qm-dense .qm-wall--light{background:
+  radial-gradient(120% 95% at 10% 4%,#ffe7bb 0%,rgba(255,231,187,0) 58%),
+  radial-gradient(105% 85% at 92% 16%,#cbe4ff 0%,rgba(203,228,255,0) 56%),
+  radial-gradient(95% 80% at 48% 100%,#ffd8e2 0%,rgba(255,216,226,0) 60%),
+  linear-gradient(162deg,#f8f4ec 0%,#e7eef8 58%,#f4e9f3 100%)}
+.qm-dense .qm-stage{display:flex;flex-wrap:wrap;gap:18px;align-items:flex-start}
+.qm-dense .qm-card{width:420px;flex:0 0 auto}
+
+/* ---------- simulated menu bar ---------- */
+.qm-dense .qm-bar{height:33px;display:flex;align-items:center;padding:0 12px;gap:0;backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%);position:relative}
+.qm-dense .qm-bar--dark{background:rgba(6,6,10,.44);color:rgba(255,255,255,.92)}
+.qm-dense .qm-bar--light{background:rgba(252,252,253,.58);color:rgba(0,0,0,.88)}
+.qm-dense .qm-bar--r{border-radius:9px;box-shadow:0 0 0 .5px rgba(255,255,255,.12) inset}
+.qm-dense .qm-bar--light.qm-bar--r{box-shadow:0 0 0 .5px rgba(0,0,0,.10) inset}
+.qm-dense .qm-bar .mb-left{display:flex;align-items:center;gap:13px;font-size:12.5px;flex:0 0 auto;white-space:nowrap}.qm-dense .qm-bar .mb-left>*{flex:0 0 auto;white-space:nowrap}
+.qm-dense .qm-bar .mb-app{font-weight:700}
+.qm-dense .qm-bar .mb-menu{opacity:.72;font-weight:400}
+.qm-dense .qm-bar .mb-right{margin-left:auto;display:flex;align-items:center;gap:12px;flex:0 0 auto}.qm-dense .qm-bar .mb-right>*{flex:0 0 auto}
+.qm-dense .qm-bar .mb-item{height:22px;display:flex;align-items:center;justify-content:flex-start}
+.qm-dense .qm-bar .mb-clock{font:400 12.5px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;opacity:.95;white-space:nowrap}
+.qm-dense .qm-bar .mb-sep{width:1px;height:14px;background:currentColor;opacity:.16}
+/* the icon items */
+.qm-dense .mbi{height:22px;display:flex;align-items:center;gap:4px;color:inherit;flex:0 0 auto}
+.qm-dense .mbi--a{width:54px}
+.qm-dense .mbi--b{width:52px}
+.qm-dense .mbi--c{width:56px}
+.qm-dense .mbi .num{font:600 11.5px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.qm-dense .mbi .two{display:flex;flex-direction:column;justify-content:center;gap:2px}
+.qm-dense .mbi .two span{font:600 8.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums;letter-spacing:.01em;white-space:nowrap}
+.qm-dense .mbi .two span i{font-style:normal;opacity:.55;font-weight:600}
+.qm-dense .mbi.is-blocked{color:#FF9F0A}
+.qm-dense .qm-bar--light .mbi.is-blocked{color:#C26A00}
+.qm-dense .mbi.is-blocked .alertg{animation:qmd-breathe 2.4s ease-in-out infinite}
+@keyframes qmd-breathe{0%,100%{opacity:1}50%{opacity:.42}}
+.qm-dense .mb-caps{display:flex;gap:0;margin-top:11px}
+.qm-dense .mb-caps div{flex:1;font:500 9.5px/1.45 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;letter-spacing:.02em;padding-left:9px;border-left:1px solid rgba(255,255,255,.16)}
+.qm-dense .mb-caps b{display:block;font-weight:700;font-size:10px;letter-spacing:.06em;margin-bottom:2px}
+.qm-dense .qm-wall--dark .mb-caps div{color:rgba(255,255,255,.52)}
+.qm-dense .qm-wall--dark .mb-caps b{color:rgba(255,255,255,.90)}
+.qm-dense .qm-wall--light .mb-caps div{color:rgba(0,0,0,.50);border-left-color:rgba(0,0,0,.16)}
+.qm-dense .qm-wall--light .mb-caps b{color:rgba(0,0,0,.86)}
+.qm-dense .strip-lab{font:600 9px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;letter-spacing:.11em;text-transform:uppercase;margin:0 0 6px 2px}
+.qm-dense .qm-wall--dark .strip-lab{color:rgba(255,255,255,.45)}
+.qm-dense .qm-wall--light .strip-lab{color:rgba(0,0,0,.42)}
+
+/* ---------- the popover ---------- */
+.qm-dense .qm-p{
+  --bg:rgba(30,30,34,.76);--blurf:blur(34px) saturate(185%);
+  --txt:rgba(255,255,255,.96);--txt2:rgba(255,255,255,.60);--txt3:rgba(255,255,255,.38);
+  --hair:rgba(255,255,255,.115);--hair2:rgba(255,255,255,.065);
+  --fill:rgba(255,255,255,.055);--track:rgba(255,255,255,.135);
+  --blue:#4E9BFF;--blueSoft:rgba(78,155,255,.40);--green:#32CE79;--grey:rgba(255,255,255,.34);
+  --amber:#FF9F0A;--amberT:#FFB648;--amberW:rgba(255,159,10,.115);--amberL:rgba(255,159,10,.34);
+  width:380px;border-radius:12px;position:relative;margin-top:10px;
+  background:var(--bg);backdrop-filter:var(--blurf);-webkit-backdrop-filter:var(--blurf);
+  color:var(--txt);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.15),0 1px 1px rgba(0,0,0,.30),0 18px 48px rgba(0,0,0,.52);
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+.qm-dense .qm-p--light{
+  --bg:rgba(247,247,249,.74);
+  --txt:rgba(0,0,0,.90);--txt2:rgba(0,0,0,.56);--txt3:rgba(0,0,0,.36);
+  --hair:rgba(0,0,0,.11);--hair2:rgba(0,0,0,.055);
+  --fill:rgba(0,0,0,.038);--track:rgba(0,0,0,.115);
+  --blue:#0B6BD6;--blueSoft:rgba(11,107,214,.26);--green:#1C9E55;--grey:rgba(0,0,0,.32);
+  --amber:#FF9500;--amberT:#A85F00;--amberW:rgba(255,149,0,.145);--amberL:rgba(196,110,0,.36);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.12),0 1px 1px rgba(0,0,0,.10),0 18px 48px rgba(0,0,0,.26)}
+.qm-dense .qm-p .arw{position:absolute;top:-10px;right:177px;width:20px;height:11px;background:var(--bg);
+  backdrop-filter:var(--blurf);-webkit-backdrop-filter:var(--blurf);
+  clip-path:polygon(50% 0,100% 100%,0 100%);filter:drop-shadow(0 -.5px 0 rgba(255,255,255,.17))}
+.qm-dense .qm-p--light .arw{filter:drop-shadow(0 -.5px 0 rgba(0,0,0,.13))}
+.qm-dense .qm-p .clip{border-radius:12px;overflow:hidden}
+.qm-dense .qm-p .pad{padding:0 14px}
+.qm-dense .qm-p .rule{height:.5px;background:var(--hair)}
+.qm-dense .qm-p .grow{flex:1 1 auto;min-width:4px}
+.qm-dense .qm-p .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;font-variant-numeric:tabular-nums}
+
+/* header */
+.qm-dense .qm-p .hdr{height:40px;display:flex;align-items:center;gap:7px}
+.qm-dense .qm-p .ttl{font-size:13px;font-weight:700;letter-spacing:-.01em}
+.qm-dense .qm-p .stats{margin-left:auto;display:flex;align-items:stretch;gap:0}
+.qm-dense .qm-p .st{padding:0 8px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;border-left:.5px solid var(--hair)}
+.qm-dense .qm-p .st b{font-size:12.5px;font-weight:700;line-height:1;letter-spacing:-.02em}
+.qm-dense .qm-p .st i{font:700 7.5px/1 -apple-system,BlinkMacSystemFont,sans-serif;font-style:normal;letter-spacing:.10em;color:var(--txt3)}
+.qm-dense .qm-p .st--amber{background:var(--amberW);border-radius:5px;border-left-color:transparent;margin-left:6px;padding:0 7px}
+.qm-dense .qm-p .st--amber b{color:var(--amberT)}
+.qm-dense .qm-p .st--amber i{color:var(--amberT);opacity:.85}
+
+/* section label */
+.qm-dense .qm-p .slab{height:19px;display:flex;align-items:center;gap:7px}
+.qm-dense .qm-p .slab h4{font:700 10px/1 -apple-system,BlinkMacSystemFont,"IBM Plex Sans TC",sans-serif;letter-spacing:.10em;color:var(--txt2)}
+.qm-dense .qm-p .slab .en{font:700 9px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;letter-spacing:.14em;color:var(--txt3)}
+.qm-dense .qm-p .slab .rt{margin-left:auto;display:flex;align-items:center;gap:4px;font:500 9.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt3);letter-spacing:.01em}
+
+/* quota small multiples */
+.qm-dense .qm-p .qcells{display:flex;align-items:stretch}
+.qm-dense .qm-p .qc{flex:1 1 0;min-width:0;padding:8px 10px 9px;border-left:.5px solid var(--hair)}
+.qm-dense .qm-p .qc:first-child{padding-left:0;border-left:0}
+.qm-dense .qm-p .qc:last-child{padding-right:0}
+.qm-dense .qm-p .qc .k{font:700 8.5px/1 -apple-system,BlinkMacSystemFont,"IBM Plex Sans TC",sans-serif;letter-spacing:.07em;color:var(--txt3);white-space:nowrap;margin-bottom:6px}
+.qm-dense .qm-p .qc .v{display:flex;align-items:baseline;gap:1px;margin-bottom:7px}
+.qm-dense .qm-p .qc .v b{font-size:21px;font-weight:650;letter-spacing:-.035em;line-height:1}
+.qm-dense .qm-p .qc .v s{text-decoration:none;font-size:10.5px;font-weight:600;color:var(--txt2)}
+.qm-dense .qm-p .qbar{height:4px;border-radius:2px;background:var(--track);position:relative;overflow:hidden;margin-bottom:6px}
+.qm-dense .qm-p .qbar i{position:absolute;left:0;top:0;bottom:0;border-radius:2px;background:var(--blue)}
+.qm-dense .qm-p .qbar i.am{background:var(--amber)}
+.qm-dense .qm-p .qbar u{position:absolute;top:0;bottom:0;right:0;text-decoration:none;
+  background:repeating-linear-gradient(-45deg,var(--amberL) 0 1px,transparent 1px 3.5px)}
+.qm-dense .qm-p .qc .m{font:500 9.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt3);letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* burn */
+.qm-dense .qm-p .burn{padding:9px 0 8px}
+.qm-dense .qm-p .burnhd{display:flex;align-items:center;gap:6px;margin-bottom:7px}
+.qm-dense .qm-p .burnhd .t{font-size:11px;font-weight:600;color:var(--amberT);letter-spacing:.005em}
+.qm-dense .qm-p .burnhd .n{margin-left:auto;font:700 11px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--amberT)}
+.qm-dense .qm-p .chart{display:block;width:352px;height:48px}
+.qm-dense .qm-p .c-base{stroke:var(--hair);stroke-width:.5}
+.qm-dense .qm-p .c-grid{stroke:var(--hair2);stroke-width:.5;stroke-dasharray:1.5 2.5}
+.qm-dense .qm-p .c-line{stroke:var(--amber);stroke-width:1.3;fill:none;stroke-linejoin:round;stroke-linecap:round}
+.qm-dense .qm-p .c-proj{stroke:var(--amber);stroke-width:1.1;fill:none;stroke-dasharray:2.4 2.4;opacity:.85}
+.qm-dense .qm-p .c-dot{fill:var(--amber)}
+.qm-dense .qm-p .c-now{stroke:var(--hair);stroke-width:.5}
+.qm-dense .qm-p .c-vert{stroke:var(--amberL);stroke-width:.5;stroke-dasharray:1.5 2}
+.qm-dense .qm-p .c-t{font:500 8px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;fill:var(--txt3);letter-spacing:.02em}
+.qm-dense .qm-p .c-ta{fill:var(--amberT);font-weight:700}
+
+/* sessions */
+.qm-dense .qm-p .sess{padding:0 0 3px}
+.qm-dense .qm-p .srow{height:30px;display:flex;align-items:center;gap:6px;min-width:0}
+.qm-dense .qm-p .dot{width:7px;height:7px;border-radius:50%;flex:0 0 auto;background:var(--grey)}
+.qm-dense .qm-p .dot--blue{background:var(--blue)}
+.qm-dense .qm-p .dot--amber{background:var(--amber);box-shadow:0 0 0 2.5px var(--amberW);animation:qmd-breathe 2.2s ease-in-out infinite}
+.qm-dense .qm-p .sid{font-size:12.5px;font-weight:650;letter-spacing:-.015em;white-space:nowrap}
+.qm-dense .qm-p .spath{font:400 10.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;letter-spacing:-.02em}
+.qm-dense .qm-p .state{font:700 8.5px/1 -apple-system,BlinkMacSystemFont,"IBM Plex Sans TC",sans-serif;letter-spacing:.09em;color:var(--txt3);white-space:nowrap}
+.qm-dense .qm-p .state--blue{color:var(--blue)}
+.qm-dense .qm-p .state--amber{color:var(--amberT);letter-spacing:.02em;font-size:10px}
+.qm-dense .qm-p .elap{font:600 10.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt2);width:30px;text-align:right;letter-spacing:-.02em}
+.qm-dense .qm-p .ctx{display:flex;align-items:center;gap:4px}
+.qm-dense .qm-p .ctx em{font:700 7.5px/1 -apple-system,sans-serif;font-style:normal;letter-spacing:.08em;color:var(--txt3)}
+.qm-dense .qm-p .ctx .cb{width:22px;height:3.5px;border-radius:2px;background:var(--track);overflow:hidden;position:relative}
+.qm-dense .qm-p .ctx .cb i{position:absolute;inset:0 auto 0 0;background:var(--txt2);border-radius:2px}
+.qm-dense .qm-p .ctx span{font:600 10px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt2);width:26px;text-align:right;letter-spacing:-.02em}
+
+/* blocked card */
+.qm-dense .qm-p .blk{background:var(--amberW);border-radius:6px;padding:2px 9px 6px;margin:3px 0 4px;
+  box-shadow:inset 2px 0 0 var(--amber),inset 0 0 0 .5px var(--amberL)}
+.qm-dense .qm-p .blk .srow{height:28px}
+.qm-dense .qm-p .prompt{height:23px;display:flex;align-items:center;gap:6px;border-radius:4px;background:var(--fill);padding:0 6px;margin-bottom:3px}
+.qm-dense .qm-p .prompt .tag{font:700 7.5px/1 -apple-system,sans-serif;letter-spacing:.09em;color:var(--amberT);white-space:nowrap}
+.qm-dense .qm-p .prompt .cmd{font:600 10.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.qm-dense .qm-p kbd{font:600 9.5px/1 -apple-system,BlinkMacSystemFont,sans-serif;min-width:15px;height:15px;padding:0 3px;
+  display:inline-flex;align-items:center;justify-content:center;border-radius:3.5px;background:var(--fill);
+  box-shadow:inset 0 0 0 .5px var(--hair);color:var(--txt2)}
+.qm-dense .qm-p .kbds{display:flex;gap:2px;flex:0 0 auto}
+
+/* tree */
+.qm-dense .qm-p .tree{position:relative;padding-left:20px}
+.qm-dense .qm-p .tree:before{content:"";position:absolute;left:9px;top:0;bottom:10px;width:1px;background:var(--hair2)}
+.qm-dense .qm-p .wrow{height:23px;display:flex;align-items:center;gap:5px;position:relative;min-width:0}
+.qm-dense .qm-p .wrow:before,.qm-dense .qm-p .arow:before{content:"";position:absolute;left:-11px;top:50%;width:7px;height:1px;background:var(--hair2)}
+.qm-dense .qm-p .wname{font-size:11px;font-weight:650;letter-spacing:-.005em;white-space:nowrap}
+.qm-dense .qm-p .wtag{font:700 7px/1 -apple-system,sans-serif;letter-spacing:.10em;color:var(--txt3);
+  border:.5px solid var(--hair);border-radius:3px;padding:2.5px 3.5px;white-space:nowrap}
+.qm-dense .qm-p .wid{font:500 9.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt3);letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.qm-dense .qm-p .fan{display:flex;gap:2px;flex:0 0 auto}
+.qm-dense .qm-p .fan b{width:8px;height:10px;border-radius:1.5px;display:block}
+.qm-dense .qm-p .fan b.d{background:var(--green)}
+.qm-dense .qm-p .fan b.r{background:var(--blueSoft);box-shadow:inset 0 0 0 .8px var(--blue)}
+.qm-dense .qm-p .fcount{font:600 9.5px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt3);flex:0 0 auto;letter-spacing:-.02em}
+.qm-dense .qm-p .arow{height:21px;display:flex;align-items:center;gap:6px;position:relative;min-width:0}
+.qm-dense .qm-p .aname{font-size:11px;font-weight:450;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;letter-spacing:-.005em}
+.qm-dense .qm-p .arow--done .aname{color:var(--txt2)}
+.qm-dense .qm-p .abar{width:54px;height:4px;border-radius:2px;background:var(--track);flex:0 0 auto;position:relative;overflow:hidden}
+.qm-dense .qm-p .abar i{position:absolute;inset:0 auto 0 0;border-radius:2px;background:var(--blue)}
+.qm-dense .qm-p .abar i.g{background:var(--green);opacity:.62}
+.qm-dense .qm-p .at{font:600 10px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt2);width:40px;text-align:right;letter-spacing:-.03em;flex:0 0 auto}
+.qm-dense .qm-p .arow--more{height:19px;font:500 10px/1 -apple-system,BlinkMacSystemFont,"IBM Plex Sans TC",sans-serif;color:var(--txt3)}
+.qm-dense .qm-p .agdot{width:6px;height:6px;border-radius:50%;background:var(--blue);flex:0 0 auto;margin:0 1px}
+
+/* footer */
+.qm-dense .qm-p .ft{height:32px;display:flex;align-items:center;gap:7px;background:var(--fill)}
+.qm-dense .qm-p .ft .fresh{font:500 10px/1 ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;color:var(--txt2);letter-spacing:-.01em}
+.qm-dense .qm-p .fbtn{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:5px;color:var(--txt2)}
+.qm-dense .qm-p .fbtn.on{background:var(--fill);box-shadow:inset 0 0 0 .5px var(--hair);color:var(--txt)}
+</style>
+<div class="qm-dense">
+<svg class="qm-defs" width="0" height="0" aria-hidden="true" focusable="false" style="position:absolute"><symbol id="qmd-i0" viewBox="0 0 13 15"><path d="M9.6 7.8c0-1.6 1.3-2.4 1.36-2.44C10.22 4.28 9.1 4.14 8.7 4.13c-.94-.1-1.84.55-2.32.55-.48 0-1.22-.54-2-.52-1.03.01-1.98.6-2.5 1.52-1.07 1.85-.27 4.6.77 6.1.51.74 1.11 1.56 1.9 1.53.76-.03 1.05-.49 1.97-.49.92 0 1.18.49 1.99.48.82-.02 1.34-.75 1.84-1.49.58-.85.82-1.67.83-1.71-.02-.01-1.59-.61-1.6-2.4ZM8.1 3.14c.42-.51.7-1.22.62-1.93-.6.03-1.33.4-1.76.9-.39.45-.73 1.17-.64 1.86.67.05 1.36-.34 1.78-.83Z"/></symbol><symbol id="qmd-i1" viewBox="0 0 16 12"><path d="M1.2 4.1A10 10 0 0 1 14.8 4.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><path d="M3.8 6.6a6.4 6.4 0 0 1 8.4 0" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><path d="M6.3 9a2.8 2.8 0 0 1 3.4 0" stroke="currentColor" stroke-width="1.35" stroke-linecap="round"/><circle cx="8" cy="10.9" r=".95" fill="currentColor"/></symbol><symbol id="qmd-i2" viewBox="0 0 24 12"><rect x=".6" y="1.6" width="20" height="8.8" rx="2.6" stroke="currentColor" stroke-width="1" opacity=".5"/><rect x="2.1" y="3.1" width="13.6" height="5.8" rx="1.5" fill="currentColor"/><path d="M22.2 4.3a2 2 0 0 1 0 3.4" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity=".5"/></symbol><symbol id="qmd-i3" viewBox="0 0 16 14"><rect x=".9" y="1.2" width="14.2" height="4.4" rx="2.2" stroke="currentColor" stroke-width="1.05" opacity=".75"/><circle cx="11.6" cy="3.4" r="1.3" fill="currentColor"/><rect x=".9" y="8.4" width="14.2" height="4.4" rx="2.2" stroke="currentColor" stroke-width="1.05" opacity=".75"/><circle cx="4.4" cy="10.6" r="1.3" fill="currentColor"/></symbol><symbol id="qmd-i4" viewBox="0 0 23 15"><rect x="0.00" y="10.80" width="2.6" height="1.60" rx=".8" fill="currentColor" opacity="0.45"/><rect x="4.00" y="10.80" width="2.6" height="1.60" rx=".8" fill="currentColor" opacity="0.54"/><rect x="8.00" y="10.75" width="2.6" height="1.65" rx=".8" fill="currentColor" opacity="0.63"/><rect x="12.00" y="9.10" width="2.6" height="3.30" rx=".8" fill="currentColor" opacity="0.72"/><rect x="16.00" y="6.90" width="2.6" height="5.50" rx=".8" fill="currentColor" opacity="0.81"/><rect x="20.00" y="1.40" width="2.6" height="11.00" rx=".8" fill="currentColor" opacity="0.90"/><path d="M0 13.1h22.6" stroke="currentColor" stroke-width=".9" opacity=".30" stroke-linecap="round"/></symbol><symbol id="qmd-i5" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6"/><path d="M8 4.6v3.9" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><circle cx="8" cy="11.1" r=".95" fill="currentColor"/></symbol><symbol id="qmd-i6" viewBox="0 0 12 12"><path d="M10.2 6a4.2 4.2 0 1 1-1.3-3.03" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M10.4 1.3v2.4H8" stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="qmd-i7" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" opacity=".30"/><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="10.56 27.14" transform="rotate(-90 8 8)"/></symbol><symbol id="qmd-i8" viewBox="0 0 7 16"><rect x="1.1" y="1.1" width="4.8" height="13.8" rx="2.4" stroke="currentColor" stroke-width="1.1" opacity=".38"/><rect x="2.1" y="10.36" width="2.8" height="3.64" rx="1.4" fill="currentColor"/></symbol><symbol id="qmd-i9" viewBox="0 0 7 16"><rect x="1.1" y="1.1" width="4.8" height="13.8" rx="2.4" stroke="currentColor" stroke-width="1.1"/><path d="M3.5 4.4v4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="3.5" cy="11.6" r=".85" fill="currentColor"/></symbol><symbol id="qmd-i10" viewBox="0 0 16 16"><rect x="1.25" y="1.25" width="13.5" height="13.5" rx="4" stroke="currentColor" stroke-width="1.2" opacity=".55"/><rect x="4.4" y="8.6" width="1.7" height="3.4" rx=".85" fill="currentColor"/><rect x="7.15" y="6.2" width="1.7" height="5.8" rx=".85" fill="currentColor"/><rect x="9.9" y="4.1" width="1.7" height="7.9" rx=".85" fill="currentColor" opacity=".5"/></symbol><symbol id="qmd-i11" viewBox="0 0 12 12"><path d="M6 1.5 11.2 10.4H.8L6 1.5Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round"/><path d="M6 4.6v2.6" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="6" cy="8.85" r=".72" fill="currentColor"/></symbol><symbol id="qmd-i12" viewBox="0 0 12 12"><rect x=".9" y="1.9" width="10.2" height="8.2" rx="2" stroke="currentColor" stroke-width="1" opacity=".55"/><path d="M3.5 4.9 5.2 6l-1.7 1.1" stroke="currentColor" stroke-width="1.05" stroke-linecap="round" stroke-linejoin="round"/><path d="M6.4 7.6h2.3" stroke="currentColor" stroke-width="1.05" stroke-linecap="round"/></symbol><symbol id="qmd-i13" viewBox="0 0 12 12"><circle cx="2.6" cy="2.6" r="1.5" stroke="currentColor" stroke-width="1"/><circle cx="9.4" cy="9.4" r="1.5" stroke="currentColor" stroke-width="1"/><circle cx="2.6" cy="9.4" r="1.5" stroke="currentColor" stroke-width="1"/><path d="M2.6 4.1v3.8M4.1 9.4h3.8" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></symbol><symbol id="qmd-i14" viewBox="0 0 10 10"><path d="M1.4 5.2 3.9 7.7 8.6 2.3" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol><symbol id="qmd-i15" viewBox="0 0 10 10"><circle cx="1.6" cy="5" r="1" fill="currentColor"/><circle cx="5" cy="5" r="1" fill="currentColor"/><circle cx="8.4" cy="5" r="1" fill="currentColor"/></symbol><symbol id="qmd-i16" viewBox="0 0 14 14"><path d="M5 1.7h4M7 2.1v4.1M4.2 6.2h5.6l1 2.4H3.2l1-2.4Z" stroke="currentColor" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round" fill="none"/><path d="M7 8.7v3.6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></symbol><symbol id="qmd-i17" viewBox="0 0 14 14"><path d="M2 4.2h9.9M2.1 9.8h9.9" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity=".5"/><circle cx="5.2" cy="4.2" r="1.85" stroke="currentColor" stroke-width="1.1" fill="none"/><circle cx="9" cy="9.8" r="1.85" stroke="currentColor" stroke-width="1.1" fill="none"/></symbol><symbol id="qmd-i18" viewBox="0 0 14 14"><path d="M7 1.9v5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/><path d="M10.3 3.6a4.6 4.6 0 1 1-6.6 0" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></symbol></svg>
+
+<div class="qm-note"><b>QuotaMonster</b> · 密度儀表 DENSE INSTRUMENT · 1pt = 1px</div>
+
+<div class="qm-note">01 — MENU BAR ICON · 三種變體 · 固定寬度</div>
+<div class="qm-wall qm-wall--dark" style="margin-bottom:14px">
+  <div class="strip-lab">深色選單列 · 一般狀態</div>
+  <div class="qm-bar qm-bar--dark qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span><span class="mb-menu">檔案</span><span class="mb-menu">編輯</span><span class="mb-menu">視窗</span><span class="mb-menu">說明</span></div><div class="mb-right"><div class="mbi mbi--a" title="A"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i7"/></svg><span class="num">28%</span></div><div class="mbi mbi--b"><svg width="7" height="16" viewBox="0 0 7 16" fill="none"><use href="#qmd-i8"/></svg><div class="two"><span><i>5H</i> 28%</span><span><i>7D</i> 18%</span></div></div><div class="mbi mbi--c"><span class="num">28%</span><svg width="23" height="15" viewBox="0 0 23 15" fill="none"><use href="#qmd-i4"/></svg></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">週四 1:28</div></div></div>
+  <div style="height:14px"></div>
+  <div class="strip-lab">深色選單列 · 有工作階段在等你（BLOCKED）</div>
+  <div class="qm-bar qm-bar--dark qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span><span class="mb-menu">檔案</span><span class="mb-menu">編輯</span><span class="mb-menu">視窗</span><span class="mb-menu">說明</span></div><div class="mb-right"><div class="mbi mbi--a is-blocked" title="A"><svg class="alertg" width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i5"/></svg><span class="num">28%</span></div><div class="mbi mbi--b is-blocked"><svg class="alertg" width="7" height="16" viewBox="0 0 7 16" fill="none"><use href="#qmd-i9"/></svg><div class="two"><span><i>5H</i> 28%</span><span><i>7D</i> 18%</span></div></div><div class="mbi mbi--c is-blocked"><span class="num">28%</span><svg class="alertg" width="23" height="15" viewBox="0 0 23 15" fill="none"><use href="#qmd-i4"/></svg></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">週四 1:28</div></div></div>
+  <div class="mb-caps"><div><b>A · 錶面 + 百分比 — 54pt</b>28% 環形量規 + 數字。一眼看「多滿」，再讀精確值。</div><div><b>B · 雙行讀數 — 52pt</b>5H / 7D 兩個窗口同時可讀，Stats 上下行慣用法。</div><div><b>C · 柱狀 + 百分比 — 56pt</b>近 90 分鐘每 15 分鐘耗用量，柱形本身就是燃燒警訊。</div></div>
+</div>
+<div class="qm-wall qm-wall--light" style="margin-bottom:22px">
+  <div class="strip-lab">淺色選單列 · 一般狀態 / BLOCKED</div>
+  <div class="qm-bar qm-bar--light qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span><span class="mb-menu">檔案</span><span class="mb-menu">編輯</span><span class="mb-menu">視窗</span><span class="mb-menu">說明</span></div><div class="mb-right"><div class="mbi mbi--a" title="A"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i7"/></svg><span class="num">28%</span></div><div class="mbi mbi--b"><svg width="7" height="16" viewBox="0 0 7 16" fill="none"><use href="#qmd-i8"/></svg><div class="two"><span><i>5H</i> 28%</span><span><i>7D</i> 18%</span></div></div><div class="mbi mbi--c"><span class="num">28%</span><svg width="23" height="15" viewBox="0 0 23 15" fill="none"><use href="#qmd-i4"/></svg></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">週四 1:28</div></div></div>
+  <div style="height:14px"></div>
+  <div class="qm-bar qm-bar--light qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span><span class="mb-menu">檔案</span><span class="mb-menu">編輯</span><span class="mb-menu">視窗</span><span class="mb-menu">說明</span></div><div class="mb-right"><div class="mbi mbi--a is-blocked" title="A"><svg class="alertg" width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i5"/></svg><span class="num">28%</span></div><div class="mbi mbi--b is-blocked"><svg class="alertg" width="7" height="16" viewBox="0 0 7 16" fill="none"><use href="#qmd-i9"/></svg><div class="two"><span><i>5H</i> 28%</span><span><i>7D</i> 18%</span></div></div><div class="mbi mbi--c is-blocked"><span class="num">28%</span><svg class="alertg" width="23" height="15" viewBox="0 0 23 15" fill="none"><use href="#qmd-i4"/></svg></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">週四 1:28</div></div></div>
+  <div class="mb-caps"><div><b>A · 錶面 + 百分比 — 54pt</b>28% 環形量規 + 數字。一眼看「多滿」，再讀精確值。</div><div><b>B · 雙行讀數 — 52pt</b>5H / 7D 兩個窗口同時可讀，Stats 上下行慣用法。</div><div><b>C · 柱狀 + 百分比 — 56pt</b>近 90 分鐘每 15 分鐘耗用量，柱形本身就是燃燒警訊。</div></div>
+</div>
+
+<div class="qm-note">02 — 下拉面板 PANEL · 380pt · 深色材質 / 淺色材質</div>
+<div class="qm-stage">
+  <div class="qm-card qm-wall qm-wall--dark">
+    <div class="qm-bar qm-bar--dark qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span></div><div class="mb-right"><div class="mbi mbi--a is-blocked" title="A"><svg class="alertg" width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i5"/></svg><span class="num">28%</span></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">1:28</div></div></div>
+    <div style="display:flex;justify-content:flex-end"><div class="qm-p"><div class="arw"></div><div class="clip">
+
+<div class="pad"><div class="hdr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="#qmd-i10"/></svg><div class="ttl">QuotaMonster</div>
+<div class="stats">
+<div class="st"><b>4</b><i>SESSIONS</i></div>
+<div class="st"><b>5</b><i>AGENTS</i></div>
+<div class="st st--amber"><b>1</b><i>BLOCKED</i></div>
+</div></div></div>
+<div class="rule"></div>
+
+<div class="pad">
+<div class="slab" style="margin-top:8px"><h4>額度</h4><span class="en">QUOTA</span>
+<span class="rt"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i6"/></svg>3 分鐘前</span></div>
+<div class="qcells">
+  <div class="qc"><div class="k">5 小時視窗</div><div class="v"><b>28</b><s>%</s></div>
+    <div class="qbar"><u style="left:28%"></u><i class="am" style="width:28%"></i></div>
+    <div class="m">03:40 · 剩 2h12m</div></div>
+  <div class="qc"><div class="k">7 天 · 全模型</div><div class="v"><b>18</b><s>%</s></div>
+    <div class="qbar"><i style="width:18%"></i></div>
+    <div class="m">週六 13:59 · 4d14h</div></div>
+  <div class="qc"><div class="k">7 天 · FABLE</div><div class="v"><b>1</b><s>%</s></div>
+    <div class="qbar"><i style="width:1%;min-width:3px"></i></div>
+    <div class="m">Opus 5 · 幾乎未用</div></div>
+</div>
+</div>
+<div class="rule"></div>
+
+<div class="pad"><div class="burn">
+<div class="burnhd"><span style="color:var(--amberT);display:flex"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i11"/></svg></span>
+<span class="t">依目前速率，5H 視窗會在重置前用盡</span><span class="n">≈47m</span></div>
+<svg class="chart" viewBox="0 0 352 48" fill="none"><defs><linearGradient id="qmdgd" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".32"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs><line class="c-grid" x1="27" y1="11" x2="352" y2="11"/><path d="M0,38 L0.0,38.00 L16.5,37.84 L33.0,37.62 L49.5,37.41 L66.0,37.19 L82.5,36.97 L99.0,36.76 L115.5,36.52 L132.0,36.27 L148.5,35.95 L165.0,35.30 L173.8,34.22 L179.3,32.60 L184.8,30.44 L184.8,38 Z" fill="url(#qmdgd)"/><line class="c-now" x1="184.8" y1="14" x2="184.8" y2="38"/><line class="c-vert" x1="236.5" y1="11" x2="236.5" y2="38"/><line class="c-vert" x1="330.0" y1="11" x2="330.0" y2="38"/><polyline class="c-line" points="0.0,38.00 16.5,37.84 33.0,37.62 49.5,37.41 66.0,37.19 82.5,36.97 99.0,36.76 115.5,36.52 132.0,36.27 148.5,35.95 165.0,35.30 173.8,34.22 179.3,32.60 184.8,30.44"/><path class="c-proj" d="M184.8,30.44 L236.5,11"/><circle class="c-dot" cx="184.8" cy="30.44" r="1.9"/><circle class="c-dot" cx="236.5" cy="11" r="2.4"/><circle cx="236.5" cy="11" r="4.7" fill="none" stroke="var(--amber)" stroke-width=".7" opacity=".42"/><line class="c-base" x1="0" y1="38" x2="352" y2="38"/><text class="c-t" x="0" y="13.7">100%</text><text class="c-t" x="184.8" y="46.5" text-anchor="middle">現在</text><text class="c-t c-ta" x="236.5" y="46.5" text-anchor="middle">+47m</text><text class="c-t" x="330.0" y="46.5" text-anchor="end">03:40 重置</text></svg>
+</div></div>
+<div class="rule"></div>
+
+<div class="pad">
+<div class="slab" style="margin-top:8px"><h4>工作階段</h4><span class="en">SESSIONS</span>
+<span class="rt">1 等待 · 2 BUSY · 1 IDLE</span></div>
+
+<div class="blk">
+  <div class="srow"><span class="dot dot--amber"></span><span class="sid">f1-e3</span>
+    <span class="spath">~/Antigravity/F1</span><span class="grow"></span>
+    <span class="state state--amber">等待你回覆</span><span class="elap">2m</span></div>
+  <div class="prompt"><span style="color:var(--amberT);display:flex;flex:0 0 auto"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i12"/></svg></span>
+    <span class="tag">PERMISSION</span>
+    <span class="cmd">Bash git push --force</span><span class="grow"></span>
+    <span class="kbds"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>A</kbd></span></div>
+  <div class="tree" style="padding-left:18px">
+    <div class="arow"><span class="agdot"></span><span class="aname">general-purpose</span>
+      <span class="grow"></span><span class="abar"><i style="width:26.5%"></i></span>
+      <span class="at">1m20s</span></div>
+  </div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot dot--blue"></span><span class="sid">usage-97</span>
+    <span class="spath">~/Antigravity/usage</span><span class="grow"></span>
+    <span class="state state--blue">BUSY</span><span class="elap">12m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:34%"></i></span><span>34%</span></span></div>
+  <div class="tree">
+    <div class="wrow">
+      <span style="color:var(--txt3);display:flex;flex:0 0 auto"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><use href="#qmd-i13"/></svg></span>
+      <span class="wname">Design</span><span class="wtag">PHASE</span>
+      <span class="wid">wf_79e5d247</span><span class="grow"></span>
+      <span class="fan"><b class="d"></b><b class="d"></b><b class="d"></b><b class="r"></b><b class="r"></b><b class="r"></b><b class="r"></b></span><span class="fcount">3/7</span></div>
+    <div class="arow"><span class="agdot"></span><span class="aname">design:dynamic-island</span><span class="grow"></span><span class="abar"><i style="width:83.4%"></i></span><span class="at">4m12s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:apple-hig-native</span><span class="grow"></span><span class="abar"><i style="width:75.5%"></i></span><span class="at">3m48s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:max-density</span><span class="grow"></span><span class="abar"><i style="width:69.9%"></i></span><span class="at">3m31s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:creature-motif</span><span class="grow"></span><span class="abar"><i style="width:57.9%"></i></span><span class="at">2m55s</span></div><div class="arow arow--done"><span style="color:var(--green);display:flex;width:8px;flex:0 0 auto;justify-content:center"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><use href="#qmd-i14"/></svg></span><span class="aname">design:state-machine-kinetic</span><span class="grow"></span><span class="abar"><i class="g" style="width:100.0%"></i></span><span class="at">5m02s</span></div><div class="arow arow--more"><span style="color:var(--txt3);display:flex;width:8px;flex:0 0 auto"><svg width="8" height="8" viewBox="0 0 10 10"><use href="#qmd-i15"/></svg></span>另有 2 個 agent 已完成</div>
+  </div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot"></span><span class="sid">obsidian-4a</span>
+    <span class="spath">~/Obsidian</span><span class="grow"></span>
+    <span class="state">IDLE</span><span class="elap">41m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:12%"></i></span><span>12%</span></span></div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot dot--blue"></span><span class="sid">wrapx-comsol</span>
+    <span class="spath">~/wrapx-comsol</span><span class="grow"></span>
+    <span class="state state--blue">BUSY</span><span class="elap">3m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:61%"></i></span><span>61%</span></span></div>
+</div>
+<div style="height:6px"></div>
+</div>
+<div class="rule"></div>
+
+<div class="pad"><div class="ft">
+  <span style="color:var(--txt2);display:flex"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i6"/></svg></span>
+  <span class="fresh">更新於 3 分鐘前</span><kbd>⌘R</kbd>
+  <span class="grow"></span>
+  <span class="fbtn on"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><use href="#qmd-i16"/></svg></span><span class="fbtn"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><use href="#qmd-i17"/></svg></span><span class="fbtn"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><use href="#qmd-i18"/></svg></span>
+</div></div>
+
+</div></div></div>
+  </div>
+  <div class="qm-card qm-wall qm-wall--light">
+    <div class="qm-bar qm-bar--light qm-bar--r"><div class="mb-left"><svg width="13" height="15" viewBox="0 0 13 15" fill="currentColor"><use href="#qmd-i0"/></svg><span class="mb-app">Claude Code</span></div><div class="mb-right"><div class="mbi mbi--a is-blocked" title="A"><svg class="alertg" width="15" height="15" viewBox="0 0 16 16" fill="none"><use href="#qmd-i5"/></svg><span class="num">28%</span></div><div class="mb-sep"></div><div class="mb-item"><svg width="16" height="12" viewBox="0 0 16 12" fill="none"><use href="#qmd-i1"/></svg></div><div class="mb-item"><svg width="24" height="12" viewBox="0 0 24 12" fill="none"><use href="#qmd-i2"/></svg></div><div class="mb-item"><svg width="15" height="13" viewBox="0 0 16 14" fill="none"><use href="#qmd-i3"/></svg></div><div class="mb-clock">1:28</div></div></div>
+    <div style="display:flex;justify-content:flex-end"><div class="qm-p qm-p--light"><div class="arw"></div><div class="clip">
+
+<div class="pad"><div class="hdr"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><use href="#qmd-i10"/></svg><div class="ttl">QuotaMonster</div>
+<div class="stats">
+<div class="st"><b>4</b><i>SESSIONS</i></div>
+<div class="st"><b>5</b><i>AGENTS</i></div>
+<div class="st st--amber"><b>1</b><i>BLOCKED</i></div>
+</div></div></div>
+<div class="rule"></div>
+
+<div class="pad">
+<div class="slab" style="margin-top:8px"><h4>額度</h4><span class="en">QUOTA</span>
+<span class="rt"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i6"/></svg>3 分鐘前</span></div>
+<div class="qcells">
+  <div class="qc"><div class="k">5 小時視窗</div><div class="v"><b>28</b><s>%</s></div>
+    <div class="qbar"><u style="left:28%"></u><i class="am" style="width:28%"></i></div>
+    <div class="m">03:40 · 剩 2h12m</div></div>
+  <div class="qc"><div class="k">7 天 · 全模型</div><div class="v"><b>18</b><s>%</s></div>
+    <div class="qbar"><i style="width:18%"></i></div>
+    <div class="m">週六 13:59 · 4d14h</div></div>
+  <div class="qc"><div class="k">7 天 · FABLE</div><div class="v"><b>1</b><s>%</s></div>
+    <div class="qbar"><i style="width:1%;min-width:3px"></i></div>
+    <div class="m">Opus 5 · 幾乎未用</div></div>
+</div>
+</div>
+<div class="rule"></div>
+
+<div class="pad"><div class="burn">
+<div class="burnhd"><span style="color:var(--amberT);display:flex"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i11"/></svg></span>
+<span class="t">依目前速率，5H 視窗會在重置前用盡</span><span class="n">≈47m</span></div>
+<svg class="chart" viewBox="0 0 352 48" fill="none"><defs><linearGradient id="qmdgl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--amber)" stop-opacity=".32"/><stop offset="1" stop-color="var(--amber)" stop-opacity="0"/></linearGradient></defs><line class="c-grid" x1="27" y1="11" x2="352" y2="11"/><path d="M0,38 L0.0,38.00 L16.5,37.84 L33.0,37.62 L49.5,37.41 L66.0,37.19 L82.5,36.97 L99.0,36.76 L115.5,36.52 L132.0,36.27 L148.5,35.95 L165.0,35.30 L173.8,34.22 L179.3,32.60 L184.8,30.44 L184.8,38 Z" fill="url(#qmdgl)"/><line class="c-now" x1="184.8" y1="14" x2="184.8" y2="38"/><line class="c-vert" x1="236.5" y1="11" x2="236.5" y2="38"/><line class="c-vert" x1="330.0" y1="11" x2="330.0" y2="38"/><polyline class="c-line" points="0.0,38.00 16.5,37.84 33.0,37.62 49.5,37.41 66.0,37.19 82.5,36.97 99.0,36.76 115.5,36.52 132.0,36.27 148.5,35.95 165.0,35.30 173.8,34.22 179.3,32.60 184.8,30.44"/><path class="c-proj" d="M184.8,30.44 L236.5,11"/><circle class="c-dot" cx="184.8" cy="30.44" r="1.9"/><circle class="c-dot" cx="236.5" cy="11" r="2.4"/><circle cx="236.5" cy="11" r="4.7" fill="none" stroke="var(--amber)" stroke-width=".7" opacity=".42"/><line class="c-base" x1="0" y1="38" x2="352" y2="38"/><text class="c-t" x="0" y="13.7">100%</text><text class="c-t" x="184.8" y="46.5" text-anchor="middle">現在</text><text class="c-t c-ta" x="236.5" y="46.5" text-anchor="middle">+47m</text><text class="c-t" x="330.0" y="46.5" text-anchor="end">03:40 重置</text></svg>
+</div></div>
+<div class="rule"></div>
+
+<div class="pad">
+<div class="slab" style="margin-top:8px"><h4>工作階段</h4><span class="en">SESSIONS</span>
+<span class="rt">1 等待 · 2 BUSY · 1 IDLE</span></div>
+
+<div class="blk">
+  <div class="srow"><span class="dot dot--amber"></span><span class="sid">f1-e3</span>
+    <span class="spath">~/Antigravity/F1</span><span class="grow"></span>
+    <span class="state state--amber">等待你回覆</span><span class="elap">2m</span></div>
+  <div class="prompt"><span style="color:var(--amberT);display:flex;flex:0 0 auto"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i12"/></svg></span>
+    <span class="tag">PERMISSION</span>
+    <span class="cmd">Bash git push --force</span><span class="grow"></span>
+    <span class="kbds"><kbd>⌘</kbd><kbd>⇧</kbd><kbd>A</kbd></span></div>
+  <div class="tree" style="padding-left:18px">
+    <div class="arow"><span class="agdot"></span><span class="aname">general-purpose</span>
+      <span class="grow"></span><span class="abar"><i style="width:26.5%"></i></span>
+      <span class="at">1m20s</span></div>
+  </div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot dot--blue"></span><span class="sid">usage-97</span>
+    <span class="spath">~/Antigravity/usage</span><span class="grow"></span>
+    <span class="state state--blue">BUSY</span><span class="elap">12m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:34%"></i></span><span>34%</span></span></div>
+  <div class="tree">
+    <div class="wrow">
+      <span style="color:var(--txt3);display:flex;flex:0 0 auto"><svg width="10" height="10" viewBox="0 0 12 12" fill="none"><use href="#qmd-i13"/></svg></span>
+      <span class="wname">Design</span><span class="wtag">PHASE</span>
+      <span class="wid">wf_79e5d247</span><span class="grow"></span>
+      <span class="fan"><b class="d"></b><b class="d"></b><b class="d"></b><b class="r"></b><b class="r"></b><b class="r"></b><b class="r"></b></span><span class="fcount">3/7</span></div>
+    <div class="arow"><span class="agdot"></span><span class="aname">design:dynamic-island</span><span class="grow"></span><span class="abar"><i style="width:83.4%"></i></span><span class="at">4m12s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:apple-hig-native</span><span class="grow"></span><span class="abar"><i style="width:75.5%"></i></span><span class="at">3m48s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:max-density</span><span class="grow"></span><span class="abar"><i style="width:69.9%"></i></span><span class="at">3m31s</span></div><div class="arow"><span class="agdot"></span><span class="aname">design:creature-motif</span><span class="grow"></span><span class="abar"><i style="width:57.9%"></i></span><span class="at">2m55s</span></div><div class="arow arow--done"><span style="color:var(--green);display:flex;width:8px;flex:0 0 auto;justify-content:center"><svg width="8" height="8" viewBox="0 0 10 10" fill="none"><use href="#qmd-i14"/></svg></span><span class="aname">design:state-machine-kinetic</span><span class="grow"></span><span class="abar"><i class="g" style="width:100.0%"></i></span><span class="at">5m02s</span></div><div class="arow arow--more"><span style="color:var(--txt3);display:flex;width:8px;flex:0 0 auto"><svg width="8" height="8" viewBox="0 0 10 10"><use href="#qmd-i15"/></svg></span>另有 2 個 agent 已完成</div>
+  </div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot"></span><span class="sid">obsidian-4a</span>
+    <span class="spath">~/Obsidian</span><span class="grow"></span>
+    <span class="state">IDLE</span><span class="elap">41m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:12%"></i></span><span>12%</span></span></div>
+</div>
+
+<div class="sess">
+  <div class="srow"><span class="dot dot--blue"></span><span class="sid">wrapx-comsol</span>
+    <span class="spath">~/wrapx-comsol</span><span class="grow"></span>
+    <span class="state state--blue">BUSY</span><span class="elap">3m</span>
+    <span class="ctx"><em>CTX</em><span class="cb"><i style="width:61%"></i></span><span>61%</span></span></div>
+</div>
+<div style="height:6px"></div>
+</div>
+<div class="rule"></div>
+
+<div class="pad"><div class="ft">
+  <span style="color:var(--txt2);display:flex"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><use href="#qmd-i6"/></svg></span>
+  <span class="fresh">更新於 3 分鐘前</span><kbd>⌘R</kbd>
+  <span class="grow"></span>
+  <span class="fbtn on"><svg width="12" height="12" viewBox="0 0 14 14" fill="none"><use href="#qmd-i16"/></svg></span><span class="fbtn"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><use href="#qmd-i17"/></svg></span><span class="fbtn"><svg width="13" height="13" viewBox="0 0 14 14" fill="none"><use href="#qmd-i18"/></svg></span>
+</div></div>
+
+</div></div></div>
+  </div>
+</div>
+
+</div>

@@ -1,0 +1,6 @@
+{
+ "agentType": "workflow-subagent",
+ "description": "aborted:k1",
+ "workflowPhase": "Build",
+ "spawnDepth": 1
+}

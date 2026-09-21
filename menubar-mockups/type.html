@@ -1,0 +1,759 @@
+<div class="mb-type">
+<style>
+/* ============================================================
+   QuotaMonster — "THE READOUT"   (root scope: .mb-type)
+   Type is the instrument. The numerals are the object.
+   ============================================================ */
+
+.mb-type{
+  --mono: ui-monospace,"SF Mono",SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+  --ui: -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,sans-serif;
+  --paper:#0b0c10; --line:rgba(255,255,255,.09); --txt:#c6cad4; --dim:#767c8c; --hi:#eef1f6;
+  background:var(--paper); color:var(--txt); font-family:var(--ui); font-size:12px; line-height:1.5;
+  padding:26px 24px 30px; border-radius:14px; border:1px solid var(--line);
+  -webkit-font-smoothing:antialiased;
+}
+.mb-type *{ box-sizing:border-box; }
+
+.mb-type .t-h1{ font-size:15px; font-weight:680; color:var(--hi); letter-spacing:-.1px; margin:0 0 3px; }
+.mb-type .t-sub{ font-size:11.5px; color:var(--dim); margin:0 0 22px; max-width:66ch; line-height:1.6; }
+.mb-type .t-sec{ margin:30px 0 11px; font-size:10px; font-weight:700; letter-spacing:.11em;
+  text-transform:uppercase; color:#8b93a6; display:flex; align-items:center; gap:10px; }
+.mb-type .t-sec::after{ content:""; flex:1; height:1px; background:var(--line); }
+.mb-type .t-note{ font-size:11px; color:var(--dim); margin:9px 0 0; max-width:72ch; line-height:1.65; }
+.mb-type .t-note b{ color:#aab2c4; font-weight:620; }
+.mb-type code.t-c{ font-family:var(--mono); font-size:10.5px; background:rgba(255,255,255,.06);
+  padding:1px 4px; border-radius:3px; color:#d6dbe6; }
+
+/* ---------- ink tokens per bar appearance ---------- */
+.mb-type .sk-light{ --ink:#141519; --warn:#8A4E02; --warnfill:#E08A0B; --warnink:#2A1800;
+                    --critfill:#C7302A; --critink:#FFF3F2; }
+.mb-type .sk-dark { --ink:#F3F4F8; --warn:#F2AB45; --warnfill:#E39114; --warnink:#1E1200;
+                    --critfill:#E04A44; --critink:#FFF5F4; }
+
+/* ============================================================
+   THE OBJECT — 78pt fixed, 22pt content box
+   [ cursor 5 ][ 4 ][ figure 38 ][ 3 ][ index 18 ]  + 5pt padding each side
+   ============================================================ */
+.mb-type .qmi{
+  position:relative; display:inline-flex; align-items:center; flex:0 0 78px;
+  width:78px; height:22px; padding:0 5px; color:var(--ink);
+  font-family:var(--mono); font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* --- 1. THE CURSOR : live activity + its intensity --- */
+.mb-type .qmi__sig{ position:relative; top:-1px; flex:0 0 5px; width:5px; height:12px; opacity:.55; }
+.mb-type .qmi__sig svg{ display:block; width:5px; height:12px; overflow:visible; }
+.mb-type .qmi__bar{ fill:currentColor; transform-origin:50% 100%;
+  transform:scaleY(var(--sy,.29)) scaleX(1); }
+.mb-type .qmi__rest{ fill:currentColor; opacity:0; }
+.mb-type .qmi--a0 .qmi__bar{ opacity:0; }
+.mb-type .qmi--a0 .qmi__rest{ opacity:1; }
+.mb-type .qmi--a0{ --sy:.29; }
+.mb-type .qmi--a1{ --sy:.29; } .mb-type .qmi--a2{ --sy:.42; } .mb-type .qmi--a3{ --sy:.54; }
+.mb-type .qmi--a5{ --sy:.67; } .mb-type .qmi--a7{ --sy:.79; } .mb-type .qmi--a10{ --sy:.96; }
+.mb-type .qmi--a1 .qmi__sig,.mb-type .qmi--a2 .qmi__sig,.mb-type .qmi--a3 .qmi__sig,
+.mb-type .qmi--a5 .qmi__sig,.mb-type .qmi--a7 .qmi__sig,.mb-type .qmi--a10 .qmi__sig{ opacity:.72; }
+
+/* --- 2. THE FIGURE : the binding window, as a number --- */
+.mb-type .qmi__fig{ position:relative; flex:0 0 38px; width:38px; height:14px; margin-left:4px; }
+.mb-type .qmi__pct,.mb-type .qmi__hd{
+  position:absolute; right:0; bottom:0; line-height:14px; font-size:12.5px; white-space:nowrap; }
+.mb-type .qmi__pct{ font-weight:500; }
+.mb-type .qmi--w2 .qmi__pct{ font-weight:700; }
+.mb-type .qmi__u{ font-size:9.5px; opacity:.6; font-weight:600; position:relative; top:-1px; }
+.mb-type .qmi__ten{ display:inline-block; width:1ch; height:14px; line-height:14px;
+  overflow:hidden; position:relative; vertical-align:top; text-align:center; }
+.mb-type .qmi__roll{ display:block; position:absolute; left:0; right:0; top:0; }
+.mb-type .qmi__roll i{ display:block; height:14px; line-height:14px; font-style:normal; }
+
+/* headroom / "range changed" readout */
+.mb-type .qmi__hd{ opacity:0; font-weight:700; padding-bottom:0; }
+.mb-type .qmi__hd::after{ content:""; position:absolute; left:0; right:0; bottom:0;
+  height:1px; background:currentColor; opacity:.92; }
+.mb-type .qmi--crisis .qmi__pct{ opacity:0; }
+.mb-type .qmi--crisis .qmi__hd{ opacity:1; }
+
+/* --- 3. THE INDEX : the runner-up fact, named --- */
+.mb-type .qmi__idx{ flex:0 0 18px; width:18px; margin-left:3px; text-align:right;
+  font-size:8.5px; font-weight:650; line-height:1; opacity:.46; position:relative; top:-2px;
+  letter-spacing:.15px; }
+
+/* --- stale : the instrument loses a significant figure --- */
+.mb-type .qmi--stale .qmi__fig{ opacity:.40; }
+.mb-type .qmi--stale .qmi__idx{ opacity:.22; }
+.mb-type .qmi--stale .qmi__sig{ opacity:.45; }
+.mb-type .qmi--stale .qmi__bar{ fill:none; stroke:currentColor; stroke-width:.9;
+  vector-effect:non-scaling-stroke; }
+.mb-type .qmi--stale .qmi__roll,.mb-type .qmi--stale .qmi__ten > i{ visibility:hidden; }
+.mb-type .qmi--stale .qmi__ten::after{ content:"\2013"; position:absolute; inset:0;
+  line-height:14px; text-align:center; }
+
+/* --- 4. BLOCKED : the readout stops being a number --- */
+.mb-type .qmi__slab{
+  position:absolute; left:3px; right:26px; top:3.5px; height:15px; border-radius:3.5px;
+  display:flex; align-items:center; justify-content:space-between; padding:0 3px;
+  border:1px solid transparent; background:transparent;
+  opacity:0; transform:scaleX(.15); transform-origin:left center; }
+.mb-type .qmi__slab svg{ display:block; width:5px; height:12px; position:relative; top:-.5px; }
+.mb-type .qmi__slab svg rect{ fill:currentColor; transform-origin:50% 100%; transform:scaleY(.29); }
+.mb-type .qmi__wait{ position:relative; font-size:12px; font-weight:700; line-height:13px;
+  letter-spacing:-.2px; }
+.mb-type .qmi__wait b{ font-weight:700; }
+.mb-type .qmi--block .qmi__slab{ opacity:1; transform:none; }
+.mb-type .qmi--block .qmi__fig,.mb-type .qmi--block .qmi__sig{ opacity:0; }
+.mb-type .qmi--bNew  .qmi__slab{ background:transparent; border-color:var(--warn); color:var(--warn); }
+.mb-type .qmi--bWarn .qmi__slab{ background:var(--warnfill); border-color:var(--warnfill); color:var(--warnink); }
+.mb-type .qmi--bCrit .qmi__slab{ background:var(--critfill); border-color:var(--critfill); color:var(--critink); }
+.mb-type .qmi--bMulti .qmi__idx{ opacity:.95; color:var(--warn); font-weight:750; }
+.mb-type .qmi--bCrit.qmi--bMulti .qmi__idx{ color:var(--critfill); }
+
+/* --- completion transient (static render at peak) --- */
+.mb-type .qmi--flash .qmi__sig{ opacity:1; }
+.mb-type .qmi--flash .qmi__bar{ transform:scaleY(var(--sy)) scaleX(1.55); }
+
+/* ============================================================
+   MENU BAR MOCKS
+   ============================================================ */
+.mb-type .bars{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.mb-type .wall{ position:relative; border-radius:10px; overflow:hidden; height:96px;
+  border:1px solid var(--line); }
+.mb-type .wall--l{ background:
+  radial-gradient(120% 150% at 8% 0%, #ffe9c2 0%, #ffc9a8 32%, #f3a8c0 60%, #9fc7f0 100%); }
+.mb-type .wall--d{ background:
+  radial-gradient(120% 150% at 8% 0%, #2c3f63 0%, #3a2d55 34%, #5a2f52 62%, #14161f 100%); }
+.mb-type .wall::after{ content:""; position:absolute; left:0; right:0; top:33px; bottom:0;
+  background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 9px); }
+.mb-type .bar{ z-index:2; position:absolute; inset:0 0 auto 0; height:33px; display:flex; align-items:center;
+  padding:0 7px 0 11px; gap:1px; -webkit-backdrop-filter:blur(22px) saturate(1.7);
+  backdrop-filter:blur(22px) saturate(1.7); }
+.mb-type .bar--l{ background:rgba(246,246,248,.52); box-shadow:inset 0 -.5px 0 rgba(0,0,0,.10); }
+.mb-type .bar--d{ background:rgba(12,13,18,.52); box-shadow:inset 0 -.5px 0 rgba(255,255,255,.10); }
+.mb-type .bar .apple{ margin-right:9px; opacity:.86; }
+.mb-type .bar .menus{ display:flex; gap:13px; font-size:12.5px; font-weight:600; color:var(--ink);
+  opacity:.9; margin-right:auto; }
+.mb-type .bar .menus span:first-child{ font-weight:730; }
+.mb-type .bar svg{ display:block; }
+.mb-type .bar .nb{ color:var(--ink); opacity:.8; padding:0 6px; }
+.mb-type .bar .clk{ font-size:12.5px; font-weight:520; color:var(--ink); opacity:.92;
+  padding-left:7px; font-variant-numeric:tabular-nums; }
+.mb-type .bar .slot{ position:relative; }
+.mb-type .bar .slot::before{ content:""; position:absolute; inset:2px 0; border-radius:5px;
+  border:1px dashed currentColor; color:var(--ink); opacity:.16; }
+.mb-type .cap{ position:absolute; left:11px; top:41px; font-size:10px; color:var(--ink);
+  opacity:.62; font-weight:600; letter-spacing:.02em; }
+
+/* ============================================================
+   STATE GALLERY
+   ============================================================ */
+.mb-type .grid{ display:grid; grid-template-columns:repeat(auto-fill,minmax(224px,1fr)); gap:10px; }
+.mb-type .cell{ border:1px solid var(--line); border-radius:9px; overflow:hidden;
+  background:rgba(255,255,255,.017); }
+.mb-type .duo{ display:flex; }
+.mb-type .mini{ flex:1 1 50%; height:40px; position:relative; }
+.mb-type .mini .strip{ position:absolute; inset:0 0 auto 0; height:24px; display:flex;
+  align-items:center; justify-content:center;
+  -webkit-backdrop-filter:blur(16px) saturate(1.6); backdrop-filter:blur(16px) saturate(1.6); }
+.mb-type .mini--l{ background:linear-gradient(115deg,#ffdcb0,#ffb0c6 55%,#a9d6f5); }
+.mb-type .mini--d{ background:linear-gradient(115deg,#2b3c5e,#4c2b4c 55%,#14161f); }
+.mb-type .mini--l .strip{ background:rgba(246,246,248,.52); }
+.mb-type .mini--d .strip{ background:rgba(12,13,18,.52); }
+.mb-type .lab{ padding:7px 9px 8px; border-top:1px solid var(--line); }
+.mb-type .lab b{ display:block; font-size:11px; font-weight:660; color:#dde2ec; letter-spacing:-.05px; }
+.mb-type .lab span{ display:block; font-size:10.5px; color:var(--dim); line-height:1.5; margin-top:2px; }
+
+/* ruler */
+.mb-type .ruler{ margin-top:12px; display:flex; align-items:center; gap:10px; color:var(--dim); font-size:10.5px; }
+.mb-type .ruler .bkt{ width:78px; height:11px; position:relative; }
+.mb-type .ruler .bkt::before{ content:""; position:absolute; inset:auto 0 3px 0; height:1px; background:#5c6478; }
+.mb-type .ruler .bkt::after{ content:""; position:absolute; left:0; right:0; bottom:3px; height:6px;
+  border-left:1px solid #5c6478; border-right:1px solid #5c6478; }
+
+/* escalation ladder */
+.mb-type .ladder{ display:flex; gap:8px; flex-wrap:wrap; align-items:stretch; }
+.mb-type .rung{ border:1px solid var(--line); border-radius:9px; overflow:hidden; width:180px;
+  background:rgba(255,255,255,.017); }
+.mb-type .rung .mini{ height:34px; }
+.mb-type .rung .mini .strip{ height:24px; }
+.mb-type .rung .lab{ padding:6px 9px 7px; border-top:1px solid var(--line); }
+
+/* tach */
+.mb-type .tach{ display:flex; gap:8px; flex-wrap:wrap; }
+
+/* ============================================================
+   LIVE SCENARIO — one 18s master clock, every layer keyed to it
+   ============================================================ */
+.mb-type .sim{ border:1px solid var(--line); border-radius:11px; overflow:hidden;
+  background:rgba(255,255,255,.017); }
+.mb-type .sim .stage{ position:relative; height:112px; }
+.mb-type .sim .stage .wall{ height:112px; border:0; border-radius:0; }
+.mb-type .sim .bar{ padding-left:11px; }
+.mb-type .sim .zoom{ z-index:3; position:absolute; right:16px; bottom:12px; display:flex; align-items:center; gap:12px; }
+.mb-type .sim .zoombox{ transform:scale(2.6); transform-origin:right bottom; }
+.mb-type .sim .zoomlab{ position:absolute; left:14px; bottom:11px; z-index:3;
+  font-size:9.5px; color:#fff; opacity:.42; font-weight:660; letter-spacing:.09em;
+  text-transform:uppercase; font-family:var(--ui); }
+
+.mb-type .tl{ padding:0 14px; }
+.mb-type .track{ position:relative; height:5px; background:rgba(255,255,255,.05);
+  border-top:1px solid var(--line); border-bottom:1px solid var(--line); }
+.mb-type .track .seg{ position:absolute; top:0; bottom:0; }
+.mb-type .track .seg.busy{ background:rgba(200,210,235,.30); }
+.mb-type .track .seg.crit{ background:rgba(224,138,11,.72); }
+.mb-type .head{ position:absolute; top:-4px; bottom:-4px; width:1.5px; background:#fff;
+  box-shadow:0 0 6px rgba(255,255,255,.8);
+  animation:mbtype-play 18s linear infinite; }
+@keyframes mbtype-play{ from{ left:0 } to{ left:100% } }
+
+.mb-type .marks{ position:relative; height:44px; font-size:9.5px; color:var(--dim); }
+.mb-type .marks i{ position:absolute; top:0; width:1px; height:6px; background:#4a5164; }
+.mb-type .marks u{ position:absolute; top:8px; text-decoration:none; white-space:nowrap;
+  transform:translateX(-2px); line-height:1.35; letter-spacing:-.1px; }
+.mb-type .marks u.lo{ top:25px; }
+
+.mb-type .cc{ position:relative; height:50px; padding:0 14px; border-top:1px solid var(--line); }
+.mb-type .cc p{ position:absolute; left:14px; right:14px; top:9px; margin:0; font-size:10.5px;
+  color:#b9c0cf; opacity:0; line-height:1.45; }
+.mb-type .cc p b{ color:#fff; font-weight:660; }
+.mb-type .cc p.w{ color:#f0b055; }
+
+/* ---- master keyframes (18s). 1s = 5.5556% ---- */
+/* cursor geometry: pure substitution, never a slide */
+@keyframes mbtype-bar{
+  0%      { transform:scaleY(.29) scaleX(1); opacity:0 }
+  12.222% { transform:scaleY(.29) scaleX(1); opacity:1 }   /* 2.2s  1 agent */
+  16.667% { transform:scaleY(.54) scaleX(1) }              /* 3.0s  3 agents */
+  21.111% { transform:scaleY(.79) scaleX(1) }              /* 3.8s  fan-out 7 */
+  56.667% { transform:scaleY(.73) scaleX(1.55) }           /* 10.2s finish -> 6 */
+  57.667% { transform:scaleY(.73) scaleX(1) }
+  60.556% { transform:scaleY(.67) scaleX(1.55) }           /* 10.9s -> 5 */
+  61.556% { transform:scaleY(.67) scaleX(1) }
+  63.333% { transform:scaleY(.60) scaleX(1.55) }           /* 11.4s -> 4 */
+  64.333% { transform:scaleY(.60) scaleX(1) }
+  65.556% { transform:scaleY(.54) scaleX(1.55) }           /* 11.8s -> 3 */
+  66.556% { transform:scaleY(.54) scaleX(1) }
+  67.222% { transform:scaleY(.42) scaleX(1.55) }           /* 12.1s -> 2 */
+  68.222% { transform:scaleY(.42) scaleX(1) }
+  68.611% { transform:scaleY(.29) scaleX(1.55) }           /* 12.35s -> 1 */
+  69.611% { transform:scaleY(.29) scaleX(1) }
+  70%     { transform:scaleY(.29) scaleX(1); opacity:0 }   /* 12.6s -> 0, drain */
+  92.222% { transform:scaleY(.29) scaleX(1); opacity:1 }   /* 16.6s agent resumes */
+  95%     { transform:scaleY(.29) scaleX(1.55); opacity:1 }/* 17.1s last finish */
+  96%     { transform:scaleY(.29) scaleX(1); opacity:0 }
+  100%    { transform:scaleY(.29) scaleX(1); opacity:0 }
+}
+@keyframes mbtype-rest{
+  0%{opacity:1} 12.222%{opacity:0} 70%{opacity:1} 92.222%{opacity:0} 96%{opacity:1} 100%{opacity:1}
+}
+/* ink: the only thing that decays */
+@keyframes mbtype-ink{
+  0%      { opacity:.50; animation-timing-function:steps(1,end) }
+  12.222% { opacity:.72; animation-timing-function:steps(1,end) }
+  56.667% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 700ms decay */
+  60.5%   { opacity:.72; animation-timing-function:steps(1,end) }
+  60.556% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 500ms */
+  63.28%  { opacity:.76; animation-timing-function:steps(1,end) }
+  63.333% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 400ms */
+  65.5%   { opacity:.78; animation-timing-function:steps(1,end) }
+  65.556% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 300ms */
+  67.17%  { opacity:.82; animation-timing-function:steps(1,end) }
+  67.222% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 250ms */
+  68.56%  { opacity:.85; animation-timing-function:steps(1,end) }
+  68.611% { opacity:1; animation-timing-function:cubic-bezier(.15,.75,.3,1) }  /* 250ms */
+  69.95%  { opacity:.85; animation-timing-function:steps(1,end) }
+  70%     { opacity:1; animation-timing-function:cubic-bezier(.2,.62,.3,1) }   /* SETTLE 900ms */
+  75%     { opacity:.50; animation-timing-function:steps(1,end) }
+  77.222% { opacity:0;  animation-timing-function:steps(1,end) }               /* hidden by slab */
+  92.222% { opacity:.72; animation-timing-function:steps(1,end) }
+  95%     { opacity:1; animation-timing-function:cubic-bezier(.2,.62,.3,1) }   /* SETTLE 900ms */
+  100%    { opacity:.50 }
+}
+/* tenths: instantaneous glyph substitution at the real burn rate */
+@keyframes mbtype-ten{
+  0%      { transform:translateY(0) }
+  22.222% { transform:translateY(-14px) }   /* 4.0s  .4 -> .5 */
+  43.889% { transform:translateY(-28px) }   /* 7.9s  .5 -> .6 */
+  65.556% { transform:translateY(-42px) }   /* 11.8s .6 -> .7 */
+  100%    { transform:translateY(-42px) }
+}
+/* range change: % <-> time-to-exhaustion */
+@keyframes mbtype-pct{ 0%{opacity:1} 50%{opacity:1} 51.111%{opacity:0} 70%{opacity:0} 71.111%{opacity:1} 100%{opacity:1} }
+@keyframes mbtype-hd { 0%{opacity:0} 50%{opacity:0} 51.111%{opacity:1} 70%{opacity:1} 71.111%{opacity:0} 100%{opacity:0} }
+/* figure hides under the slab */
+@keyframes mbtype-fig{ 0%{opacity:1} 76.9%{opacity:1} 77.6%{opacity:0} 92.3%{opacity:0} 93%{opacity:1} 100%{opacity:1} }
+/* slab morph */
+@keyframes mbtype-slab{
+  0%      { opacity:0; transform:scaleX(.15) }
+  77.222% { opacity:0; transform:scaleX(.15); animation-timing-function:cubic-bezier(.2,.9,.25,1) }
+  78.667% { opacity:1; transform:scaleX(1) }                                  /* 260ms in */
+  92.222% { opacity:1; transform:scaleX(1); animation-timing-function:cubic-bezier(.45,0,.75,.2) }
+  93.889% { opacity:0; transform:scaleX(.15) }                                /* 300ms out */
+  100%    { opacity:0; transform:scaleX(.15) }
+}
+@keyframes mbtype-stage{
+  0%      { background:transparent; border-color:currentColor }
+  82.778% { background:var(--warnfill); border-color:var(--warnfill); color:var(--warnink) }
+  100%    { background:var(--warnfill); border-color:var(--warnfill); color:var(--warnink) }
+}
+@keyframes mbtype-knock{
+  0%      { filter:none; animation-timing-function:steps(1,end) }
+  82.778% { filter:brightness(1.5); animation-timing-function:cubic-bezier(.2,.8,.3,1) }
+  84.167% { filter:none; animation-timing-function:steps(1,end) }             /* 250ms */
+  88.333% { filter:brightness(1.5); animation-timing-function:cubic-bezier(.2,.8,.3,1) }
+  89.722% { filter:none; animation-timing-function:steps(1,end) }             /* 250ms */
+  100%    { filter:none }
+}
+@keyframes mbtype-w0{ 0%{opacity:1} 82.778%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-w1{ 0%{opacity:0} 82.778%{opacity:1} 88.333%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-w2{ 0%{opacity:0} 88.333%{opacity:1} 100%{opacity:1} }
+
+.mb-type .qmi--sim .qmi__bar { animation:mbtype-bar 18s steps(1,end) infinite; }
+.mb-type .qmi--sim .qmi__rest{ animation:mbtype-rest 18s steps(1,end) infinite; }
+.mb-type .qmi--sim .qmi__sig { animation:mbtype-ink 18s linear infinite; opacity:.5; }
+.mb-type .qmi--sim .qmi__roll{ animation:mbtype-ten 18s steps(1,end) infinite; }
+.mb-type .qmi--sim .qmi__pct { animation:mbtype-pct 18s linear infinite; }
+.mb-type .qmi--sim .qmi__hd  { animation:mbtype-hd 18s linear infinite; }
+.mb-type .qmi--sim .qmi__fig { animation:mbtype-fig 18s linear infinite; }
+.mb-type .qmi--sim .qmi__slab{
+  animation:mbtype-slab 18s linear infinite, mbtype-stage 18s steps(1,end) infinite,
+            mbtype-knock 18s linear infinite; }
+.mb-type .qmi--sim .qmi__slab{ color:var(--warn); }
+.mb-type .qmi--sim .qmi__wait b{ position:absolute; right:0; bottom:0; }
+.mb-type .qmi--sim .qmi__wait{ width:2ch; height:13px; display:inline-block; }
+.mb-type .qmi--sim .qmi__wait b:nth-child(1){ animation:mbtype-w0 18s steps(1,end) infinite; }
+.mb-type .qmi--sim .qmi__wait b:nth-child(2){ animation:mbtype-w1 18s steps(1,end) infinite; opacity:0; }
+.mb-type .qmi--sim .qmi__wait b:nth-child(3){ animation:mbtype-w2 18s steps(1,end) infinite; opacity:0; }
+
+.mb-type .cc p{ animation-duration:18s !important; animation-iteration-count:infinite !important;
+  animation-timing-function:steps(1,end) !important; }
+@keyframes mbtype-c1{ 0%{opacity:1} 12.222%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c2{ 0%{opacity:0} 12.222%{opacity:1} 21.111%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c3{ 0%{opacity:0} 21.111%{opacity:1} 50%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c4{ 0%{opacity:0} 50%{opacity:1} 56.667%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c5{ 0%{opacity:0} 56.667%{opacity:1} 70%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c6{ 0%{opacity:0} 70%{opacity:1} 77.222%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c7{ 0%{opacity:0} 77.222%{opacity:1} 92.222%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c8{ 0%{opacity:0} 92.222%{opacity:1} 95%{opacity:0} 100%{opacity:0} }
+@keyframes mbtype-c9{ 0%{opacity:0} 95%{opacity:1} 100%{opacity:1} }
+.mb-type .cc p.c1{ animation-name:mbtype-c1 } .mb-type .cc p.c2{ animation-name:mbtype-c2 }
+.mb-type .cc p.c3{ animation-name:mbtype-c3 } .mb-type .cc p.c4{ animation-name:mbtype-c4 }
+.mb-type .cc p.c5{ animation-name:mbtype-c5 } .mb-type .cc p.c6{ animation-name:mbtype-c6 }
+.mb-type .cc p.c7{ animation-name:mbtype-c7 } .mb-type .cc p.c8{ animation-name:mbtype-c8 }
+.mb-type .cc p.c9{ animation-name:mbtype-c9 }
+
+/* tachometer demo — tenths tick rate at 1 / 5 / 10 agents, shown at 4x real time */
+@keyframes mbtype-roll{ from{ transform:translateY(0) } to{ transform:translateY(-140px) } }
+.mb-type .qmi--t1  .qmi__roll{ animation:mbtype-roll 69.2s steps(10) infinite; }
+.mb-type .qmi--t5  .qmi__roll{ animation:mbtype-roll 13.6s steps(10) infinite; }
+.mb-type .qmi--t10 .qmi__roll{ animation:mbtype-roll  6.9s steps(10) infinite; }
+
+/* ============================================================
+   REDUCED MOTION — every decay becomes a discrete hold.
+   No channel is lost: the cursor already carries activity,
+   the flash becomes a 700ms full-ink hold, the slab appears whole.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce){
+  @keyframes mbtype-ink-rm{
+    0%{opacity:.50} 12.222%{opacity:.72}
+    56.667%{opacity:1} 60.556%{opacity:1} 63.333%{opacity:1} 65.556%{opacity:1}
+    67.222%{opacity:1} 68.611%{opacity:1} 70%{opacity:1} 75%{opacity:.50}
+    77.222%{opacity:0} 92.222%{opacity:.72} 95%{opacity:1} 100%{opacity:.50}
+  }
+  @keyframes mbtype-slab-rm{
+    0%{opacity:0} 77.222%{opacity:1} 93.889%{opacity:0} 100%{opacity:0}
+  }
+  @keyframes mbtype-knock-rm{
+    0%{filter:none} 82.778%{filter:brightness(1.5)} 84.167%{filter:none}
+    88.333%{filter:brightness(1.5)} 89.722%{filter:none} 100%{filter:none}
+  }
+  .mb-type .qmi--sim .qmi__sig{ animation:mbtype-ink-rm 18s steps(1,end) infinite; }
+  .mb-type .qmi--sim .qmi__slab{
+    animation:mbtype-slab-rm 18s steps(1,end) infinite, mbtype-stage 18s steps(1,end) infinite,
+              mbtype-knock-rm 18s steps(1,end) infinite; transform:none; }
+  .mb-type .qmi--sim .qmi__pct,.mb-type .qmi--sim .qmi__hd,.mb-type .qmi--sim .qmi__fig{
+    animation-timing-function:steps(1,end) !important; }
+  .mb-type .head{ animation-timing-function:steps(18,end) !important; }
+}
+</style>
+
+<p class="t-h1">QuotaMonster &middot; <span style="font-family:var(--mono);font-weight:600">THE READOUT</span></p>
+<p class="t-sub">A precision numeral with a cursor in front of it and an index behind it. The cursor is alive
+or at rest; the figure is whichever window is actually binding; the index names the other one. Nothing is
+bolted on &mdash; every signal is a property of one three-part line of type.</p>
+
+<!-- ====================== 1. ON THE BAR ====================== -->
+<div class="t-sec">On the bar &mdash; real size, 33pt bar, 22pt content box</div>
+<div class="bars">
+
+  <div class="wall wall--l sk-light">
+    <div class="bar bar--l">
+      <svg class="apple" width="13" height="15" viewBox="0 0 13 15" fill="currentColor" style="color:var(--ink)"><path d="M9.6 7.9c0-1.7 1.4-2.5 1.4-2.6-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6-1.1 2-.3 4.9.8 6.5.5.8 1.2 1.7 2 1.6.8 0 1.1-.5 2.1-.5s1.2.5 2.1.5c.9 0 1.4-.8 1.9-1.6.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.4zM8 3c.4-.5.7-1.3.6-2-.6 0-1.4.4-1.9 1-.4.5-.7 1.3-.6 2C6.8 4.1 7.5 3.6 8 3z"/></svg>
+      <div class="menus" style="color:var(--ink)"><span>Claude</span><span>File</span><span>Edit</span><span>View</span></div>
+
+      <span class="slot">
+        <span class="qmi qmi--a7 qmi--crisis qmi--w2">
+          <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+          <span class="qmi__fig">
+            <span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span>
+            <span class="qmi__hd">47<span class="qmi__u">m</span></span>
+          </span>
+          <span class="qmi__idx">D18</span>
+        </span>
+      </span>
+
+      <span class="nb"><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 6.2 8.8a2.6 2.6 0 0 1 3.6 0L8 10.6zM4.4 7a5.1 5.1 0 0 1 7.2 0l-1.1 1.1a3.6 3.6 0 0 0-5 0L4.4 7zM2.2 4.8a8.2 8.2 0 0 1 11.6 0l-1.1 1.1a6.7 6.7 0 0 0-9.4 0L2.2 4.8z"/></svg></span>
+      <span class="nb"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor"><rect x=".7" y="2.2" width="13.6" height="7.6" rx="2.2" stroke-width="1.1" opacity=".55"/><rect x="2.1" y="3.6" width="8" height="4.8" rx="1.2" fill="currentColor" stroke="none"/><path d="M15.6 5.1v1.8" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg></span>
+      <span class="clk">3:07&thinsp;AM</span>
+    </div>
+    <div class="cap" style="color:#3a2a10">LIGHT BAR &mdash; burn crisis: 47 min of headroom, 1h25m before reset</div>
+  </div>
+
+  <div class="wall wall--d sk-dark">
+    <div class="bar bar--d">
+      <svg class="apple" width="13" height="15" viewBox="0 0 13 15" fill="currentColor" style="color:var(--ink)"><path d="M9.6 7.9c0-1.7 1.4-2.5 1.4-2.6-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6-1.1 2-.3 4.9.8 6.5.5.8 1.2 1.7 2 1.6.8 0 1.1-.5 2.1-.5s1.2.5 2.1.5c.9 0 1.4-.8 1.9-1.6.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.4zM8 3c.4-.5.7-1.3.6-2-.6 0-1.4.4-1.9 1-.4.5-.7 1.3-.6 2C6.8 4.1 7.5 3.6 8 3z"/></svg>
+      <div class="menus" style="color:var(--ink)"><span>Claude</span><span>File</span><span>Edit</span><span>View</span></div>
+
+      <span class="slot">
+        <span class="qmi qmi--a7 qmi--crisis qmi--w2">
+          <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+          <span class="qmi__fig">
+            <span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span>
+            <span class="qmi__hd">47<span class="qmi__u">m</span></span>
+          </span>
+          <span class="qmi__idx">D18</span>
+        </span>
+      </span>
+
+      <span class="nb"><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 6.2 8.8a2.6 2.6 0 0 1 3.6 0L8 10.6zM4.4 7a5.1 5.1 0 0 1 7.2 0l-1.1 1.1a3.6 3.6 0 0 0-5 0L4.4 7zM2.2 4.8a8.2 8.2 0 0 1 11.6 0l-1.1 1.1a6.7 6.7 0 0 0-9.4 0L2.2 4.8z"/></svg></span>
+      <span class="nb"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor"><rect x=".7" y="2.2" width="13.6" height="7.6" rx="2.2" stroke-width="1.1" opacity=".55"/><rect x="2.1" y="3.6" width="8" height="4.8" rx="1.2" fill="currentColor" stroke="none"/><path d="M15.6 5.1v1.8" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg></span>
+      <span class="clk">3:07&thinsp;AM</span>
+    </div>
+    <div class="cap" style="color:#d9dcea">DARK BAR &mdash; same object, same 78pt, ink inverted</div>
+  </div>
+
+  <div class="wall wall--l sk-light">
+    <div class="bar bar--l">
+      <svg class="apple" width="13" height="15" viewBox="0 0 13 15" fill="currentColor" style="color:var(--ink)"><path d="M9.6 7.9c0-1.7 1.4-2.5 1.4-2.6-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6-1.1 2-.3 4.9.8 6.5.5.8 1.2 1.7 2 1.6.8 0 1.1-.5 2.1-.5s1.2.5 2.1.5c.9 0 1.4-.8 1.9-1.6.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.4zM8 3c.4-.5.7-1.3.6-2-.6 0-1.4.4-1.9 1-.4.5-.7 1.3-.6 2C6.8 4.1 7.5 3.6 8 3z"/></svg>
+      <div class="menus" style="color:var(--ink)"><span>Claude</span><span>File</span><span>Edit</span><span>View</span></div>
+      <span class="slot">
+        <span class="qmi qmi--a1 qmi--block qmi--bWarn">
+          <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+          <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+          <span class="qmi__idx">D18</span>
+          <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">2m</span></span>
+        </span>
+      </span>
+      <span class="nb"><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 6.2 8.8a2.6 2.6 0 0 1 3.6 0L8 10.6zM4.4 7a5.1 5.1 0 0 1 7.2 0l-1.1 1.1a3.6 3.6 0 0 0-5 0L4.4 7zM2.2 4.8a8.2 8.2 0 0 1 11.6 0l-1.1 1.1a6.7 6.7 0 0 0-9.4 0L2.2 4.8z"/></svg></span>
+      <span class="clk">3:09&thinsp;AM</span>
+    </div>
+    <div class="cap" style="color:#3a2a10">LIGHT BAR &mdash; blocked. The readout stops being a number.</div>
+  </div>
+
+  <div class="wall wall--d sk-dark">
+    <div class="bar bar--d">
+      <svg class="apple" width="13" height="15" viewBox="0 0 13 15" fill="currentColor" style="color:var(--ink)"><path d="M9.6 7.9c0-1.7 1.4-2.5 1.4-2.6-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6-1.1 2-.3 4.9.8 6.5.5.8 1.2 1.7 2 1.6.8 0 1.1-.5 2.1-.5s1.2.5 2.1.5c.9 0 1.4-.8 1.9-1.6.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.4zM8 3c.4-.5.7-1.3.6-2-.6 0-1.4.4-1.9 1-.4.5-.7 1.3-.6 2C6.8 4.1 7.5 3.6 8 3z"/></svg>
+      <div class="menus" style="color:var(--ink)"><span>Claude</span><span>File</span><span>Edit</span><span>View</span></div>
+      <span class="slot">
+        <span class="qmi qmi--a1 qmi--block qmi--bWarn">
+          <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+          <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+          <span class="qmi__idx">D18</span>
+          <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">2m</span></span>
+        </span>
+      </span>
+      <span class="nb"><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 6.2 8.8a2.6 2.6 0 0 1 3.6 0L8 10.6zM4.4 7a5.1 5.1 0 0 1 7.2 0l-1.1 1.1a3.6 3.6 0 0 0-5 0L4.4 7zM2.2 4.8a8.2 8.2 0 0 1 11.6 0l-1.1 1.1a6.7 6.7 0 0 0-9.4 0L2.2 4.8z"/></svg></span>
+      <span class="clk">3:09&thinsp;AM</span>
+    </div>
+    <div class="cap" style="color:#d9dcea">DARK BAR &mdash; the slab carries its own ground, so it reads anywhere</div>
+  </div>
+</div>
+
+<p class="t-note"><b>The grammar, left to right.</b>
+<code class="t-c">cursor</code> &mdash; at rest it is an underscore; working, it is a block whose height is
+the agent load (1&nbsp;&rarr;&nbsp;10+). &nbsp;<code class="t-c">figure</code> &mdash; the window that
+actually binds, in tabular numerals; the tenths digit ticks at the true burn rate.
+&nbsp;<code class="t-c">index</code> &mdash; the other window, named by its letter (<code class="t-c">D18</code>
+= 7-day at 18%). Because the index is named, both windows are always identified by one letter.</p>
+
+<!-- ====================== 2. STATE GALLERY ====================== -->
+<div class="t-sec">State gallery &mdash; every state, light bar and dark bar</div>
+<div class="grid">
+
+  <!-- idle -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a0">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a0">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>Idle &mdash; nothing running</b><span>Cursor at rest (underscore). Tenths frozen. Zero motion on screen.</span></div></div>
+
+  <!-- 1 agent -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a1">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>1 agent</b><span>Cursor stands up. Tenths begins ticking &mdash; about once every 28s at this burn.</span></div></div>
+
+  <!-- 5 agents -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a5">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>6</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a5">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>6</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>5 agents</b><span>Two-thirds height. The load read is instantaneous; the tick rate confirms it.</span></div></div>
+
+  <!-- 10+ agents -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a10">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">29.<span class="qmi__ten"><i>1</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a10">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">29.<span class="qmi__ten"><i>1</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>10+ agents</b><span>Cursor overshoots cap height &mdash; deliberately taller than any glyph beside it. Saturates here; 10 and 14 look the same, and should.</span></div></div>
+
+  <!-- burn crisis (real data) -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a7 qmi--crisis">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a7 qmi--crisis">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>Burn crisis &mdash; the live data</b><span>92%/h against 2h12m of window: exhaustion beats the reset by 1h25m. The instrument changes range: percent&nbsp;&rarr;&nbsp;minutes, bold, ruled. Monochrome on purpose &mdash; amber is reserved.</span></div></div>
+
+  <!-- 5h high -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a3 qmi--w2">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">85.<span class="qmi__ten"><i>2</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a3 qmi--w2">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">85.<span class="qmi__ten"><i>2</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>5-hour high (85%)</b><span>Weight is the pressure channel: 500&nbsp;&rarr;&nbsp;700 as headroom falls under 20%. No colour, no new mark &mdash; the same digits, heavier.</span></div></div>
+
+  <!-- 7d binding -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a2 qmi--w2">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">92.<span class="qmi__ten"><i>0</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">H12</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a2 qmi--w2">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">92.<span class="qmi__ten"><i>0</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">H12</span></span></div></div>
+  </div><div class="lab"><b>7-day binding</b><span>The two windows swap seats. The index letter flips <code class="t-c">D</code>&nbsp;&rarr;&nbsp;<code class="t-c">H</code> &mdash; one glyph says which number you are reading and which you are not.</span></div></div>
+
+  <!-- agent just finished -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a5 qmi--flash">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>6</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a5 qmi--flash">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>6</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>Agent just finished</b><span>Frozen at the 180ms peak: the cursor thickens to the full column and goes to full ink, having already stepped down one unit. Then it thins back and the ink decays to rest over 700ms. No new mark appears &mdash; ever.</span></div></div>
+
+  <!-- needs input -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a1 qmi--block qmi--bWarn">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span>
+      <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">2m</span></span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1 qmi--block qmi--bWarn">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span>
+      <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">2m</span></span></span></div></div>
+  </div><div class="lab"><b>Needs input &mdash; f1-e3, 2m</b><span>The object stops being a quota readout. Knocked-out figures on a slab, and the number is now <i>how long you have kept it waiting</i>. The stalled agent is still drawn inside the slab: work is parked, not gone.</span></div></div>
+
+  <!-- needs input, multiple -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a3 qmi--block qmi--bWarn qmi--bMulti">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">&times;2</span>
+      <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2" style="transform:scaleY(.54)"/></svg><span class="qmi__wait">4m</span></span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a3 qmi--block qmi--bWarn qmi--bMulti">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">&times;2</span>
+      <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2" style="transform:scaleY(.54)"/></svg><span class="qmi__wait">4m</span></span></span></div></div>
+  </div><div class="lab"><b>Needs input &times;2</b><span>The index slot is reused, not added to: it always holds the runner-up fact, so while blocked it holds the count instead of the other window. Wait clock shows the oldest.</span></div></div>
+
+  <!-- stale -->
+  <div class="cell"><div class="duo">
+    <div class="mini mini--l sk-light"><div class="strip"><span class="qmi qmi--a3 qmi--stale">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+    <div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a3 qmi--stale">
+      <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+      <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+      <span class="qmi__idx">D18</span></span></div></div>
+  </div><div class="lab"><b>Data stale (&gt;10 min)</b><span>The instrument loses a significant figure: <code class="t-c">28.4%</code> becomes <code class="t-c">28.&ndash;%</code> and the cursor goes hollow. Staleness is expressed as loss of precision, which is exactly what it is.</span></div></div>
+
+</div>
+
+<div class="ruler"><span class="bkt"></span><span>every state above is exactly <b style="color:#c9cfdc">78&thinsp;pt</b> &mdash; 5 cursor · 4 · 38 figure · 3 · 18 index, plus 5pt gutters. Nothing in the bar ever shifts.</span></div>
+
+<!-- ====================== 3. ESCALATION LADDER ====================== -->
+<div class="t-sec">Surviving habituation &mdash; the blocked state escalates in discrete steps</div>
+<div class="ladder">
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1 qmi--block qmi--bNew">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span>
+    <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">0m</span></span></span></div></div>
+    <div class="lab"><b>0&ndash;1 min &mdash; outlined</b><span>A rule, not a fill. Quiet enough to ignore for a minute.</span></div></div>
+
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1 qmi--block qmi--bWarn">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span>
+    <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">2m</span></span></span></div></div>
+    <div class="lab"><b>1&ndash;5 min &mdash; filled</b><span>Dark ink knocked out of amber. One 250ms knock per minute crossed.</span></div></div>
+
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1 qmi--block qmi--bCrit">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><i>4</i></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span>
+    <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait">7m</span></span></span></div></div>
+    <div class="lab"><b>&gt;5 min &mdash; polarity flips</b><span>Red ground, <i>light</i> knockout. The pairing itself inverts, so it cannot become familiar.</span></div></div>
+</div>
+<p class="t-note">The anti-habituation mechanism is not brightness, it is <b>a number that grows because you ignored it</b>.
+The stimulus is never the same twice: <code class="t-c">0m</code> outlined, <code class="t-c">2m</code> amber,
+<code class="t-c">7m</code> red-inverted, <code class="t-c">23m</code> red-inverted and wider. Habituation needs a
+constant to attach to and there isn't one.</p>
+
+<!-- ====================== 4. TACHOMETER ====================== -->
+<div class="t-sec">The tenths digit is the tachometer &mdash; shown here at 4&times; real time</div>
+<div class="tach">
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a1 qmi--t1">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><span class="qmi__roll"><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i><i>1</i><i>2</i><i>3</i></span></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span></span></div></div>
+    <div class="lab"><b>1 agent &middot; ~13%/h</b><span>one tick per 28s</span></div></div>
+
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a5 qmi--t5">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">28.<span class="qmi__ten"><span class="qmi__roll"><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i><i>1</i><i>2</i><i>3</i></span></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span></span></div></div>
+    <div class="lab"><b>5 agents &middot; ~66%/h</b><span>one tick per 5.5s</span></div></div>
+
+  <div class="rung"><div class="mini mini--d sk-dark"><div class="strip"><span class="qmi qmi--a10 qmi--t10">
+    <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+    <span class="qmi__fig"><span class="qmi__pct">29.<span class="qmi__ten"><span class="qmi__roll"><i>1</i><i>2</i><i>3</i><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i></span></span><span class="qmi__u">%</span></span><span class="qmi__hd">47<span class="qmi__u">m</span></span></span>
+    <span class="qmi__idx">D18</span></span></div></div>
+    <div class="lab"><b>10+ agents &middot; ~131%/h</b><span>one tick per 2.7s</span></div></div>
+</div>
+<p class="t-note">This is the honest half of the integration the brief asked for: <b>activity is the rate at which
+quota is consumed</b>, so activity does not need its own mark. The digit that is already on screen simply moves
+at the speed of the burn. Nothing is animating &mdash; a digit is being substituted, the way a clock substitutes
+its minutes. The cursor height gives the instantaneous read; the tick rate is the confirmation.</p>
+
+<!-- ====================== 5. LIVE SCENARIO ====================== -->
+<div class="t-sec">Live scenario &mdash; 18s loop, real durations</div>
+<div class="sim">
+  <div class="stage">
+    <div class="wall wall--d sk-dark">
+      <div class="bar bar--d">
+        <svg class="apple" width="13" height="15" viewBox="0 0 13 15" fill="currentColor" style="color:var(--ink)"><path d="M9.6 7.9c0-1.7 1.4-2.5 1.4-2.6-.8-1.1-2-1.3-2.4-1.3-1-.1-2 .6-2.5.6s-1.3-.6-2.1-.6c-1.1 0-2.1.6-2.7 1.6-1.1 2-.3 4.9.8 6.5.5.8 1.2 1.7 2 1.6.8 0 1.1-.5 2.1-.5s1.2.5 2.1.5c.9 0 1.4-.8 1.9-1.6.6-.9.9-1.8.9-1.8s-1.5-.6-1.5-2.4zM8 3c.4-.5.7-1.3.6-2-.6 0-1.4.4-1.9 1-.4.5-.7 1.3-.6 2C6.8 4.1 7.5 3.6 8 3z"/></svg>
+        <div class="menus" style="color:var(--ink)"><span>Claude</span><span>File</span><span>Edit</span><span>View</span><span>Window</span></div>
+        <span class="slot">
+          <span class="qmi qmi--sim">
+            <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+            <span class="qmi__fig">
+              <span class="qmi__pct">28.<span class="qmi__ten"><span class="qmi__roll"><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i><i>1</i><i>2</i><i>3</i></span></span><span class="qmi__u">%</span></span>
+              <span class="qmi__hd">47<span class="qmi__u">m</span></span>
+            </span>
+            <span class="qmi__idx">D18</span>
+            <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait"><b>0m</b><b>1m</b><b>2m</b></span></span>
+          </span>
+        </span>
+        <span class="nb"><svg width="16" height="12" viewBox="0 0 16 12" fill="currentColor"><path d="M8 10.6 6.2 8.8a2.6 2.6 0 0 1 3.6 0L8 10.6zM4.4 7a5.1 5.1 0 0 1 7.2 0l-1.1 1.1a3.6 3.6 0 0 0-5 0L4.4 7zM2.2 4.8a8.2 8.2 0 0 1 11.6 0l-1.1 1.1a6.7 6.7 0 0 0-9.4 0L2.2 4.8z"/></svg></span>
+        <span class="nb"><svg width="18" height="12" viewBox="0 0 18 12" fill="none" stroke="currentColor"><rect x=".7" y="2.2" width="13.6" height="7.6" rx="2.2" stroke-width="1.1" opacity=".55"/><rect x="2.1" y="3.6" width="8" height="4.8" rx="1.2" fill="currentColor" stroke="none"/><path d="M15.6 5.1v1.8" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg></span>
+        <span class="clk">3:07&thinsp;AM</span>
+      </div>
+      <div class="zoomlab">2.6&times; detail &mdash; same object, same pixels</div>
+      <div class="zoom sk-dark">
+        <span class="zoombox">
+          <span class="qmi qmi--sim">
+            <span class="qmi__sig"><svg viewBox="0 0 5 12"><rect class="qmi__rest" x="0" y="10.5" width="5" height="1.5" rx=".75"/><rect class="qmi__bar" x="1" y="0" width="3" height="12" rx="1.2"/></svg></span>
+            <span class="qmi__fig">
+              <span class="qmi__pct">28.<span class="qmi__ten"><span class="qmi__roll"><i>4</i><i>5</i><i>6</i><i>7</i><i>8</i><i>9</i><i>0</i><i>1</i><i>2</i><i>3</i></span></span><span class="qmi__u">%</span></span>
+              <span class="qmi__hd">47<span class="qmi__u">m</span></span>
+            </span>
+            <span class="qmi__idx">D18</span>
+            <span class="qmi__slab"><svg viewBox="0 0 5 12"><rect x="1" y="0" width="3" height="12" rx="1.2"/></svg><span class="qmi__wait"><b>0m</b><b>1m</b><b>2m</b></span></span>
+          </span>
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tl">
+  <div class="track">
+    <span class="seg busy" style="left:12.222%;width:57.778%"></span>
+    <span class="seg crit" style="left:77.222%;width:15%"></span>
+    <span class="seg busy" style="left:92.222%;width:3.778%"></span>
+    <span class="head"></span>
+  </div>
+
+  <div class="marks">
+    <i style="left:0"></i>          <u style="left:0;transform:none">0.0s<br>idle</u>
+    <i style="left:12.222%"></i>    <u class="lo" style="left:12.222%">2.2s work starts</u>
+    <i style="left:21.111%"></i>    <u style="left:21.111%">3.8s fan-out &times;7</u>
+    <i style="left:50%"></i>        <u class="lo" style="left:50%">9.0s range change</u>
+    <i style="left:56.667%"></i>    <u style="left:56.667%">10.2s finishes</u>
+    <i style="left:70%"></i>        <u class="lo" style="left:70%">12.6s drain &rarr; settle</u>
+    <i style="left:77.222%"></i>    <u style="left:77.222%">13.9s BLOCKED</u>
+    <i style="left:92.222%"></i>    <u class="lo" style="left:92.222%;transform:translateX(-100%);text-align:right">16.6s answered</u>
+    <i style="left:95%"></i><i style="left:100%"></i>        <u style="left:100%;transform:translateX(-100%);text-align:right">17.1s<br>done</u>
+  </div>
+  </div>
+
+  <div class="cc">
+    <p class="c1">Idle. Cursor is an underscore at 50% ink, tenths frozen on <b>28.4%</b>. <b>Zero pixels are moving.</b></p>
+    <p class="c2">A session starts, then a second and third. The cursor stands up and grows: <b>1 &rarr; 3</b>. Tenths begins to tick.</p>
+    <p class="c3">Fan-out: <b>7 agents</b>. Cursor near full height; tenths substitutes every 3.9s at 92%/h &mdash; <b>.4 &rarr; .5 &rarr; .6</b>.</p>
+    <p class="c4">Projection has held past reset for 60s, so the instrument <b>changes range</b>: <b>28.4%</b> becomes <b>47m</b>, bold, ruled. Still monochrome.</p>
+    <p class="c5">Agents finish. Each one: cursor thickens 180ms, steps down one, ink decays to rest. Rapid finishes <b>keep it lit</b> &mdash; that is the fan-out reading as one event.</p>
+    <p class="c6">Drained to zero. Last flash <b>settles over 900ms</b> into the rest mark, range returns to <b>28.7%</b>. Termination rule: the resting state is the idle state.</p>
+    <p class="c7 w">f1-e3 hits a permission prompt. The readout <b>stops being a number</b>: slab in 260ms, wait clock <b>0m &rarr; 1m &rarr; 2m</b>, one 250ms knock per minute. The stalled agent stays drawn inside.</p>
+    <p class="c8">Answered. Slab retracts in 300ms, the figure comes back, and the parked agent resumes &mdash; the cursor stands up again.</p>
+    <p class="c9">Finished. 900ms settle, then nothing. <b>The object is at rest and will not move again until something happens.</b></p>
+  </div>
+</div>
+<p class="t-note"><b>Honest timing:</b> every duration above is the shipping duration &mdash; 180ms thicken, 700ms ink
+decay, 900ms settle, 260ms slab in, 300ms slab out, 250ms knock. Two things are compressed for a 18s loop and
+labelled as such: the wait clock runs 60&times; (2 real minutes in 2 seconds), and the range-change hysteresis
+(60s sustained to enter, 120s to leave) is collapsed to the 9.0s mark. Everything else is real.</p>
+
+<p class="t-note"><b>Reduced motion:</b> the decays become discrete holds &mdash; the completion becomes a 700ms
+full-ink hold, the slab appears whole instead of expanding, the knock is a single step. Nothing is lost, because
+the information in this design lives in <i>which glyph is showing</i>, not in the transitions: cursor height,
+figure, unit, weight, index, slab. The transitions only ever said &ldquo;look now&rdquo;.</p>
+</div>

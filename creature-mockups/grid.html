@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ruminant Construction</title>
+<style>
+.cr-grid{
+  --bg:#0d0f12; --panel:#15181d; --line:#262b33; --ink:#e8eaee; --dim:#8b93a1;
+  --faint:#4a5260; --acc:#7fb2ff; --geo:#5d7fd6; --amber:#e8952b; --warn:#d8653c;
+  --grid1:#1d222a; --grid4:#2b323d;
+  background:var(--bg); color:var(--ink); font:400 13px/1.55 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
+  padding:34px 26px 70px; margin:0; -webkit-font-smoothing:antialiased;
+}
+@media (prefers-color-scheme: light){
+.cr-grid:not([data-theme="dark"]){--bg:#f6f7f9;--panel:#fff;--line:#e2e5ea;--ink:#14171c;--dim:#636b78;--faint:#aeb5c0;--grid1:#eceff3;--grid4:#dfe3e9;--geo:#3f63bb;}
+}
+.cr-grid *{box-sizing:border-box}
+.cr-grid .wrap{max-width:1180px;margin:0 auto}
+.cr-grid h1{font:600 26px/1.2 ui-sans-serif,system-ui,sans-serif;margin:0 0 4px;letter-spacing:-.02em}
+.cr-grid .sub{color:var(--dim);font-size:13px;margin:0 0 30px;max-width:68ch}
+.cr-grid h2{font:600 11px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:44px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+.cr-grid h3{font:600 12px/1.3 ui-sans-serif,system-ui,sans-serif;margin:0 0 6px;letter-spacing:-.01em}
+.cr-grid p{margin:0 0 10px;color:var(--dim);font-size:12.5px;max-width:74ch}
+.cr-grid code{font:500 11.5px ui-monospace,"SF Mono",Menlo,monospace;background:var(--panel);border:1px solid var(--line);padding:1px 5px;border-radius:4px;color:var(--ink)}
+.cr-grid .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:18px}
+.cr-grid .cols{display:grid;gap:16px}
+.cr-grid .c2{grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+.cr-grid .c3{grid-template-columns:repeat(auto-fit,minmax(210px,1fr))}
+.cr-grid .spec{width:100%;border-collapse:collapse;font:500 11.5px ui-monospace,"SF Mono",Menlo,monospace}
+.cr-grid .spec td{padding:4px 8px 4px 0;border-bottom:1px solid var(--line);vertical-align:top}
+.cr-grid .spec td:first-child{color:var(--dim);white-space:nowrap}
+.cr-grid .spec tr:last-child td{border-bottom:0}
+.cr-grid .cap{font:500 10.5px ui-monospace,Menlo,monospace;color:var(--faint);letter-spacing:.04em;text-transform:uppercase;margin:0 0 8px}
+.cr-grid svg{display:block}
+.cr-grid .constr{width:100%;height:auto;background:transparent;border-radius:6px}
+/* ---------- the mark ---------- */
+.cr-grid .mk{color:inherit;overflow:visible}
+.cr-grid .mk1,.cr-grid .mk3,.cr-grid .scn{font-family:-apple-system,"SF Compact Display","SF Pro Display",system-ui,sans-serif;font-weight:600;font-size:10.6px;letter-spacing:-.35px;text-anchor:end}
+.cr-grid .mk1 text,.cr-grid .mk3 text,.cr-grid .scn text{fill:currentColor}
+.cr-grid .mk3{width:198px;height:66px}
+.cr-grid .mk1{width:66px;height:22px}
+.cr-grid .amber{color:var(--amber)}
+.cr-grid .sil{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+.cr-grid .chip{background:var(--panel);border:1px solid var(--line);border-radius:9px;padding:13px 14px 15px}
+.cr-grid .chip .row{display:flex;align-items:flex-end;gap:16px;margin-top:10px;flex-wrap:wrap}
+.cr-grid .chip .lab{font:500 10.5px ui-monospace,Menlo,monospace;color:var(--faint)}
+.cr-grid .chip .ttl{font:600 12px ui-sans-serif,system-ui,sans-serif;color:var(--ink)}
+.cr-grid .chip .note{font-size:11.5px;color:var(--dim);margin-top:9px;line-height:1.45}
+.cr-grid .dk{background:#111;color:#f2f2f2;border-color:#2a2a2a}
+.cr-grid .lt{background:#fbfbfb;color:#111;border-color:#e0e0e0}
+/* ---------- menu bar sim ---------- */
+.cr-grid .wall{border-radius:12px;overflow:hidden;border:1px solid var(--line)}
+.cr-grid .wall.w-d{background:
+radial-gradient(120% 90% at 12% 0%, #3b4f78 0%, #22283c 46%, #12141c 100%),
+linear-gradient(120deg,#1a2030,#0e1017)}
+.cr-grid .wall.w-l{background:
+radial-gradient(120% 90% at 82% 0%, #ffe9c9 0%, #f0c9a6 40%, #c9a486 100%),
+linear-gradient(120deg,#ffeedd,#e6c9ae)}
+.cr-grid .bar{height:33px;display:flex;align-items:center;gap:0;padding:0 11px;backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
+.cr-grid .bar.b-d{background:rgba(22,24,30,.62);color:#fff}
+.cr-grid .bar.b-l{background:rgba(252,252,252,.66);color:#000}
+.cr-grid .bar .mi{display:flex;align-items:center;height:22px;padding:0 8px}
+.cr-grid .bar .mtx{font:400 13px/1 -apple-system,system-ui,sans-serif;letter-spacing:.1px;opacity:.92}
+.cr-grid .bar .mtx.b{font-weight:600}
+.cr-grid .grow{flex:1}
+.cr-grid .body-sample{height:96px}
+</style>
+</head>
+<body>
+<div class="cr-grid">
+<div class="wrap">
+<h1>The Ruminant</h1>
+<p class="sub">A redrawing of the Grazer under one rule: <strong style="color:var(--ink)">every curve in the mark is a quarter-circle or semicircle of radius 2pt or 4pt, and every arc begins and ends at a cardinal point of its own circle.</strong> That single constraint forces horizontal or vertical tangents at every junction, puts every anchor on a half-point coordinate, and leaves the back, the belly and the muzzle as dead-straight lines. Nothing here is freehand. The face is gone.</p>
+<!-- ============ DEFS ============ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<path id="b0" d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 12A2 2 0 0 0 49 14L53 14A2 2 0 0 1 55 16L49 16L17 16Z"/>
+<path id="b1" d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 10A2 2 0 0 0 49 12L53 12A2 2 0 0 1 55 14L49 16L17 16Z"/>
+<path id="b2" d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 10A2 2 0 0 0 49 12L53 12A2 2 0 0 1 55 14L47 14L17 16Z"/>
+<clipPath id="cb0"><path d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 12A2 2 0 0 0 49 14L53 14A2 2 0 0 1 55 16L49 16L17 16Z"/></clipPath>
+<clipPath id="cb1"><path d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 10A2 2 0 0 0 49 12L53 12A2 2 0 0 1 55 14L49 16L17 16Z"/></clipPath>
+<clipPath id="cb2"><path d="M17 16L17 12A4 4 0 0 1 21 8L45 8A2 2 0 0 1 47 10L47 10A2 2 0 0 0 49 12L53 12A2 2 0 0 1 55 14L47 14L17 16Z"/></clipPath>
+<pattern id="cg1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M1 0V1M0 1H1" fill="none" stroke="var(--grid1)" stroke-width=".07"/></pattern>
+<pattern id="cg4" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M4 0V4M0 4H4" fill="none" stroke="var(--grid4)" stroke-width=".11"/></pattern>
+<g id="wifi"><circle cx="8" cy="12.3" r="1.15"/><g fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5.5 9.8A3.55 3.55 0 0 1 10.5 9.8"/><path d="M3.1 7.5A6.95 6.95 0 0 1 12.9 7.5"/><path d="M.7 5.2A10.35 10.35 0 0 1 15.3 5.2"/></g></g>
+<g id="batt"><rect x=".6" y="4.6" width="20.8" height="8.8" rx="2.7" fill="none" stroke="currentColor" stroke-width="1.15" opacity=".42"/><rect x="22.3" y="7.3" width="1.3" height="3.4" rx=".65" opacity=".42"/><rect x="2.1" y="6.1" width="12.6" height="5.8" rx="1.3"/></g>
+</defs></svg>
+<h2>1 · Construction</h2>
+<p>Modulus <code>M = 2pt</code>. The whole vocabulary is <code>r = M</code> and <code>r = 2M</code> — two radii, nothing else. Arcs terminate only at N/S/E/W of their own circle, so every tangent is horizontal or vertical and every anchor lands on a 0.5pt coordinate. The back (y&nbsp;8.0), the muzzle (y&nbsp;14.0) and the belly (y&nbsp;16.0) are straight because straight edges rasterise at alpha 1.00 and 45° edges do not.</p>
+<div class="panel">
+<svg class="constr" viewBox="-5.4 -3.4 81 29" style="max-width:1040px;margin:0 auto">
+<rect x="0" y="0" width="66" height="22" fill="url(#cg1)"/>
+<rect x="0" y="0" width="66" height="22" fill="url(#cg4)"/>
+<rect x="0" y="0" width="66" height="22" fill="none" stroke="var(--faint)" stroke-width=".13"/>
+<rect x="0" y="3" width="66" height="16" fill="var(--acc)" opacity=".05"/>
+<g stroke="var(--geo)" stroke-width=".1" stroke-dasharray=".8 .55" opacity=".8"><path d="M-1.6 3H66.6M-1.6 19H66.6"/></g>
+<g stroke="var(--geo)" stroke-width=".07" stroke-dasharray=".45 .45" opacity=".5">
+<path d="M15 8H66.6M15 10H66.6M15 12H66.6M15 14H66.6M15 16H66.6M15 17.5H60M15 5H44"/>
+<path d="M17 3V20.6M21 3V20.6M45 3V20.6M47 3V20.6M55 3V20.6" opacity=".7"/>
+</g>
+<g font-size=".95" fill="var(--geo)" font-family="ui-monospace,Menlo,monospace">
+<text x="-2.2" y="3.35" text-anchor="end">3.0</text><text x="-2.2" y="8.35" text-anchor="end">8.0</text><text x="-2.2" y="10.35" text-anchor="end">10.0</text>
+<text x="-2.2" y="12.35" text-anchor="end">12.0</text><text x="-2.2" y="14.35" text-anchor="end">14.0</text><text x="-2.2" y="16.35" text-anchor="end">16.0</text><text x="-2.2" y="19.35" text-anchor="end">19.0</text>
+<text x="67.4" y="3.35">ink top</text><text x="67.4" y="8.35">ridge</text><text x="67.4" y="10.35">brow</text><text x="67.4" y="12.35">axis</text>
+<text x="67.4" y="14.35">muzzle</text><text x="67.4" y="16.35">belly</text><text x="67.4" y="19.35">ink base</text>
+<text x="17" y="21.8" text-anchor="middle">17</text><text x="21" y="21.8" text-anchor="middle">21</text><text x="45" y="21.8" text-anchor="middle">45</text><text x="47.6" y="21.8" text-anchor="middle">47</text><text x="55" y="21.8" text-anchor="middle">55</text>
+</g>
+<g fill="var(--acc)" opacity=".17">
+<rect x="23" y="3" width="1.5" height="5"/><rect x="26.5" y="3" width="1.5" height="5"/><rect x="30" y="3" width="1.5" height="5"/>
+<rect x="33.5" y="3" width="1.5" height="5"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/>
+</g>
+<text x="23" y="2.1" font-size=".95" fill="var(--acc)" font-family="ui-monospace,Menlo,monospace" opacity=".9">6 quill slots &#183; 1.5 wide &#183; 2.0 counter &#183; pitch 3.5 &#183; x 23 &#8594; 42</text>
+<g fill="none" stroke="var(--geo)" stroke-width=".13" stroke-dasharray="1.1 .7" opacity=".95">
+<circle cx="21" cy="12" r="4"/><circle cx="45" cy="10" r="2"/><circle cx="49" cy="12" r="2"/><circle cx="53" cy="16" r="2"/>
+</g>
+<g stroke="var(--geo)" stroke-width=".1" opacity=".85">
+<path d="M20.2 12h1.6M21 11.2v1.6M44.4 10h1.2M45 9.4v1.2M48.4 12h1.2M49 11.4v1.2M52.4 16h1.2M53 15.4v1.2"/>
+<path d="M21 12L17 12M45 10L47 10M49 12L49 14M53 16L55 16" stroke-dasharray=".4 .35"/>
+</g>
+<g font-size=".95" fill="var(--geo)" font-family="ui-monospace,Menlo,monospace">
+<text x="22.2" y="11.4">r 4 &#183; C1 &#183; the mass</text><text x="44.6" y="6.4" text-anchor="end">r 2 &#183; C2</text><text x="50.8" y="9.3">r 2 &#183; C3</text><text x="51.6" y="20.4">r 2 &#183; C4</text>
+</g>
+<use href="#b0" fill="var(--ink)" opacity=".14"/>
+<use href="#b0" fill="none" stroke="var(--ink)" stroke-width=".18"/>
+<g fill="var(--ink)" opacity=".22">
+<rect x="16" y="17.5" width="42" height="1.5"/>
+<rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="3" width="1.5" height="5"/>
+<rect x="57" y="10" width="1.5" height="4"/>
+</g>
+<g fill="var(--bg)" stroke="var(--geo)" stroke-width="0.17">
+<circle cx="17" cy="16" r=".38"/><circle cx="17" cy="12" r=".38"/><circle cx="21" cy="8" r=".38"/>
+<circle cx="45" cy="8" r=".38"/><circle cx="47" cy="10" r=".38"/><circle cx="47" cy="12" r=".38"/>
+<circle cx="49" cy="14" r=".38"/><circle cx="53" cy="14" r=".38"/><circle cx="55" cy="16" r=".38"/><circle cx="49" cy="16" r=".38"/>
+</g>
+<g font-size=".88" fill="var(--dim)" font-family="ui-monospace,Menlo,monospace">
+<text x="23" y="7.2">L &#8212; dorsal ridge, 24pt</text>
+<text x="55.8" y="14.4">L &#8212; muzzle, 4pt</text>
+<text x="23.2" y="15.4">L &#8212; belly, 32pt</text>
+<text x="46.4" y="12.9" text-anchor="end">L &#8212; face, 2pt</text>
+<text x="1" y="23.4">numeral &#183; right edge 14</text>
+<text x="16" y="23.4">ground &#183; x 16&#8594;58 &#183; the 7-day window at full length, drawn at the same 1.5pt weight</text>
+<text x="57" y="9.2">overrun</text>
+<text x="16.2" y="12.4" text-anchor="end">tail</text>
+</g>
+</svg>
+</div>
+<h2>2 · The three postures — one path, interpolated</h2>
+<p>The blocked state is <strong style="color:var(--ink)">not a face</strong>. It is a posture. A grazing animal that is interrupted lifts its head; if it is really bothered it comes up off its front feet. All three outlines below are the same twelve path commands in the same order &mdash; <code>M L A L A L A L A L L Z</code> &mdash; so Core Graphics interpolates them control-point for control-point over 220ms. That is the SF&nbsp;Symbols rule for interpolatable variants, applied to a posture instead of a weight. The dashed outline in each frame is the grazing pose for reference.</p>
+<div class="cols c3"><div class="chip"><div class="ttl">Grazing</div><div style="margin:10px 0 4px"><svg viewBox="-1 0 68 23" style="width:100%;max-width:300px"><rect x="0" y="0" width="66" height="22" fill="url(#cg4)"/><rect x="16" y="17.5" width="42" height="1.5" fill="var(--ink)" opacity=".28"/><use href="#b0" fill="none" stroke="var(--geo)" stroke-width=".3" stroke-dasharray=".9 .7" opacity=".75"/><use href="#b0" fill="var(--ink)" opacity=".82"/></svg></div><div class="lab">M L A L A L A L A L L Z</div><div class="note">Head down, muzzle on the ground. Nothing is waiting on a human.</div></div><div class="chip"><div class="ttl">Alert &middot; one blocked</div><div style="margin:10px 0 4px"><svg viewBox="-1 0 68 23" style="width:100%;max-width:300px"><rect x="0" y="0" width="66" height="22" fill="url(#cg4)"/><rect x="16" y="17.5" width="42" height="1.5" fill="var(--ink)" opacity=".28"/><use href="#b0" fill="none" stroke="var(--geo)" stroke-width=".3" stroke-dasharray=".9 .7" opacity=".75"/><use href="#b1" fill="var(--ink)" opacity=".82"/></svg></div><div class="lab">same 12 commands, face length &#8594; 0</div><div class="note">The vertical face segment collapses to zero length and the head rises 2pt. The brisket stays down.</div></div><div class="chip"><div class="ttl">Alert &middot; two or more</div><div style="margin:10px 0 4px"><svg viewBox="-1 0 68 23" style="width:100%;max-width:300px"><rect x="0" y="0" width="66" height="22" fill="url(#cg4)"/><rect x="16" y="17.5" width="42" height="1.5" fill="var(--ink)" opacity=".28"/><use href="#b0" fill="none" stroke="var(--geo)" stroke-width=".3" stroke-dasharray=".9 .7" opacity=".75"/><use href="#b2" fill="var(--ink)" opacity=".82"/></svg></div><div class="lab">same 12 commands, chin point moves</div><div class="note">Same head, but the underside holds at y&nbsp;14 back to x&nbsp;47 &#8212; 3.5pt of daylight under the chest.</div></div></div>
+<div class="cols c2" style="margin-top:16px">
+<div class="panel"><div class="cap">Measured</div><table class="spec">
+<tr><td>canvas</td><td>66 × 22 pt (22.0 = NSStatusBar.system.thickness)</td></tr>
+<tr><td>ink</td><td>y 3.0 → 19.0 = <b>16.00pt</b>, margins 3.0 / 3.0</td></tr>
+<tr><td>stroke weight</td><td><b>1.5pt</b> everywhere = 9.4% of ink height (Octicons' figure)</td></tr>
+<tr><td>radii</td><td>{2.0, 4.0} only — M and 2M. One r&nbsp;4 arc builds the mass, three r&nbsp;2 arcs build the head</td></tr>
+<tr><td>counters</td><td>2.0pt between quills and 2.0pt for the kerf slot; 1.5pt between belly and ground (Octicons' modifier gap)</td></tr>
+<tr><td>coordinates</td><td>every anchor on a 0.5pt multiple; every band edge integer</td></tr>
+<tr><td>alpha levels</td><td>3: <b>1.00</b> spent &middot; <b>0.65</b> forecast &middot; <b>0.35</b> untouched</td></tr>
+<tr><td>closed shapes</td><td>1 silhouette + 1 ground bar + ≤6 quills (one modifier family)</td></tr>
+<tr><td>diagonals</td><td>1, and only in the two alert poses (the brisket) — under 5°</td></tr>
+<tr><td>eyes</td><td><b>0</b></td></tr>
+</table></div>
+<div class="panel"><div class="cap">Where each signal lives</div><table class="spec">
+<tr><td>5-hour</td><td>body alpha, tail→snout; a 2.0 × 4.0pt <b>kerf slot</b> knocked out at the boundary</td></tr>
+<tr><td>burn rate</td><td>0.65 band ahead of the kerf; its far edge is soft = forecast</td></tr>
+<tr><td>overrun</td><td>1–3 ticks past the snout, 1 per 10pp over 100%</td></tr>
+<tr><td>7-day</td><td>the ground: same 1.5pt bar, 1.00 remaining / 0.35 spent</td></tr>
+<tr><td>agents</td><td>6 slots. n≤6 → n short. 7–12 → all six, with n−6 tall. 0–12 exact</td></tr>
+<tr><td>13+ agents</td><td>six tall quills sheared 11° forward</td></tr>
+<tr><td>blocked</td><td>posture (head up), plus amber in that one state</td></tr>
+<tr><td>numeral</td><td><b>always</b> % of the 5-hour window used. Never anything else.</td></tr>
+<tr><td>stale</td><td>whole mark to 0.40, numeral replaced by a 6pt bar</td></tr>
+</table></div>
+</div>
+<h2>3 · Silhouette test</h2>
+<p>Solid black, no interior detail, no opacity steps, no numeral. Ink coverage of the 46 &times; 16pt mark bounding box comes out at <b>49%</b> by integration of the path — inside the 35–60% band that every legible creature mark in the reference set sits in. It reads: long flat back, rounded rump, muzzle down on the ground, quills up. It does not read as a face, because there is nothing on it that could be one.</p>
+<div class="sil">
+<div><div class="cap">22pt · 1×</div><svg viewBox="0 0 66 22" width="66" height="22"><g fill="#000"><rect x="16" y="17.5" width="42" height="1.5"/><use href="#b0"/><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></div>
+<div><div class="cap">3×</div><svg viewBox="0 0 66 22" width="198" height="66"><g fill="#000"><rect x="16" y="17.5" width="42" height="1.5"/><use href="#b0"/><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></div>
+<div style="background:#000;padding:10px 14px;border-radius:6px"><div class="cap" style="color:#666">inverted 3×</div><svg viewBox="0 0 66 22" width="198" height="66"><g fill="#fff"><rect x="16" y="17.5" width="42" height="1.5"/><use href="#b0"/><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></div>
+</div>
+<p style="margin-top:10px">Honest note: at 1&times; the quills and the overrun ticks are 1.5pt wide with 2.0pt counters, which is exactly the measured floor rather than a margin above it — they survive, but they are the first thing that would go if this had to work at 12pt. The square tail, the flat back and the dropped muzzle carry the recognition on their own.</p><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><g id="gs0"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".35"/><rect x="28" y="14" width="2" height="2" opacity=".35"/><rect x="30" y="8" width="25" height="8" opacity=".35"/></g></g></g></g><g id="gs1"><g fill="currentColor"><text x="14" y="16">31</text><rect x="16" y="17.5" width="34" height="1.5"/><rect x="50" y="17.5" width="8" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="12" height="8"/><rect x="29" y="8" width="2" height="2" opacity=".65"/><rect x="29" y="14" width="2" height="2" opacity=".65"/><rect x="31" y="8" width="4.5" height="8" opacity=".65"/><rect x="35.5" y="8" width="19.5" height="8" opacity=".35"/></g><rect x="23" y="5" width="1.5" height="3"/></g></g></g><g id="gs2"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></g><g id="gs3"><g fill="currentColor"><text x="14" y="16">44</text><rect x="16" y="17.5" width="31" height="1.5"/><rect x="47" y="17.5" width="11" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="17" height="8"/><rect x="34" y="8" width="2" height="2" opacity=".65"/><rect x="34" y="14" width="2" height="2" opacity=".65"/><rect x="36" y="8" width="9" height="8" opacity=".65"/><rect x="45" y="8" width="10" height="8" opacity=".35"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/></g></g></g><g id="gs4"><g fill="currentColor"><text x="14" y="16">52</text><rect x="16" y="17.5" width="29.5" height="1.5"/><rect x="45.5" y="17.5" width="12.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="20" height="8"/><rect x="37" y="8" width="2" height="2" opacity=".65"/><rect x="37" y="14" width="2" height="2" opacity=".65"/><rect x="39" y="8" width="6" height="8" opacity=".65"/><rect x="45" y="8" width="10" height="8" opacity=".35"/></g><rect x="23" y="3" width="1.5" height="5"/><rect x="26.5" y="3" width="1.5" height="5"/><rect x="30" y="3" width="1.5" height="5"/><rect x="33.5" y="3" width="1.5" height="5"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/></g></g></g><g id="gs5"><g fill="currentColor"><text x="14" y="16">60</text><rect x="16" y="17.5" width="27.5" height="1.5"/><rect x="43.5" y="17.5" width="14.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="23" height="8"/><rect x="40" y="8" width="2" height="2" opacity=".65"/><rect x="40" y="14" width="2" height="2" opacity=".65"/><rect x="42" y="8" width="5.5" height="8" opacity=".65"/><rect x="47.5" y="8" width="7.5" height="8" opacity=".35"/></g><g transform="translate(0 8) skewX(-11) translate(0 -8)"><rect x="23" y="3" width="1.5" height="5"/><rect x="26.5" y="3" width="1.5" height="5"/><rect x="30" y="3" width="1.5" height="5"/><rect x="33.5" y="3" width="1.5" height="5"/><rect x="37" y="3" width="1.5" height="5"/><rect x="40.5" y="3" width="1.5" height="5"/></g></g></g></g><g id="gs6"><g fill="currentColor"><text x="14" y="16">85</text><rect x="16" y="17.5" width="25" height="1.5"/><rect x="41" y="17.5" width="17" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="32" height="8"/><rect x="49" y="8" width="2" height="2" opacity=".65"/><rect x="49" y="14" width="2" height="2" opacity=".65"/><rect x="51" y="8" width="2" height="8" opacity=".65"/><rect x="53" y="8" width="2" height="8" opacity=".35"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/></g></g></g><g id="gs7"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></g><g id="gs8"><g fill="currentColor"><text x="14" y="16">40</text><rect x="16" y="17.5" width="3" height="1.5"/><rect x="19" y="17.5" width="39" height="1.5" opacity=".35"/><g transform="translate(0 1.5)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="15" height="8"/><rect x="32" y="8" width="2" height="2" opacity=".65"/><rect x="32" y="14" width="2" height="2" opacity=".65"/><rect x="34" y="8" width="7.5" height="8" opacity=".65"/><rect x="41.5" y="8" width="13.5" height="8" opacity=".35"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/></g></g></g><g id="gs9"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb1)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></g><g id="gs10"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb2)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></g><g id="gs11"><g fill="currentColor" opacity=".4"><rect x="8" y="11.25" width="6" height="1.5"/><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".35"/><rect x="28" y="14" width="2" height="2" opacity=".35"/><rect x="30" y="8" width="25" height="8" opacity=".35"/></g></g></g></g></defs></svg>
+<h2>4 · In the bar, at real size</h2>
+<p>33pt strip, translucent over a wallpaper, with a battery, a Wi-Fi arc stack and a Control Centre glyph drawn to the same 16pt live area so the optical weight can be compared. The mark carries the real data: 5-hour 28% used, burn 92%/h, 5 agents, 7-day 18% used.</p>
+<div class="cols c2">
+<div><div class="wall w-d"><div class="bar b-d"><span class="mtx b" style="padding-left:4px">QuotaMonster</span><span class="mtx" style="padding-left:16px;opacity:.72">File</span><span class="mtx" style="padding-left:14px;opacity:.72">Window</span><span class="grow"></span><span class="mi"><svg class="mk1" viewBox="0 0 66 22" width="66" height="22" role="img" aria-label="QuotaMonster: 28% of the 5-hour window used, burning 92% an hour, 5 agents running, 82% of the week left"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></span><span class="mi"><svg width="24" height="18" viewBox="0 0 24 18" style="display:block"><use href="#batt" fill="currentColor"/></svg></span><span class="mi"><svg width="16" height="16" viewBox="0 0 16 16" style="display:block"><use href="#wifi" fill="currentColor"/></svg></span><span class="mi"><svg width="16" height="16" viewBox="0 0 16 16" style="display:block" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 4.6h13M1.5 11.4h13"/><circle cx="5.4" cy="4.6" r="2" fill="currentColor" stroke="none"/><circle cx="10.6" cy="11.4" r="2" fill="currentColor" stroke="none"/></svg></span><span class="mtx" style="padding:0 6px 0 8px">Thu 18 Sep</span><span class="mtx" style="padding-right:2px">3:47</span></div><div class="body-sample"></div></div></div>
+<div><div class="wall w-l"><div class="bar b-l"><span class="mtx b" style="padding-left:4px">QuotaMonster</span><span class="mtx" style="padding-left:16px;opacity:.72">File</span><span class="mtx" style="padding-left:14px;opacity:.72">Window</span><span class="grow"></span><span class="mi"><svg class="mk1" viewBox="0 0 66 22" width="66" height="22" role="img" aria-label="QuotaMonster: 28% of the 5-hour window used, burning 92% an hour, 5 agents running, 82% of the week left"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g transform="translate(0 0)"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g><rect x="23" y="5" width="1.5" height="3"/><rect x="26.5" y="5" width="1.5" height="3"/><rect x="30" y="5" width="1.5" height="3"/><rect x="33.5" y="5" width="1.5" height="3"/><rect x="37" y="5" width="1.5" height="3"/></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></span><span class="mi"><svg width="24" height="18" viewBox="0 0 24 18" style="display:block"><use href="#batt" fill="currentColor"/></svg></span><span class="mi"><svg width="16" height="16" viewBox="0 0 16 16" style="display:block"><use href="#wifi" fill="currentColor"/></svg></span><span class="mi"><svg width="16" height="16" viewBox="0 0 16 16" style="display:block" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1.5 4.6h13M1.5 11.4h13"/><circle cx="5.4" cy="4.6" r="2" fill="currentColor" stroke="none"/><circle cx="10.6" cy="11.4" r="2" fill="currentColor" stroke="none"/></svg></span><span class="mtx" style="padding:0 6px 0 8px">Thu 18 Sep</span><span class="mtx" style="padding-right:2px">3:47</span></div><div class="body-sample"></div></div></div>
+</div>
+<p style="margin-top:10px">The mark is 16pt of ink in a 22pt box, the same as the battery and the Wi-Fi stack. It is wider than they are &mdash; 66pt against 24 — but its <em>density</em> is lower, because two thirds of the body is sitting at 0.65 or 0.35 alpha. That is the intended reading: a wide, quiet horizon line that you only decode when you look at it, next to compact system glyphs you never decode at all.</p>
+<h2>5 · State gallery</h2>
+<p>Real size on the left of each tile, 3× on the right. Every one of these is the same twelve-command path with different band edges and different slots filled.</p>
+<div class="cols c2">
+<div class="chip"><div class="ttl">Idle · 0 agents</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="Idle · 0 agents"><use href="#gs0"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs0"/></svg></div></div><div class="note">Smooth back, nothing moving, nothing to count. Stillness is the whole signal.</div></div>
+<div class="chip"><div class="ttl">1 agent</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="1 agent"><use href="#gs1"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs1"/></svg></div></div><div class="note">One short quill in slot 1. Slots are fixed, so a quill never lands off the pixel grid.</div></div>
+<div class="chip"><div class="ttl">5 agents</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="5 agents"><use href="#gs2"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs2"/></svg></div></div><div class="note">Five short quills. The 0.65 band has already run to the snout &mdash; this is the real data.</div></div>
+<div class="chip"><div class="ttl">8 agents</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="8 agents"><use href="#gs3"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs3"/></svg></div></div><div class="note">All six slots filled, so the base is 6; two of them are grown tall, so add 2. Reads 8.</div></div>
+<div class="chip"><div class="ttl">12 agents</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="12 agents"><use href="#gs4"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs4"/></svg></div></div><div class="note">Six filled, all six tall: 6 + 6 = 12. Against the tile above it, 8 and 12 are now unmistakably different — the Grazer showed both as six identical quills.</div></div>
+<div class="chip"><div class="ttl">16+ agents</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="16+ agents"><use href="#gs5"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs5"/></svg></div></div><div class="note">Past 12 the comb shears 11° forward. This is the only state that does not carry an exact count, and it says so.</div></div>
+<div class="chip"><div class="ttl">5-hour high · 85%</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="5-hour high · 85%"><use href="#gs6"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs6"/></svg></div></div><div class="note">The kerf slot has walked up under the brow; a 0.35 tail is all that is left ahead of it.</div></div>
+<div class="chip"><div class="ttl">Burn overrun · real data</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="Burn overrun · real data"><use href="#gs7"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs7"/></svg></div></div><div class="note">28% used, 92%/h. The forecast pins at the snout and spills as 2 ticks &mdash; 20 points past 100 within the hour.</div></div>
+<div class="chip"><div class="ttl">7-day binding</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="7-day binding"><use href="#gs8"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs8"/></svg></div></div><div class="note">Ground stops in a cliff at 7% of its length and the animal settles the 1.5pt gap shut, belly onto ground.</div></div>
+<div class="chip"><div class="ttl">Needs input · 1 blocked</div><div class="row"><div><div class="lab">1×</div><svg class="mk1 amber" viewBox="0 0 66 22" role="img" aria-label="Needs input · 1 blocked"><use href="#gs9"/></svg></div><div><div class="lab">3×</div><svg class="mk3 amber" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs9"/></svg></div></div><div class="note">Muzzle up 2pt. Brisket still down. No eyes, no colour needed to read it.</div></div>
+<div class="chip"><div class="ttl">Needs input · 2+ blocked</div><div class="row"><div><div class="lab">1×</div><svg class="mk1 amber" viewBox="0 0 66 22" role="img" aria-label="Needs input · 2+ blocked"><use href="#gs10"/></svg></div><div><div class="lab">3×</div><svg class="mk3 amber" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs10"/></svg></div></div><div class="note">Front end off the ground, 2pt of daylight under the chest. A two-step ladder, not a counter.</div></div>
+<div class="chip"><div class="ttl">Stale data</div><div class="row"><div><div class="lab">1×</div><svg class="mk1" viewBox="0 0 66 22" role="img" aria-label="Stale data"><use href="#gs11"/></svg></div><div><div class="lab">3×</div><svg class="mk3" viewBox="0 0 66 22" aria-hidden="true"><use href="#gs11"/></svg></div></div><div class="note">Whole mark to 0.40 and the numeral becomes a 6pt bar. No number is shown rather than a wrong one.</div></div>
+</div><style>.cr-grid .scn .q1{animation:scq1 18s linear infinite}
+@keyframes scq1{0%{transform:translate(0px,0px);opacity:1}89.17%{transform:translate(0px,0px);opacity:1}89.83%{transform:translate(0px,-1.5px);opacity:1}93.06%{transform:translate(0px,-6.7px);opacity:0}100%{transform:translate(0px,-6.7px);opacity:0}}
+.cr-grid .scn .q1 .qb{transform-origin:23px 8px;animation:scg1 18s linear infinite}
+@keyframes scg1{0%,16.67%{transform:scaleY(0)}17.56%,100%{transform:scaleY(1)}}
+.cr-grid .scn .q2{animation:scq2 18s linear infinite}
+@keyframes scq2{0%{transform:translate(0px,0px);opacity:1}44.44%{transform:translate(0px,0px);opacity:1}45.11%{transform:translate(0px,-1.5px);opacity:1}48.33%{transform:translate(0px,-6.7px);opacity:0}100%{transform:translate(0px,-6.7px);opacity:0}}
+.cr-grid .scn .q2 .qb{transform-origin:26.5px 8px;animation:scg2 18s linear infinite}
+@keyframes scg2{0%,22.22%{transform:scaleY(0)}23.11%,100%{transform:scaleY(1)}}
+.cr-grid .scn .q3{animation:scq3 18s linear infinite}
+@keyframes scq3{0%{transform:translate(0px,0px);opacity:1}48.33%{transform:translate(0px,0px);opacity:1}49.33%{transform:translate(-3.5px,0px);opacity:1}87.22%{transform:translate(-3.5px,0px);opacity:1}87.89%{transform:translate(-3.5px,-1.5px);opacity:1}91.11%{transform:translate(-3.5px,-6.7px);opacity:0}100%{transform:translate(-3.5px,-6.7px);opacity:0}}
+.cr-grid .scn .q3 .qb{transform-origin:30px 8px;animation:scg3 18s linear infinite}
+@keyframes scg3{0%,23.06%{transform:scaleY(0)}23.94%,100%{transform:scaleY(1)}}
+.cr-grid .scn .q4{animation:scq4 18s linear infinite}
+@keyframes scq4{0%{transform:translate(0px,0px);opacity:1}48.33%{transform:translate(0px,0px);opacity:1}49.33%{transform:translate(-3.5px,0px);opacity:1}85.28%{transform:translate(-3.5px,0px);opacity:1}85.94%{transform:translate(-3.5px,-1.5px);opacity:1}89.17%{transform:translate(-3.5px,-6.7px);opacity:0}100%{transform:translate(-3.5px,-6.7px);opacity:0}}
+.cr-grid .scn .q4 .qb{transform-origin:33.5px 8px;animation:scg4 18s linear infinite}
+@keyframes scg4{0%,23.89%{transform:scaleY(0)}24.78%,100%{transform:scaleY(1)}}
+.cr-grid .scn .q5{animation:scq5 18s linear infinite}
+@keyframes scq5{0%{transform:translate(0px,0px);opacity:1}48.33%{transform:translate(0px,0px);opacity:1}49.33%{transform:translate(-3.5px,0px);opacity:1}83.33%{transform:translate(-3.5px,0px);opacity:1}84%{transform:translate(-3.5px,-1.5px);opacity:1}87.22%{transform:translate(-3.5px,-6.7px);opacity:0}100%{transform:translate(-3.5px,-6.7px);opacity:0}}
+.cr-grid .scn .q5 .qb{transform-origin:37px 8px;animation:scg5 18s linear infinite}
+@keyframes scg5{0%,24.72%{transform:scaleY(0)}25.61%,100%{transform:scaleY(1)}}
+.cr-grid .scn .sc-graze{animation:scgz 18s linear infinite}
+@keyframes scgz{0%,55.56%{opacity:1}56.78%,77.78%{opacity:0}79%,100%{opacity:1}}
+.cr-grid .scn .sc-alert{opacity:0;animation:scal 18s linear infinite}
+@keyframes scal{0%,55.56%{opacity:0}56.78%,77.78%{opacity:1}79%,100%{opacity:0}}
+.cr-grid .scn{animation:sccol 18s linear infinite}
+@keyframes sccol{0%,55.56%{color:inherit}56.78%,77.78%{color:var(--amber)}79%,100%{color:inherit}}
+.cr-grid .scn .sc-settle{transform-origin:36px 16px;animation:scst 18s linear infinite}
+@keyframes scst{0%,93.06%{transform:scaleY(1)}93.78%{transform:scaleY(.93)}94.5%,100%{transform:scaleY(1)}}
+.cr-grid .scn{overflow:visible}
+.cr-grid .scn g,.cr-grid .scn rect{transform-box:view-box;transform-origin:0 0}
+.cr-grid .scstage{display:flex;align-items:center;gap:40px;flex-wrap:wrap;padding:6px 4px 2px}
+.cr-grid .tl{position:relative;height:22px;margin:24px 2px 0;border-top:1px solid var(--line)}
+.cr-grid .tlm{position:absolute;top:0;transform:translateX(-.5px)}
+.cr-grid .tlm i{display:block;width:1px;height:8px;background:var(--faint)}
+.cr-grid .tlm em{position:absolute;top:10px;left:-5px;width:11px;text-align:center;font:600 9px/11px ui-monospace,Menlo,monospace;font-style:normal;color:var(--bg);background:var(--dim);border-radius:3px}
+.cr-grid .lg{display:flex;flex-wrap:wrap;gap:4px 16px;margin:6px 2px 0}
+.cr-grid .lgi{display:inline-flex;align-items:center;gap:6px;font:500 11px ui-sans-serif,system-ui,sans-serif;color:var(--dim);white-space:nowrap}
+.cr-grid .lgi em{font:600 9px/11px ui-monospace,Menlo,monospace;font-style:normal;color:var(--bg);background:var(--dim);border-radius:3px;padding:0 3px}
+.cr-grid .lgi u{text-decoration:none;font:500 10px ui-monospace,Menlo,monospace;color:var(--faint)}
+@media (prefers-reduced-motion: reduce){
+.cr-grid .scn,.cr-grid .scn *{animation:none !important}
+.cr-grid .scn .sc-alert{opacity:0}
+.cr-grid .scn .qb{transform:scaleY(1) !important}
+.cr-grid .rmnote{display:block}
+}
+.cr-grid .rmnote{display:none;margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:12px;color:var(--dim)}
+</style>
+<h2>6 · Live scenario · 18s loop</h2>
+<p>Idle → one agent → fan-out to five → one finishes → the spine re-spaces → a session blocks → it clears → everything winds down → the body settles once → still. Every timing below is the motion budget as specified. Nothing loops on a clock: the loop you are watching exists only because this page has to replay it.</p>
+<div class="panel"><div class="scstage"><div><div class="cap">3×</div><svg class="scn mk3" viewBox="0 0 66 22" width="198" height="66"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g class="sc-settle"><g class="sc-graze"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g></g><g class="sc-alert"><g clip-path="url(#cb1)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g></g><g class="q q1"><rect class="qb" x="23" y="5" width="1.5" height="3"/></g><g class="q q2"><rect class="qb" x="26.5" y="5" width="1.5" height="3"/></g><g class="q q3"><rect class="qb" x="30" y="5" width="1.5" height="3"/></g><g class="q q4"><rect class="qb" x="33.5" y="5" width="1.5" height="3"/></g><g class="q q5"><rect class="qb" x="37" y="5" width="1.5" height="3"/></g></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></div><div><div class="cap">real size</div><svg class="scn mk1" viewBox="0 0 66 22" width="66" height="22"><g fill="currentColor"><text x="14" y="16">28</text><rect x="16" y="17.5" width="34.5" height="1.5"/><rect x="50.5" y="17.5" width="7.5" height="1.5" opacity=".35"/><g class="sc-settle"><g class="sc-graze"><g clip-path="url(#cb0)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g></g><g class="sc-alert"><g clip-path="url(#cb1)"><rect x="17" y="8" width="11" height="8"/><rect x="28" y="8" width="2" height="2" opacity=".65"/><rect x="28" y="14" width="2" height="2" opacity=".65"/><rect x="30" y="8" width="25" height="8" opacity=".65"/></g></g><g class="q q1"><rect class="qb" x="23" y="5" width="1.5" height="3"/></g><g class="q q2"><rect class="qb" x="26.5" y="5" width="1.5" height="3"/></g><g class="q q3"><rect class="qb" x="30" y="5" width="1.5" height="3"/></g><g class="q q4"><rect class="qb" x="33.5" y="5" width="1.5" height="3"/></g><g class="q q5"><rect class="qb" x="37" y="5" width="1.5" height="3"/></g></g><rect x="57" y="10" width="1.5" height="4"/><rect x="60.5" y="10" width="1.5" height="4"/></g></svg></div></div><div class="tl"><span class="tlm" style="left:0.00%"><i></i><em>1</em></span><span class="tlm" style="left:16.67%"><i></i><em>2</em></span><span class="tlm" style="left:25.00%"><i></i><em>3</em></span><span class="tlm" style="left:44.44%"><i></i><em>4</em></span><span class="tlm" style="left:48.33%"><i></i><em>5</em></span><span class="tlm" style="left:55.56%"><i></i><em>6</em></span><span class="tlm" style="left:77.78%"><i></i><em>7</em></span><span class="tlm" style="left:83.33%"><i></i><em>8</em></span><span class="tlm" style="left:93.06%"><i></i><em>9</em></span><span class="tlm" style="left:95.00%"><i></i><em>10</em></span></div><div class="lg"><span class="lgi"><em>1</em>idle<u>0.00s</u></span><span class="lgi"><em>2</em>first agent<u>3.00s</u></span><span class="lgi"><em>3</em>fan-out to five<u>4.50s</u></span><span class="lgi"><em>4</em>one finishes &middot; 700ms<u>8.00s</u></span><span class="lgi"><em>5</em>spine re-spaces &middot; 180ms<u>8.70s</u></span><span class="lgi"><em>6</em>session blocks &middot; 220ms<u>10.00s</u></span><span class="lgi"><em>7</em>clears &middot; 220ms<u>14.00s</u></span><span class="lgi"><em>8</em>wind-down<u>15.00s</u></span><span class="lgi"><em>9</em>settles &middot; 260ms<u>16.75s</u></span><span class="lgi"><em>10</em>still<u>17.10s</u></span></div></div>
+<div class="rmnote"><b>prefers-reduced-motion is on.</b> The loop is stopped and the mark is drawn in its settled state. In the app every transient is replaced by its end frame: a finished agent&rsquo;s quill simply is not there on the next draw, the posture change is drawn directly, and no information is lost because every signal is carried by geometry that is already static.</div><h2>7 · What changed from the Grazer, and why</h2>
+<div class="cols c2">
+<div class="panel"><div class="cap">Deleted</div><table class="spec">
+<tr><td>the front view</td><td>Gone entirely. Two eyes at 22pt is a smiley at every size — the sweep from 3% to 15% of mark width never stops reading as a face. Offsetting them vertically does not help. The blocked state is now a <b>posture</b>.</td></tr>
+<tr><td>the eye-slit</td><td>The idle "closed eye" is deleted too. Zero eyes in every state, so there is no face to animate.</td></tr>
+<tr><td>the blink</td><td>Killed by the above. The mark now has <b>no clock-driven animation at all</b> — the 60s blink and its 10-minute hard stop are no longer needed, because there is nothing to blink. The motion budget went from "almost zero" to zero.</td></tr>
+<tr><td>the dual-meaning numeral</td><td>The digits are now always % of the 5-hour window used. The wait time moved to the popover where it belongs. One glyph, one meaning.</td></tr>
+<tr><td>the arched spine</td><td>The 10+ state used to add an arch on top of the shear. Two ideas for one signal; the arch is gone.</td></tr>
+</table></div>
+<div class="panel"><div class="cap">Redrawn</div><table class="spec">
+<tr><td>the whole body</td><td>Rebuilt from two radii (2pt, 4pt): one r&nbsp;4 arc for the hindquarter, three r&nbsp;2 arcs for the head, and five straight edges drawn with six line segments. Twelve path commands in total. Every arc runs cardinal-point to cardinal-point, so every tangent is horizontal or vertical and the joins are continuous by construction rather than by eye.</td></tr>
+<tr><td>proportions</td><td>Body 38 &times; 8pt — a 4.75:1 horizontal mass. The head is 10pt of 38 and sits <em>below</em> the back line. A small, low head is the strongest anti-cartoon lever there is.</td></tr>
+<tr><td>the back</td><td>24pt dead straight at y 8.0. Straight edges rasterise at alpha 1.00; the Grazer's curved dorsal line was giving up most of its blackness to antialiasing before a single quill was drawn.</td></tr>
+<tr><td>the 5-hour fill</td><td>Was a sliding edge between two tones — 28% and 34% were 2pt apart on a soft boundary. Now there is a <b>2.0 &times; 4.0pt kerf slot</b> knocked clean out of the body at the boundary. A hole in a solid mass is the most locatable feature there is — Itsycal carries a whole date that way — and the silhouette's own landmarks (the rump corner at 11%, mid-back at 50%, the brow at 74%, the muzzle at 84%) are the scale you read it against. It is enclosed rather than a full cut so the animal never breaks into two pieces, and so a quill always has 2pt of solid ridge to stand on.</td></tr>
+<tr><td>the burn ghost</td><td>Still a pale band ahead of the fill, but its far edge is deliberately <b>soft</b> where the kerf is <b>hard</b>. Hard edge = what has happened. Soft edge = what is forecast. You never confuse the two.</td></tr>
+<tr><td>the quills</td><td>Six fixed slots on a 3.5pt pitch, so a quill can never land off the pixel grid. Two heights: 6 slots filled is the base, and each tall one adds one more. 0–12 exact instead of 0–6, in the same width. 13+ shears forward and admits it is not counting.</td></tr>
+<tr><td>the ground</td><td>Same 1.5pt weight as everything else — the week is not a second gauge with its own weight, it is the same bar at a different alpha. 1.00 remaining, 0.35 spent.</td></tr>
+<tr><td>optical correction</td><td>The mark is 16.00pt of ink with 3.0 / 3.0 margins, but the <em>visual</em> mass sits low (body + ground occupy y 8–19). The quills are the counterweight; the tall quill is 5.0pt rather than 6.5 so the comb does not out-weigh the body and pull the mark visually upward against the battery beside it.</td></tr>
+</table></div>
+</div>
+<h2>8 · Implementation</h2>
+<div class="cols c2">
+<div class="panel"><div class="cap">Core Graphics</div><p style="margin:0">Three <code>CGPath</code>s built by <code>addArc(center:radius:startAngle:endAngle:)</code> from a table of four circles and six line segments. All three share the same command order, so the 220ms posture change is a point-for-point interpolation, not a cross-fade. Bands are <code>clip(to:)</code> the body path, then a handful of <code>fill(rect)</code> calls at 1.00 / 0.65 / 0.35 grey. The kerf is not drawn at all — it is the gap the rects leave. Every edge is snapped with <code>round(x * scale) / scale</code> before drawing.</p></div>
+<div class="panel"><div class="cap">Template &amp; colour</div><p style="margin:0"><code>image.isTemplate = true</code> in every state but one, so AppKit derives the whole appearance from alpha and it inverts correctly on a light bar, a dark bar and when the item is selected. The <em>only</em> exception is needs-input, where the image is drawn non-template in amber. That state is still fully legible with the flag left on — the posture carries it — so the colour is a reinforcement, not the signal. Verify with a one-line script that <code>isTemplate</code> is what you think it is; Docker ships theirs <code>false</code>.</p></div>
+</div>
+<h2>9 · Where it is still weak</h2>
+<p>Stated plainly, because the last version's problems were the ones nobody wrote down.</p>
+<div class="panel"><table class="spec">
+<tr><td>blocked count</td><td>Two steps only — one, and more-than-one. There is no channel left that can carry a number without adding a shape, and a count of humans-blocking is not something you act on differently at 1 than at 3. The popover has the list.</td></tr>
+<tr><td>13+ agents</td><td>Genuinely saturates. Better than saturating at 7, but a fan-out of 40 looks the same as 14.</td></tr>
+<tr><td>width</td><td>66pt. That is three system items' worth of bar. Justifiable for a mark that is a gauge, not a glyph, but it is the single biggest thing a reviewer would push back on. A 44pt variant would have to drop the numeral and two quill slots.</td></tr>
+<tr><td>1× counters</td><td>Every counter in the mark — quill gaps and the kerf slot — is exactly 2.0pt, which is the measured 1× floor, not a margin above it. On a non-Retina display the six-tall comb and the kerf are the first things to soften.</td></tr>
+<tr><td>the brisket diagonal</td><td>The alert poses introduce one shallow diagonal (about 4°) that the grazing pose does not have. It is a filled edge rather than a stroke so it holds up, but it is the only non-orthogonal geometry in the whole drawing.</td></tr>
+<tr><td>the head fades</td><td>The fill runs tail&#8594;snout, so below about 80% used the head is the part sitting at 0.35 and the animal's most recognisable feature is its faintest. The silhouette test passes because it is drawn solid; the live mark at 28% leans on the quills and the flat back to carry recognition.</td></tr>
+<tr><td>7-day resolution</td><td>The ground is 42pt for 100% of a week, so one point is 2.4% — fine — but the creature stands on top of most of it, so you read the cliff against the animal's own body rather than against a scale. That is deliberate (one ruler, two gauges) and it is also the part most likely to need explaining once.</td></tr>
+</table></div>
+</div>
+</div>
+</body>
+</html>

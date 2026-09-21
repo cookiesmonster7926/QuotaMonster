@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>完成訊號 · ROW-BADGE（列本身講完成）</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   QuotaMonster — 「剛完成」的顯示方式，方向：ROW-BADGE
+   把訊號掛在 session 列本身，不新增卡片、不新增區塊、不動選單列。
+
+   全部選擇器掛在 .fb 底下（沿用 alert-mockups / panel-mockups 的檔案慣例）。
+   獨立檔案：沒有網路、沒有 CDN、CSS 與 SVG 全部內嵌、沒有 emoji。
+   1 CSS px == 1 pt。本頁每一個面板與每一列都是真實尺寸。
+   深色是預設也是唯一重要的那一版；淺色在最後小小地放一份對照。
+   ═══════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0d11}
+.fb{background:#0b0d11;color:#E4E8EE;padding:36px 24px 96px;
+  font:13px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+
+  /* ── 這一頁只有四個顏色主張 ─────────────────────────────────────────
+     琥珀  #FF9E0A = GlyphRenderer.alert。**只代表「等你輸入」**，完成不准碰。
+     藍    #4E9BFF = 執行中（SessionRow 現在就用 accentColor 畫這顆點）。
+     綠    #4CD67A = QuotaPalette.tight(onDark) srgb(0.30,0.84,0.48)，
+                     也是 SessionRow 裡 finished agent pip 已經在用的綠。
+                     **不是新顏色** —— 完成訊號沒有引進第四個色相。
+     紅    #FF6159 = QuotaPalette.critical(onDark)，只出現在額度條。 */
+  --blue:#4E9BFF; --green:#4CD67A; --amber:#FF9E0A; --red:#FF6159; --yellow:#E8C84A;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
+
+.fb .wrap{max-width:1230px;margin:0 auto}
+.fb h1{font-size:23px;font-weight:650;letter-spacing:-.02em;margin-bottom:9px}
+.fb h1 i{font-style:normal;color:#6E7784}
+.fb .lede{color:#9AA3B0;font-size:13.5px;max-width:82ch;line-height:1.72}
+.fb .lede b{color:#DCE1E9;font-weight:600}
+.fb .lede em{font-style:normal;color:var(--green)}
+.fb .lede u{text-decoration:none;color:#FFB13C}
+.fb h2{font:700 10.5px/1.4 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:#68717E;
+  margin:52px 0 5px;border-top:1px solid #1B1F27;padding-top:17px}
+.fb .h2n{font-size:13px;color:#8F98A5;margin-bottom:20px;max-width:88ch;line-height:1.72}
+.fb .h2n b{color:#D3D9E1;font-weight:600}
+.fb .h2n em{font-style:normal;color:var(--green)}
+.fb .h2n u{text-decoration:none;color:#FFB13C}
+.fb .h2n code{font-family:var(--mono);font-size:11.5px;color:#9FC9E8}
+.fb .cap{font:500 10.5px/1.6 var(--mono);color:#68707D;letter-spacing:.014em;margin-top:11px;max-width:96ch}
+.fb .cap b{color:#C3CAD4;font-weight:600}
+.fb .cap i{font-style:normal;color:var(--green)}
+.fb .cap u{text-decoration:none;color:#FFB13C}
+
+/* ── 桌面舞台 ─────────────────────────────────────────────────────── */
+.fb .stage{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px #1E222A}
+.fb .wall{position:absolute;inset:0;
+  background:
+    radial-gradient(118% 88% at 80% 118%,rgba(112,66,136,.44) 0%,rgba(112,66,136,0) 62%),
+    radial-gradient(92% 72% at 10% -4%,rgba(28,72,108,.58) 0%,rgba(28,72,108,0) 70%),
+    linear-gradient(155deg,#12182a 0%,#161d30 30%,#1d2138 55%,#2a2340 78%,#37283f 100%)}
+.fb .wall::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 14%)}
+.fb .wall--l{
+  background:
+    radial-gradient(110% 80% at 86% 112%,rgba(255,220,176,.88) 0%,rgba(255,220,176,0) 64%),
+    linear-gradient(150deg,#c7d3e1 0%,#d9dee6 34%,#e6e0da 64%,#f0e4d6 100%)}
+.fb .wall--l::after{background:linear-gradient(180deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,0) 14%)}
+
+/* 選單列 */
+.fb .mb{position:relative;height:25px;display:flex;align-items:center;gap:15px;padding:0 9px 0 13px;
+  font-size:12.5px;line-height:1;white-space:nowrap;
+  background:rgba(16,16,20,.62);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(255,255,255,.90);
+  box-shadow:inset 0 -.5px 0 rgba(255,255,255,.13)}
+.fb .mb--l{background:rgba(250,250,252,.72);color:rgba(0,0,0,.84);
+  box-shadow:inset 0 -.5px 0 rgba(0,0,0,.14)}
+.fb .mb b{font-weight:600}
+.fb .mb__sp{flex:1;min-width:0}
+.fb .mb__r{display:flex;align-items:center;gap:11px;flex:none}
+.fb .mb__clock{font-variant-numeric:tabular-nums;font-size:12.5px;opacity:.92}
+.fb .mb__ico{opacity:.78;display:flex}
+.fb .mb__slot{width:24px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:none}
+.fb .mb__slot.is-open{background:rgba(255,255,255,.17)}
+
+/* 終端機（使用者真正在看的東西） */
+.fb .term{position:absolute;border-radius:9px;overflow:hidden;background:rgba(13,14,18,.95);
+  box-shadow:0 26px 64px rgba(0,0,0,.52),0 0 0 .5px rgba(255,255,255,.10)}
+.fb .term__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 11px;overflow:hidden;
+  background:rgba(40,42,49,.92);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.4)}
+.fb .term__bar span{width:10px;height:10px;border-radius:50%;flex:none}
+.fb .term__t{margin-left:8px;font:500 10.5px/1 -apple-system,sans-serif;color:rgba(255,255,255,.44);
+  white-space:nowrap;flex:none}
+.fb .term__b{padding:11px 13px;font:11px/1.62 var(--mono);color:#5F6875;white-space:pre;overflow:hidden}
+.fb .term__b .g{color:#4E7D5E}.fb .term__b .b{color:#4E6E8E}.fb .term__b .w{color:#8892A0}
+.fb .term__b .a{color:#8A6A2E}
+
+/* ═══════ 面板 ═══════════════════════════════════════════════════════
+   380pt 寬，與 PanelView.width 一致。 */
+.fb .p{
+  --bg:rgba(30,30,34,.775);--blurf:blur(34px) saturate(185%);
+  --txt:rgba(255,255,255,.96);--txt2:rgba(255,255,255,.62);
+  --txt3:rgba(255,255,255,.40);--txt4:rgba(255,255,255,.24);
+  --hair:rgba(255,255,255,.115);--track:rgba(255,255,255,.145);
+  /* 四個「底」。差的是**明度**，不是色相 —— 這是這個方向的主通道。 */
+  --rIdle:rgba(255,255,255,.030);   /* 閒置：壓到幾乎看不見 */
+  --rRun:rgba(255,255,255,.058);    /* 執行中：現行 .quaternary.opacity(0.35) */
+  --rFresh:rgba(255,255,255,.122);  /* 剛完成：抬起 */
+  --rFade:rgba(255,255,255,.072);   /* 完成 · N 分前：正在沉回去 */
+  --lift:rgba(255,255,255,.26);     /* 抬起列的上緣高光（macOS 凸起材質的作法） */
+  --liftF:rgba(255,255,255,.12);
+  width:380px;border-radius:12px;position:relative;color:var(--txt);
+  background:var(--bg);-webkit-backdrop-filter:var(--blurf);backdrop-filter:var(--blurf);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.15),0 1px 1px rgba(0,0,0,.30),0 18px 48px rgba(0,0,0,.52);
+  font-variant-numeric:tabular-nums}
+.fb .p--l{
+  --bg:rgba(247,247,249,.80);
+  --txt:rgba(0,0,0,.90);--txt2:rgba(0,0,0,.56);--txt3:rgba(0,0,0,.38);--txt4:rgba(0,0,0,.18);
+  --hair:rgba(0,0,0,.11);--track:rgba(0,0,0,.13);
+  --rIdle:rgba(0,0,0,.022);--rRun:rgba(0,0,0,.042);
+  --rFresh:rgba(255,255,255,.92);--rFade:rgba(255,255,255,.52);
+  --lift:rgba(255,255,255,1);--liftF:rgba(255,255,255,.7);
+  --blue:#0B6BD6;--green:#1E9A55;--amber:#A15C06;--red:#C22020;--yellow:#8A6A10;
+  box-shadow:0 0 0 .5px rgba(0,0,0,.13),0 1px 1px rgba(0,0,0,.10),0 18px 48px rgba(0,0,0,.26)}
+.fb .p .arw{position:absolute;top:-9px;right:37px;width:19px;height:10px;background:var(--bg);
+  -webkit-backdrop-filter:var(--blurf);backdrop-filter:var(--blurf);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fb .p .clip{border-radius:12px;overflow:hidden}
+.fb .p .rule{height:.5px;background:var(--hair)}
+.fb .grow{flex:1 1 auto;min-width:4px}
+.fb .mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+
+/* 表頭 */
+.fb .p .hdr{height:48px;display:flex;align-items:center;gap:9px;padding:0 14px}
+.fb .p .hdr__t{font-size:13px;font-weight:650;letter-spacing:-.01em}
+.fb .p .st{min-width:46px;padding:3px 0;display:flex;flex-direction:column;align-items:center;gap:1px;
+  border-radius:5px}
+.fb .p .st b{font:600 15px/1 -apple-system,sans-serif;font-variant-numeric:tabular-nums;color:var(--txt)}
+.fb .p .st span{font:500 8.5px/1 -apple-system,sans-serif;letter-spacing:.6px;color:var(--txt3)}
+.fb .p .st.is-hi{background:rgba(255,158,10,.16)}
+.fb .p .st.is-hi b{color:var(--amber)}
+
+/* 額度三欄 */
+.fb .p .q{padding:11px 14px}
+.fb .p .q__h{display:flex;align-items:center;height:12px;margin-bottom:9px}
+.fb .p .lbl{font:600 9.5px/1 -apple-system,sans-serif;letter-spacing:.7px;color:var(--txt2)}
+.fb .p .q__h em{font-style:normal;font-size:10px;color:var(--txt3)}
+.fb .p .q__r{display:flex}
+.fb .p .q__c{flex:1;padding:0 9px;min-width:0}
+.fb .p .q__v{display:flex;align-items:baseline;gap:1px;margin:4px 0}
+.fb .p .q__v b{font:500 22px/1 -apple-system,sans-serif;font-variant-numeric:tabular-nums}
+.fb .p .q__v i{font-style:normal;font:500 10px/1 -apple-system,sans-serif;color:var(--txt2)}
+.fb .p .q__c>span{display:block;font-size:9.5px;font-weight:500;color:var(--txt2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.fb .p .q__c>u{display:block;text-decoration:none;font-size:9px;color:var(--txt3);margin-top:4px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb .p .bar{height:3px;border-radius:2px;background:var(--track);overflow:hidden}
+.fb .p .bar i{display:block;height:3px;border-radius:2px}
+.fb .p .q__d{width:.5px;background:var(--track);margin:2px 0;flex:none}
+
+/* 阻塞卡（釘住，永遠可見）—— 這是面板裡唯一的琥珀 */
+.fb .p .blk{padding:9px 12px;display:flex;flex-direction:column;gap:6px}
+.fb .p .blkc{position:relative;border-radius:7px;overflow:hidden;padding:9px 9px 9px 11px;
+  background:rgba(255,158,10,.12);box-shadow:inset 0 0 0 .5px rgba(255,158,10,.35)}
+.fb .p .blkc__rail{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber);
+  animation:fbBreathe 2.4s ease-in-out infinite}
+@keyframes fbBreathe{0%,100%{opacity:1}50%{opacity:.45}}
+.fb .p .blkc__1{display:flex;align-items:center;gap:6px;height:14px}
+.fb .p .blkc__1 b{font-size:12px;font-weight:650}
+.fb .p .blkc__1 i{font-style:normal;font-family:var(--mono);font-size:10px;color:var(--txt2)}
+.fb .p .blkc__1 em{font-style:normal;font-size:10px;font-weight:500;color:var(--amber)}
+.fb .p .blkc__2{margin-top:2px;font-family:var(--mono);font-size:10px;color:var(--txt2)}
+.fb .p .blkc__3{margin-top:2px;font-size:10px;color:rgba(255,158,10,.9)}
+.fb .p--l .blkc__3{color:#A15C06}
+
+/* 清單標頭 */
+.fb .p .sh{display:flex;align-items:center;padding:10px 14px 6px}
+.fb .p .sh em{font-style:normal;font-size:9.5px;color:var(--txt3)}
+.fb .p .list{padding:0 12px 10px;display:flex;flex-direction:column;gap:8px}
+
+/* 底部 */
+.fb .p .ft{height:30px;margin:0;display:flex;align-items:center;gap:10px;padding:0 14px;
+  font-size:10px;color:var(--txt3);max-width:none}
+.fb .p .ft svg{display:block;opacity:.75}
+
+/* ═══════ 列 —— 這個方向的全部 ═══════════════════════════════════════
+   四個狀態，四個**不同的感知通道**：
+     等你   = 色相（琥珀）+ 呼吸
+     執行中 = 動態（軌上往下走的光點）
+     剛完成 = 明度（整列抬起）+ 綠
+     閒置   = 缺席（沒有軌、沒有標記、底壓到看不見）
+   所以把顏色整個拿掉還是分得開 —— 本頁第 3 節有灰階對照。 */
+.fb .row{position:relative;border-radius:7px;overflow:hidden;padding:9px 9px 9px 11px;
+  background:var(--rRun);transition:background .18s ease,box-shadow .18s ease}
+.fb .row__rail{position:absolute;left:0;top:0;bottom:0;width:2.5px;overflow:hidden}
+
+.fb .row.is-idle{background:var(--rIdle)}
+.fb .row.is-idle .row__rail{display:none}
+/* 閒置列連 ctx 長條一起壓低。一條滿寬度的綠長條比完成訊號還搶眼，
+   那會讓「缺席」這個通道自己失效 —— 閒置列上的 ctx 讀數不是新聞。 */
+.fb .row.is-idle .cxrow{opacity:.55}
+
+.fb .row.is-run{background:var(--rRun)}
+.fb .row.is-run .row__rail{background:rgba(78,155,255,.85)}
+.fb .row.is-run .row__rail::after{content:"";position:absolute;left:0;right:0;height:22px;
+  background:linear-gradient(180deg,rgba(255,255,255,0),rgba(255,255,255,.95),rgba(255,255,255,0));
+  animation:fbRun 2.4s linear infinite}
+@keyframes fbRun{0%{top:-24px}100%{top:100%}}
+
+.fb .row.is-wait{background:rgba(255,158,10,.12);box-shadow:inset 0 0 0 .5px rgba(255,158,10,.35)}
+.fb .row.is-wait .row__rail{width:3px;background:var(--amber);animation:fbBreathe 2.4s ease-in-out infinite}
+
+/* 剛完成（0–90 秒）：抬起。上緣高光 + 投影 + 更亮的底。 */
+.fb .row.is-fresh{background:var(--rFresh);
+  box-shadow:inset 0 .5px 0 var(--lift),0 2px 9px rgba(0,0,0,.42)}
+.fb .row.is-fresh::before{content:"";position:absolute;inset:0;pointer-events:none;
+  background:linear-gradient(100deg,rgba(76,214,122,.14) 0%,rgba(76,214,122,.035) 40%,rgba(76,214,122,0) 66%)}
+.fb .row.is-fresh .row__rail{background:var(--green)}
+.fb .p--l .row.is-fresh{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.07),0 1px 5px rgba(20,40,25,.16)}
+.fb .p--l .row.is-fresh::before{background:linear-gradient(100deg,rgba(30,154,85,.13) 0%,rgba(30,154,85,.03) 40%,rgba(30,154,85,0) 66%)}
+
+/* 完成 · N 分前（90 秒–10 分）：正在沉回去。綠只剩軌，抬起剩一半。 */
+.fb .row.is-fade{background:var(--rFade);box-shadow:inset 0 .5px 0 var(--liftF)}
+.fb .row.is-fade .row__rail{background:var(--green);opacity:.45;width:1.5px}
+.fb .p--l .row.is-fade{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.05)}
+
+/* 列首行 */
+.fb .hd{height:16px;display:flex;align-items:center;gap:7px;position:relative;z-index:1}
+.fb .hd__m{width:11px;height:11px;flex:none;display:block}
+.fb .hd__m.is-wait{width:12px;height:12px}
+.fb .nm{font-size:12px;font-weight:500;color:var(--txt);white-space:nowrap;flex:none}
+.fb .pj{font-family:var(--mono);font-size:10px;color:var(--txt2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis;min-width:0}
+.fb .row.is-idle .nm{color:var(--txt2)}
+.fb .row.is-idle .pj{color:var(--txt3)}
+.fb .lab{font:600 8.5px/1 -apple-system,sans-serif;letter-spacing:.5px;white-space:nowrap;flex:none}
+.fb .lab.is-run{color:var(--blue)}
+.fb .lab.is-fin{color:var(--green)}
+.fb .lab.is-fade{color:rgba(76,214,122,.62)}
+.fb .p--l .lab.is-fade{color:rgba(30,154,85,.72)}
+.fb .lab.is-idle{color:var(--txt4)}
+.fb .lab.is-wait{color:var(--amber)}
+.fb .el{font-family:var(--mono);font-size:10px;color:var(--txt3);white-space:nowrap;flex:none;
+  margin-left:6px}
+
+/* 回執行 —— 蓋在**既有的 ctx 那一行**上，所以有讀數的 session 一個 pt 都沒加高 */
+.fb .rc{height:10px;margin-top:5px;display:flex;align-items:center;gap:5px;position:relative;z-index:1;
+  font-size:9.5px;color:var(--txt2);white-space:nowrap}
+.fb .rc .dur{font-family:var(--mono);font-weight:500;color:var(--green);letter-spacing:.01em}
+.fb .row.is-fade .rc .dur{color:var(--txt2);font-weight:400}
+.fb .rc .sep{color:var(--txt4)}
+.fb .rc .ag{color:var(--txt2)}
+.fb .rc .cx{font-family:var(--mono);font-size:9px;color:var(--txt3);flex:none}
+.fb .rc .mini{width:42px;height:3px;border-radius:2px;background:var(--track);overflow:hidden;flex:none}
+.fb .rc .mini i{display:block;height:3px;border-radius:2px}
+.fb .rc .pct{font-family:var(--mono);font-size:9.5px;color:var(--txt2);flex:none}
+.fb .rc .win{font-family:var(--mono);font-size:9px;color:var(--txt3);flex:none}
+
+/* 一般 ctx 行（沒有回執時的樣子）—— 長條吃掉整條剩餘寬度 */
+.fb .cxrow{height:10px;margin-top:5px;display:flex;align-items:center;gap:6px;position:relative;z-index:1}
+.fb .cxrow .k{font-family:var(--mono);font-size:9px;color:var(--txt3);flex:none}
+.fb .cxrow .b{flex:1 1 auto;height:3px;border-radius:2px;background:var(--track);overflow:hidden}
+.fb .cxrow .b i{display:block;height:3px;border-radius:2px}
+
+/* workflow / agent 明細行 */
+.fb .det{height:13px;margin-top:5px;display:flex;align-items:center;gap:6px;position:relative;z-index:1;
+  font-size:10.5px;color:var(--txt)}
+.fb .det .tick{width:1px;align-self:stretch;background:var(--track);margin-left:2px;flex:none}
+.fb .det .id{font-family:var(--mono);font-size:9px;color:var(--txt3);overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.fb .pips{display:flex;gap:2px;flex:none}
+.fb .pips b{width:5px;height:7px;border-radius:1px;display:block}
+.fb .det .n{font-family:var(--mono);font-size:9.5px;color:var(--txt2);flex:none}
+.fb .det .dim{font-size:9.5px;color:var(--txt3)}
+
+/* 獨立展示用的材質板（讓列坐在它真正會坐的半透明材質上，而不是頁面底色上） */
+.fb .surf{width:380px;padding:10px 12px;border-radius:12px;
+  background:rgba(30,30,34,.775);-webkit-backdrop-filter:blur(34px) saturate(185%);
+  backdrop-filter:blur(34px) saturate(185%);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.15),0 12px 34px rgba(0,0,0,.46);
+  --txt:rgba(255,255,255,.96);--txt2:rgba(255,255,255,.62);
+  --txt3:rgba(255,255,255,.40);--txt4:rgba(255,255,255,.24);
+  --track:rgba(255,255,255,.145);
+  --rIdle:rgba(255,255,255,.030);--rRun:rgba(255,255,255,.058);
+  --rFresh:rgba(255,255,255,.122);--rFade:rgba(255,255,255,.072);
+  --lift:rgba(255,255,255,.26);--liftF:rgba(255,255,255,.12);
+  font-variant-numeric:tabular-nums;color:var(--txt)}
+.fb .surf.on-wall{position:relative}
+.fb .tile{position:relative;padding:22px 20px;border-radius:14px;overflow:hidden;
+  box-shadow:0 0 0 1px #1E222A}
+.fb .tile>.wall{position:absolute;inset:0}
+.fb .tile>*{position:relative}
+
+/* 版面工具 */
+.fb .grid3{display:grid;grid-template-columns:repeat(3,auto);gap:18px;justify-content:start}
+.fb .grid2{display:grid;grid-template-columns:repeat(2,auto);gap:22px;justify-content:start}
+.fb .flexrow{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}
+.fb .tlab{font:600 9.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:#6B747F;
+  margin:0 0 9px 2px}
+.fb .tlab b{color:#C7CED8;font-weight:700}
+.fb .tlab i{font-style:normal;color:var(--green)}
+.fb .tsub{font:500 10.5px/1.55 var(--mono);color:#606a76;margin:9px 0 0 2px;max-width:380px}
+.fb .tsub b{color:#AEB7C2;font-weight:600}
+.fb .gs{filter:grayscale(1) contrast(1.04)}
+
+/* 量測標註 */
+.fb .meas{display:flex;flex-wrap:wrap;gap:7px;margin-top:14px}
+.fb .meas span{font:11px/1 var(--mono);color:#8b93a0;border:1px solid #1E232B;border-radius:5px;
+  padding:6px 9px;white-space:nowrap}
+.fb .meas b{color:#E4E8EE;font-weight:600}
+.fb .meas i{font-style:normal;color:var(--green)}
+.fb .meas u{text-decoration:none;color:#FFB13C}
+
+/* 取捨筆記 */
+.fb .note{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:6px}
+.fb .nc{border:1px solid #1D222A;border-radius:11px;background:#12161C;padding:16px 17px 18px;
+  position:relative;overflow:hidden}
+.fb .nc::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5px}
+.fb .nc--y::before{background:var(--green)}
+.fb .nc--n::before{background:#5C6470}
+.fb .nc--w::before{background:#FF6159}
+.fb .nc h3{font:700 10px/1 var(--mono);letter-spacing:.15em;text-transform:uppercase;margin-bottom:12px}
+.fb .nc--y h3{color:var(--green)}.fb .nc--n h3{color:#8B94A0}.fb .nc--w h3{color:#FF8A82}
+.fb .nc ol{list-style:none;counter-reset:n}
+.fb .nc li{counter-increment:n;position:relative;padding-left:20px;font-size:12.4px;line-height:1.68;
+  color:#9AA3B0;margin-bottom:11px}
+.fb .nc li::before{content:counter(n);position:absolute;left:0;top:1px;font:700 9px/1.75 var(--mono);
+  color:#5A636F;width:14px;text-align:right}
+.fb .nc li b{color:#DEE3EA;font-weight:600}
+.fb .nc li em{font-style:normal;color:var(--green)}
+.fb .nc li u{text-decoration:none;color:#FFB13C}
+.fb .nc li code{font-family:var(--mono);font-size:11px;color:#9FC9E8}
+
+.fb .ft{max-width:1230px;margin:56px auto 0;border-top:1px solid #1B1F27;padding-top:18px;
+  font:11.5px/1.85 var(--mono);color:#5C6570}
+.fb .ft b{color:#9AA3B0;font-weight:600}
+@media (max-width:1000px){.fb .note{grid-template-columns:1fr}}
+</style>
+</head>
+<body class="fb">
+<div class="wrap">
+
+<h1>完成訊號 · <span style="color:#8892A0;font-weight:400">方向</span> ROW-BADGE</h1>
+<p class="lede">
+「現在通知跟選單列樣式可以知道<u>需要輸入</u>很好，但如果可以知道 <em>session 工作完成了</em>那就更好了。」<br>
+這個方向的賭注是：<b>真正的問題不是通知通道，是面板本身沒有把「完成」講清楚。</b>
+所以它<b>一個字都不動通知層，也一個 pixel 都不動選單列</b> —— 只重新設計 <code style="font-family:var(--mono);font-size:11.5px;color:#9FC9E8">SessionRow</code>，
+讓面板一打開就能在三秒內分出<b>這個在跑 / 這個等你 / 這個剛做完 / 這個閒著</b>，
+而且看得出剛做完的那個跑了多久、做了多少。<br>
+四個狀態用的是<b>四個不同的感知通道</b>，不是四個顏色：
+等你＝<u>色相（琥珀）</u>、執行中＝<b>動態</b>、剛完成＝<em>明度（整列抬起）</em>、閒置＝<b>缺席</b>。
+琥珀的主張是色相，抬起的主張是高度 —— 兩者在感知上不可能互相冒充，
+這就是「不能用琥珀」這條限制的解法。
+</p>
+
+<!-- ═══════════════ 1 · 真實尺寸，四個狀態同時在場 ═══════════════ -->
+<h2>1 · 面板打開的那一瞬間（真實尺寸，1 CSS px = 1 pt）</h2>
+<p class="h2n">
+畫面裡同時有四個狀態：<u>usage 在等你</u>（釘住的琥珀卡，會呼吸）、
+<em>peo-seg 剛完成</em>（列抬起來了，左軌是綠的，回執寫在原本 ctx 那一行上）、
+<b>trade-bot 還在跑</b>（藍軌上有一顆往下走的光點）、
+<b>notes 閒著</b>（沒有軌、沒有標記、底壓到幾乎看不見）。<br>
+<b>選單列上那顆圖示完全沒有改</b> —— 它現在說的還是「有一個在等你」，那是對的，
+而且完成訊號沒有去跟它搶那 20×20pt。
+</p>
+
+<div class="stage" style="height:560px">
+  <div class="wall"></div>
+
+  <!-- 選單列 -->
+  <div class="mb">
+    <b>Ghostty</b><span style="opacity:.72">檔案</span><span style="opacity:.72">編輯</span>
+    <span style="opacity:.72">顯示</span><span style="opacity:.72">視窗</span><span style="opacity:.72">輔助說明</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2.6 4.4 5.4H2.4v5.2h2L8 13.4V2.6Z" fill="currentColor"/><path d="M10.6 5.9a3 3 0 0 1 0 4.2M12.6 4a5.6 5.6 0 0 1 0 8" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.4" y="5.6" width="10.6" height="5.2" rx="1.6" stroke="currentColor" stroke-width="1.1"/><rect x="2.8" y="7" width="6" height="2.4" rx=".7" fill="currentColor"/><path d="M13.4 7.6v1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <!-- QuotaMonster：警示狀態（1 個在等你）。完成訊號不碰這顆圖示。 -->
+      <span class="mb__slot is-open">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+          <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+          <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+             style="animation:fbBreathe 2.4s ease-in-out infinite">
+            <path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/>
+          </g>
+        </svg>
+      </span>
+      <span class="mb__clock">週六 02:41</span>
+    </span>
+  </div>
+
+  <!-- 使用者真正在看的東西：另一個專案的終端機 -->
+  <div class="term" style="left:44px;top:74px;width:560px;height:342px">
+    <div class="term__bar"><span style="background:#FF5F57"></span><span style="background:#FEBC2E"></span><span style="background:#28C840"></span><span class="term__t">okx_rule_engine — claude — 104×34</span></div>
+    <div class="term__b"><span class="b">●</span> <span class="w">Task</span>(research · 6 個 agent)
+  <span class="g">⎿</span>  Running 6 agents…
+
+<span class="b">●</span> <span class="w">Read</span>(okx_rule_engine/engine/rules.py)
+  <span class="g">⎿</span>  Read 418 lines
+
+<span class="b">●</span> <span class="w">Bash</span>(uv run pytest tests/ -q)
+  <span class="g">⎿</span>  Running…
+
+<span class="b">●</span> 我先把六隻 agent 的結論收回來再改
+  rules.py，免得改到一半又要重來。
+
+<span style="opacity:.45">  ⏵⏵ 執行中… (esc 中斷)</span>
+
+<span class="a">&gt;</span> <span style="opacity:.45">▌</span></div>
+  </div>
+
+  <!-- ═══ 面板 ═══ -->
+  <div class="p" style="position:absolute;right:38px;top:25px">
+    <span class="arw"></span>
+    <div class="clip">
+
+      <!-- 表頭 -->
+      <div class="hdr">
+        <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="opacity:.62">
+          <rect x="1.6" y="2" width="12.8" height="12" rx="2.2" stroke="currentColor" stroke-width="1.2"/>
+          <path d="M4.4 10.6V7.4M7.2 10.6V5M10 10.6V8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        </svg>
+        <span class="hdr__t">QuotaMonster</span>
+        <span class="grow"></span>
+        <span class="st"><b>4</b><span>SESSIONS</span></span>
+        <span class="st"><b>3</b><span>AGENTS</span></span>
+        <span class="st is-hi"><b>1</b><span>BLOCKED</span></span>
+      </div>
+      <div class="rule"></div>
+
+      <!-- 額度 -->
+      <div class="q">
+        <div class="q__h"><span class="lbl">額度 QUOTA</span><span class="grow"></span><em>剛更新</em></div>
+        <div class="q__r">
+          <div class="q__c">
+            <span>5 小時視窗</span>
+            <div class="q__v"><b>46</b><i>%</i></div>
+            <div class="bar"><i style="width:46%;background:#2975F2"></i></div>
+            <u>剩 2h 18m · 估 71%</u>
+          </div>
+          <div class="q__d"></div>
+          <div class="q__c">
+            <span>7 天 · 全模型</span>
+            <div class="q__v"><b>29</b><i>%</i></div>
+            <div class="bar"><i style="width:29%;background:#2975F2"></i></div>
+            <u>週三 09:14 · 日均 4.1%</u>
+          </div>
+          <div class="q__d"></div>
+          <div class="q__c">
+            <span>7 天 · OPUS</span>
+            <div class="q__v"><b>31</b><i>%</i></div>
+            <div class="bar"><i style="width:31%;background:#2975F2"></i></div>
+            <u>2 小時前</u>
+          </div>
+        </div>
+      </div>
+      <div class="rule"></div>
+
+      <!-- 阻塞卡：面板裡唯一的琥珀，位置也唯一（釘在清單上方） -->
+      <div class="blk">
+        <div class="blkc">
+          <span class="blkc__rail"></span>
+          <div class="blkc__1"><b>usage</b><i>usage</i><span class="grow"></span><em>等你回覆</em></div>
+          <div class="blkc__2">INPUT · 它在問你問題</div>
+          <div class="blkc__3">2 個 agent 跟著停住</div>
+        </div>
+      </div>
+
+      <!-- 清單 -->
+      <div class="sh"><span class="lbl">工作階段 SESSIONS</span><span class="grow"></span>
+        <em>1 等待 · 1 執行 · 2 閒置</em></div>
+      <div class="list">
+
+        <!-- ① 剛完成（0–90 秒）：整列抬起 -->
+        <div class="row is-fresh">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+              <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+              <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span>
+            <span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span>
+            <span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+
+        <!-- ② 執行中：藍軌 + 往下走的光點 -->
+        <div class="row is-run">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--blue)"><circle cx="6" cy="6" r="3.1" fill="currentColor"/></svg>
+            <span class="nm">trade-bot</span><span class="pj">okx_rule_engine</span>
+            <span class="grow"></span>
+            <span class="lab is-run">執行中</span><span class="el">4m</span>
+          </div>
+          <div class="cxrow">
+            <span class="k">ctx</span>
+            <span class="b"><i style="width:61%;background:#4CD67A"></i></span>
+            <span class="pct" style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">61%</span>
+            <span class="win" style="font-family:var(--mono);font-size:9px;color:var(--txt3)">1M</span>
+          </div>
+          <div class="det">
+            <span class="tick"></span><span>research</span><span class="id">wf_8c21f4</span>
+            <span class="grow"></span>
+            <span class="pips"><b style="background:rgba(76,214,122,.75)"></b><b style="background:rgba(76,214,122,.75)"></b><b style="background:rgba(76,214,122,.75)"></b><b style="background:rgba(76,214,122,.75)"></b><b style="background:rgba(76,214,122,.75)"></b><b style="background:rgba(78,155,255,.75)"></b></span>
+            <span class="n">5/6</span>
+          </div>
+        </div>
+
+        <!-- ③ 閒置：什麼都沒有。第四個狀態是「缺席」，不是第四個顏色。 -->
+        <div class="row is-idle">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+            <span class="nm">notes</span><span class="pj">PaperLogApp</span>
+            <span class="grow"></span>
+            <span class="lab is-idle">閒置</span><span class="el">3h</span>
+          </div>
+        </div>
+
+      </div>
+      <div class="rule"></div>
+      <div class="ft">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M13.5 8a5.5 5.5 0 1 1-1.9-4.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/><path d="M13.6 1.9v3.2h-3.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>更新於 剛剛</span>
+        <span class="grow"></span>
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 2.2a4 4 0 0 1 4 4v3l1.4 2.2H2.6L4 9.2v-3a4 4 0 0 1 4-4Z" stroke="currentColor" stroke-width="1.25" stroke-linejoin="round"/><path d="M6.6 13.4a1.6 1.6 0 0 0 2.8 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/></svg>
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none"><path d="M8 2v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M4.6 4.4a5.2 5.2 0 1 0 6.8 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="cap">
+面板 <b>380 × 482pt</b>，與 <b>PanelView.width</b> 一致。<i>剛完成</i>那一列 <b>49pt</b> ——
+與底下那個有 ctx 讀數的閒置列<b>完全一樣高</b>，因為回執是寫在原本 ctx 那一行上的，
+沒有新增任何一行。<br>
+（畫面裡另外兩個黃色是終端機的紅綠燈與 macOS 的視窗鈕，不是這個 app 的語彙。
+QuotaMonster 自己的琥珀只出現在選單列圖示與那張阻塞卡上。）
+</p>
+
+<div class="meas">
+  <span>剛完成列 <b>49pt</b> <i>= 有 ctx 讀數的閒置列同高，+0pt</i></span>
+  <span>沒有 ctx 讀數時 <b>34 → 49pt</b>，<u>+15pt，最多 10 分鐘</u></span>
+  <span>對照三秒前還在跑的自己 <b>67 → 49pt</b>，<i>−18pt</i></span>
+  <span>清單高度政策不變：<b>夾在一列與三列之間</b></span>
+  <span>選單列圖示 <b>不動一個 pixel</b></span>
+</div>
+
+<!-- ═══════════════ 2 · 四種狀態，同一把尺 ═══════════════ -->
+<h2>2 · 四種狀態，同一把尺 —— 而且把顏色拿掉還是分得開</h2>
+<p class="h2n">
+右邊那一份是同一段 DOM 套上 <code>grayscale(1)</code>。<b>四個狀態在完全沒有色相的情況下仍然分得開</b>，
+因為它們根本不是靠顏色分的：<u>等你</u>有一條會呼吸的粗軌與一圈邊框、
+<b>執行中</b>有一顆往下走的光點、<em>剛完成</em>整列比鄰居亮一階並且有上緣高光與投影、
+<b>閒置</b>什麼都沒有。<br>
+顏色是<b>第二層確認</b>，不是第一層辨識 —— 這正好也是「完成不能用琥珀」這條限制沒有讓設計變難的原因：
+完成從一開始就沒有在用色相當主通道。
+</p>
+
+<div class="tile">
+  <div class="wall"></div>
+  <div class="flexrow">
+    <div>
+      <p class="tlab"><b>深色</b> · 真實尺寸</p>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-wait">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m is-wait" viewBox="0 0 12 12" fill="none" style="color:var(--amber)">
+                <circle cx="6" cy="6" r="4.3" stroke="currentColor" stroke-width="1.15"/>
+                <g stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.15 4.3 5.7 6 4.15 7.7"/><path d="M6.5 4.3 8.05 6 6.5 7.7"/>
+                </g>
+              </svg>
+              <span class="nm">usage</span><span class="pj">usage</span>
+              <span class="grow"></span>
+              <span class="lab is-wait">等你回覆</span><span class="el">2m 14s</span>
+            </div>
+            <div class="rc"><span style="font-family:var(--mono);font-size:10px;color:var(--txt2)">INPUT · 它在問你問題</span></div>
+          </div>
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+                <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+                <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span>
+              <span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span>
+              <span class="cx">ctx</span><span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+              <span class="pct">42%</span><span class="win">1M</span>
+            </div>
+          </div>
+
+          <div class="row is-run">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--blue)"><circle cx="6" cy="6" r="3.1" fill="currentColor"/></svg>
+              <span class="nm">trade-bot</span><span class="pj">okx_rule_engine</span>
+              <span class="grow"></span>
+              <span class="lab is-run">執行中</span><span class="el">4m</span>
+            </div>
+            <div class="cxrow">
+              <span class="k">ctx</span><span class="b"><i style="width:61%;background:#4CD67A"></i></span>
+              <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">61%</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--txt3)">1M</span>
+            </div>
+          </div>
+
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">notes</span><span class="pj">PaperLogApp</span>
+              <span class="grow"></span>
+              <span class="lab is-idle">閒置</span><span class="el">3h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub"><b>主通道</b>　色相 / 動態 / 明度 / 缺席<br>
+        <b>次通道</b>　琥珀 / 藍 / 綠 / 無</p>
+    </div>
+
+    <div class="gs">
+      <p class="tlab" style="color:#8A929C"><b>同一段 DOM</b> · grayscale(1)</p>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-wait">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m is-wait" viewBox="0 0 12 12" fill="none" style="color:var(--amber)">
+                <circle cx="6" cy="6" r="4.3" stroke="currentColor" stroke-width="1.15"/>
+                <g stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.15 4.3 5.7 6 4.15 7.7"/><path d="M6.5 4.3 8.05 6 6.5 7.7"/>
+                </g>
+              </svg>
+              <span class="nm">usage</span><span class="pj">usage</span>
+              <span class="grow"></span>
+              <span class="lab is-wait">等你回覆</span><span class="el">2m 14s</span>
+            </div>
+            <div class="rc"><span style="font-family:var(--mono);font-size:10px;color:var(--txt2)">INPUT · 它在問你問題</span></div>
+          </div>
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+                <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+                <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span>
+              <span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span>
+              <span class="cx">ctx</span><span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+              <span class="pct">42%</span><span class="win">1M</span>
+            </div>
+          </div>
+          <div class="row is-run">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--blue)"><circle cx="6" cy="6" r="3.1" fill="currentColor"/></svg>
+              <span class="nm">trade-bot</span><span class="pj">okx_rule_engine</span>
+              <span class="grow"></span>
+              <span class="lab is-run">執行中</span><span class="el">4m</span>
+            </div>
+            <div class="cxrow">
+              <span class="k">ctx</span><span class="b"><i style="width:61%;background:#4CD67A"></i></span>
+              <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">61%</span>
+              <span style="font-family:var(--mono);font-size:9px;color:var(--txt3)">1M</span>
+            </div>
+          </div>
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">notes</span><span class="pj">PaperLogApp</span>
+              <span class="grow"></span>
+              <span class="lab is-idle">閒置</span><span class="el">3h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub" style="color:#565f6a"><b>灰階下仍然成立。</b>唯一被吃掉的是「等你」與「剛完成」<br>
+        的色相，但兩者的<b>形狀與高度完全不同</b>，不會互相冒充。</p>
+    </div>
+  </div>
+</div>
+
+<p class="cap">
+真實面板裡，<u>等你</u>那一列其實是<b>釘在清單上方的卡片</b>（<code style="color:#9FC9E8">blockedBanner</code>，
+會被 <code style="color:#9FC9E8">listedSessions</code> 過濾掉），所以它跟完成列<b>連位置都不同</b>。
+這裡刻意把它降成一般列來比 —— 比的是<b>最難的那個版本</b>，證明就算哪天釘住的設計被拿掉，
+兩者在列的層級上也還是分得開。
+</p>
+
+<!-- ═══════════════ 3 · 衰減 ═══════════════ -->
+<h2>3 · 衰減 —— 一個不會褪色的「剛完成」就是一句永久的謊</h2>
+<p class="h2n">
+兩個門檻都<b>不是新常數</b>，是把通知層已經付過代價的數字搬過來用：<br>
+<b>90 秒</b> = 通知的 settle window（G2）。也就是說，如果那則通知會響，你抬頭看到的就是這個最強的狀態；
+如果它被吞掉了（按 brief 自己的數字，<b>92.6%</b> 會被吞掉），你打開面板看到的<b>還是同一個狀態</b>。<br>
+<b>10 分鐘</b> = 每 session 共用預算（G8，300s）的兩倍。訊號活得比整套通知機制記得這件事還久一點，然後就閉嘴。<br>
+衰減是<b>年齡的純函式</b>，不需要任何計時器 —— 面板開著的時候本來就每 3 秒重畫一次，面板關著的時候沒有東西要畫。
+這符合這個 app「除了有東西在動的那幾秒之外，沒有重複計時器」的規則。
+</p>
+
+<div class="tile">
+  <div class="wall"></div>
+  <div class="grid3" style="gap:20px">
+
+    <div>
+      <p class="tlab"><b>t = 0s</b> · <i>剛完成</i></p>
+      <div class="surf">
+        <div class="row is-fresh">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+              <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+              <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">底 <b>.122</b> · 上緣高光 <b>.26</b> · 投影 <b>有</b><br>綠軌 <b>2.5pt 全不透明</b> · 標記是實心圓加挖空的勾</p>
+    </div>
+
+    <div>
+      <p class="tlab"><b>t = 30s</b> · <i>剛完成</i>（一模一樣）</p>
+      <div class="surf">
+        <div class="row is-fresh">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+              <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+              <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub"><b>刻意不做連續淡出。</b>前 90 秒完全不變 ——<br>連續褪色會讓「它是不是在變」變成另一個要判讀的東西。</p>
+    </div>
+
+    <div>
+      <p class="tlab"><b>t = 1m 30s</b> · 沉下去的那一刻</p>
+      <div class="surf">
+        <div class="row is-fade">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green);opacity:.62">
+              <circle cx="6" cy="6" r="4.9" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M3.7 6.1 5.2 7.6 8.3 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fade">完成 · 1 分前</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">底 <b>.072</b> · 高光 <b>.12</b> · 投影 <b>沒了</b><br>軌 <b>1.5pt / 45%</b> · 實心圓變成空心環 · 綠字變灰</p>
+    </div>
+
+    <div>
+      <p class="tlab"><b>t = 4m</b> · 還在，但已經不搶</p>
+      <div class="surf">
+        <div class="row is-fade">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green);opacity:.62">
+              <circle cx="6" cy="6" r="4.9" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M3.7 6.1 5.2 7.6 8.3 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fade">完成 · 4 分前</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">回執還在，因為「跑了多久、做了多少」<br>在這個階段才是<b>你真正會去讀</b>的東西。</p>
+    </div>
+
+    <div>
+      <p class="tlab"><b>t = 10m</b> · 最後一口氣</p>
+      <div class="surf">
+        <div class="row is-fade">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green);opacity:.62">
+              <circle cx="6" cy="6" r="4.9" stroke="currentColor" stroke-width="1.1"/>
+              <path d="M3.7 6.1 5.2 7.6 8.3 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fade">完成 · 10 分前</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">分鐘數自己在往上爬 —— <b>它一路都在告訴你它有多舊</b>，<br>所以它消失的時候不會是一個意外。</p>
+    </div>
+
+    <div>
+      <p class="tlab" style="color:#5A6470"><b>t = 10m 01s</b> · 沒了</p>
+      <div class="surf">
+        <div class="row is-idle">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-idle">閒置</span><span class="el">16m</span>
+          </div>
+          <div class="cxrow">
+            <span class="k">ctx</span><span class="b"><i style="width:42%;background:#4CD67A"></i></span>
+            <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">42%</span>
+            <span style="font-family:var(--mono);font-size:9px;color:var(--txt3)">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">軌沒了、標記變空心環、回執換回一般的 ctx 長條<br>（壓低到 <b>55%</b> —— 閒置列上的 ctx 不是新聞）。<br><b>完成訊號沒有留下任何殘渣。</b></p>
+    </div>
+
+  </div>
+</div>
+
+<p class="cap">
+注意 <b>t = 10m 01s</b> 那一格的 <b>elapsed</b> 是 <b>16m</b> 而不是 6m 12s ——
+回執消失之後，右邊那個時間就換回它平常的意思（<b>session 起算的存活時間</b>）。
+回執在的時候它是<i>這一輪跑了多久</i>，回執走了它就不是了。
+兩個意思共用一個位置是刻意的：<b>那個位置在 SessionRow 裡是 layoutPriority(3)，設計上永遠不會被擠掉</b>，
+是這一列唯一保證看得到的數字欄位。
+</p>
+
+<!-- ═══════════════ 4 · 回執寫得出什麼、寫不出什麼 ═══════════════ -->
+<h2>4 · 回執的四種寫法 —— 包含它寫不出來的兩種</h2>
+<p class="h2n">
+回執只佔<b>既有 ctx 那一行</b>：那條長條本來就佔著約 270pt 去畫一條 3pt 的膠囊，
+把它縮到 42pt 就把「跑了多久 · 做了多少」整份裝進去了。<br>
+<b>不知道的東西就不寫，而不是寫 0。</b> 這是這個 repo 已經寫進 <code>SessionRow</code> 註解的規則
+（「一條 0% 的長條看起來像『還很空』，但實際意思是『不知道』」），回執沿用它。
+</p>
+
+<div class="tile">
+  <div class="wall"></div>
+  <div class="flexrow">
+    <div>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span>
+              <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+              <span class="pct">42%</span><span class="win">1M</span>
+            </div>
+          </div>
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">zen-dial</span><span class="pj">zen-dial</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">4m 41s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 4m 41s</span>
+              <span class="grow"></span><span class="cx">ctx</span>
+              <span class="mini"><i style="width:78%;background:#E8C84A"></i></span>
+              <span class="pct">78%</span><span class="win">200k</span>
+            </div>
+          </div>
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">usage</span><span class="pj">usage</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">58s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">你回覆後 58s</span><span class="sep">·</span><span class="ag">2 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span>
+              <span class="mini"><i style="width:55%;background:#4CD67A"></i></span>
+              <span class="pct">55%</span><span class="win">1M</span>
+            </div>
+          </div>
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">f1-dash</span><span class="pj">F1</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">9m 02s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 9m 02s</span>
+              <span class="grow"></span>
+              <span style="font-size:9px;color:var(--txt4)">沒有 statusline 讀數</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div style="max-width:430px">
+      <p class="tlab"><b>四行各自在講什麼</b></p>
+      <p class="tsub" style="max-width:430px;line-height:1.85">
+        <b>① 正常。</b> 時間 + agent 數 + ctx。這是回執最完整的樣子。<br><br>
+        <b>② 沒有扇出。</b> 這一輪沒有 subagent，所以 agent 那一格<b>整個不寫</b>，
+        不寫「0 個 agent」。<br>
+        順便把一個<u>既有的衝突</u>擺到最顯眼的地方：<b>ctx 在 70–90% 是黃色的</b>
+        （<code>contextColour</code> 現行行為）。那是這個 app 裡唯一一個不屬於「等你」的黃色，
+        而我把完成回執放在同一行上 —— 我沒有偷偷避開它。<br><br>
+        <b>③ 時鐘被 <code>waiting</code> 重設過。</b> 這一輪從頭到尾跑了 20 分鐘，
+        但你在 58 秒前才回覆過它，所以 <code>ranFor</code> 只有 58s。<br>
+        兩個數字都是真的，但列上只有一行 —— 所以動詞換掉：<b>「你回覆後」而不是「跑了」</b>。
+        這是補丁，不是解法，見右下角的弱點 ③。<br><br>
+        <b>④ 那個 session 沒裝 statusline tee。</b> ctx 那半邊沒有讀數，
+        所以整行只剩時間，右邊誠實寫「沒有讀數」而不是畫一條空長條。<br>
+        <b>這一行就是唯一會加高度的情況</b>：這個 session 平常沒有 ctx 行（34pt），
+        回執讓它變成 49pt，<b>+15pt，最多 10 分鐘</b>。
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 5 · 一個 / 兩個 / 三個 ═══════════════ -->
+<h2>5 · 一個完成 · 兩個完成 · 三個同時完成（這個方向的極限）</h2>
+<p class="h2n">
+「抬起」是<b>相對</b>的：它靠的是跟鄰居的落差。所以完成的數量一多，主通道就會自己變弱 ——
+這是這個設計的結構性上限，不是可以調參數調掉的東西。<br>
+第三格是它<b>真的開始失效</b>的樣子，我把它畫出來而不是避開。
+</p>
+
+<div class="tile">
+  <div class="wall"></div>
+  <div class="grid3" style="gap:20px;align-items:start">
+
+    <div>
+      <p class="tlab"><b>一個完成</b> · 落差最大</p>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:42%;background:#4CD67A"></i></span><span class="pct">42%</span></div>
+          </div>
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">notes</span><span class="pj">PaperLogApp</span>
+              <span class="grow"></span><span class="lab is-idle">閒置</span><span class="el">3h</span>
+            </div>
+          </div>
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">equip</span><span class="pj">Equipment_Borrowing_System</span>
+              <span class="grow"></span><span class="lab is-idle">閒置</span><span class="el">1h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">一抬起就贏了。<b>這是 87 個 turn 裡最常見的情況。</b></p>
+    </div>
+
+    <div>
+      <p class="tlab"><b>兩個完成</b> · 還撐得住</p>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:42%;background:#4CD67A"></i></span><span class="pct">42%</span></div>
+          </div>
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">zen-dial</span><span class="pj">zen-dial</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">4m 41s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 4m 41s</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:78%;background:#E8C84A"></i></span><span class="pct">78%</span></div>
+          </div>
+          <div class="row is-run">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--blue)"><circle cx="6" cy="6" r="3.1" fill="currentColor"/></svg>
+              <span class="nm">trade-bot</span><span class="pj">okx_rule_engine</span>
+              <span class="grow"></span><span class="lab is-run">執行中</span><span class="el">4m</span>
+            </div>
+            <div class="cxrow"><span class="k">ctx</span><span class="b"><i style="width:61%;background:#4CD67A"></i></span>
+              <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">61%</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub">兩個抬起的列<b>互相不會混淆</b>，因為底下還有沒抬起的當基準。</p>
+    </div>
+
+    <div>
+      <p class="tlab" style="color:#C99"><b>三個同時完成</b> · <span style="color:#FF8A82">開始失效</span></p>
+      <div class="surf">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:42%;background:#4CD67A"></i></span><span class="pct">42%</span></div>
+          </div>
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">zen-dial</span><span class="pj">zen-dial</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">4m 41s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 4m 41s</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:78%;background:#E8C84A"></i></span><span class="pct">78%</span></div>
+          </div>
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">f1-dash</span><span class="pj">F1</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">9m 02s</span>
+            </div>
+            <div class="rc"><span class="dur">跑了 9m 02s</span><span class="sep">·</span><span class="ag">3 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span><span class="mini"><i style="width:31%;background:#4CD67A"></i></span><span class="pct">31%</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub" style="color:#8C7A78">三列都抬起來 = <b>沒有一列抬起來</b>。<br>
+        這時候還在工作的是<b>綠軌</b>與<b>回執</b>（每一列的時間都不一樣），<br>
+        但「三秒內一眼分辨」這件事<b>已經不成立了</b>。</p>
+    </div>
+  </div>
+</div>
+
+<p class="cap">
+三個同時完成在這台機器上是<b>會發生的</b>（3 個 session，<code>make_app.sh</code> 常常重啟），
+不是理論邊界。<b>但它也正好是通知層的 G2 會把三則合併成一則的那個情況</b> ——
+也就是說面板在這裡失效的同時，通知那一側剛好還有話講。
+兩邊的失效區域不重疊，是這個方向唯一沒有自己解決但也不孤立的地方。
+</p>
+
+<style>
+/* T1 浮窗（既有設計，AlertView / alert-mockups/question.html）—— 這裡只拿來並排比對 */
+.fb .wa{position:relative;width:320px;padding-top:7px;
+  --amber:#FF9E0A;--aedge:rgba(255,158,10,.30);--mat:rgba(29,29,34,.92);
+  --fg:rgba(255,255,255,.96);--fg2:rgba(255,255,255,.62);--fg3:rgba(255,255,255,.42);
+  --chip:rgba(255,255,255,.07);--rule:rgba(255,255,255,.11)}
+.fb .wa__notch{position:absolute;top:0;right:34px;width:18px;height:8px;background:var(--mat);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fb .wa .w{position:relative;width:320px;border-radius:13px;overflow:hidden;background:var(--mat);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);backdrop-filter:blur(32px) saturate(180%);
+  box-shadow:0 20px 46px rgba(0,0,0,.58),0 3px 12px rgba(0,0,0,.44),inset 0 0 0 .5px var(--aedge)}
+.fb .wa .w__rail{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.fb .wa .w__in{padding:11px 14px 11px 16px}
+.fb .wa .r0{height:16px;display:flex;align-items:center;gap:8px}
+.fb .wa .r0__g{width:16px;height:16px;flex:none;display:block;color:var(--amber)}
+.fb .wa .r0__n{font-size:9.5px;font-weight:600;letter-spacing:.07em;color:var(--fg3)}
+.fb .wa .r0__age{font-size:9.5px;color:var(--fg3);white-space:nowrap}
+.fb .wa .r0__age b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--amber);margin-left:3px}
+.fb .wa .hero{margin-top:6px;height:25px;font-size:19px;line-height:25px;font-weight:600;
+  letter-spacing:-.014em;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fb .wa .r2{margin-top:7px;display:flex;align-items:center;gap:8px}
+.fb .wa .path{font-family:var(--mono);font-size:10.5px;color:var(--fg2);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.fb .wa .path i{font-style:normal;color:var(--fg3)}
+.fb .wa .chip{flex:none;font-size:9.5px;font-weight:500;color:var(--fg2);background:var(--chip);
+  border-radius:4px;padding:3px 6px}
+.fb .wa .acts{margin-top:10px;padding-top:9px;border-top:.5px solid var(--rule);
+  display:flex;align-items:center;gap:8px}
+.fb .wa .go{display:flex;align-items:center;gap:5px;background:var(--amber);color:#2B1A00;
+  border-radius:6px;padding:5px 9px;font-size:11.5px;font-weight:650}
+.fb .wa .no{font-size:11px;color:var(--fg3);margin-left:auto}
+.fb .wa kbd{font-family:var(--mono);font-size:9.5px;border:1px solid rgba(255,255,255,.18);
+  border-radius:3px;padding:1px 3px;margin-left:3px}
+/* 通道對照表 */
+.fb .cmp{border-collapse:collapse;font-size:12.4px;max-width:820px;margin-top:4px}
+.fb .cmp th,.fb .cmp td{text-align:left;padding:9px 13px;border-bottom:1px solid #1B1F27;vertical-align:top}
+.fb .cmp thead th{font:700 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:#68717E}
+.fb .cmp td:first-child,.fb .cmp th:first-child{color:#8C95A1;white-space:nowrap;width:112px}
+.fb .cmp .a{color:#FFB13C}
+.fb .cmp .g{color:#6FDF9F}
+.fb .cmp .n{color:#5D6672}
+</style>
+
+<!-- ═══════════════ 6 · 與 T1 並排 ═══════════════ -->
+<h2>6 · 與 T1「等你」並排 —— 它們沒有共用任何一個通道</h2>
+<p class="h2n">
+左邊是既有的 T1 浮窗（<code>AlertView</code>，320 × 123pt，使用者已拍板的 Question 方向）。
+右邊是這個方向的完成列。<b>把它們放在一起看的重點不是「它們長得不像」，
+而是它們連在哪一個維度上競爭都沒有</b> ——
+一個是會浮出來擋住你螢幕的獨立視窗，一個是你打開面板才存在的一列。
+</p>
+
+<div class="tile">
+  <div class="wall"></div>
+  <div class="flexrow" style="align-items:flex-start">
+    <div>
+      <p class="tlab" style="color:#C08A3A"><b>T1 · 等你</b> · 320 × 123pt · 會浮出來</p>
+      <div class="wa">
+        <span class="wa__notch"></span>
+        <div class="w">
+          <span class="w__rail"></span>
+          <div class="w__in">
+            <div class="r0">
+              <svg class="r0__g" viewBox="0 0 22 22" fill="none">
+                <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+                <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                   style="animation:fbBreathe 2.4s ease-in-out infinite">
+                  <path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/>
+                </g>
+              </svg>
+              <span class="r0__n">USAGE</span>
+              <span class="grow"></span>
+              <span class="r0__age">等了<b>2m 14s</b></span>
+            </div>
+            <div class="hero">要我繼續嗎？</div>
+            <div class="r2">
+              <span class="path"><i>~/Antigravity/</i>usage</span>
+              <span class="grow"></span>
+              <span class="chip">在問你問題</span>
+            </div>
+            <div class="acts">
+              <span class="go">跳過去
+                <svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              </span>
+              <span class="no">稍後 <kbd>⎋</kbd></span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub" style="color:#8E7A5C"><b>琥珀 · 呼吸 · 有聲音 · 有按鈕 · 19pt 英雄行</b><br>
+        會佔走螢幕一塊矩形，直到你處理它。</p>
+    </div>
+
+    <div>
+      <p class="tlab" style="color:#4F9E70"><b>剛完成</b> · 356 × 49pt · 面板不開就不存在</p>
+      <div class="surf">
+        <div class="row is-fresh">
+          <span class="row__rail"></span>
+          <div class="hd">
+            <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)"><circle cx="6" cy="6" r="5.2" fill="currentColor"/><path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#0E1512" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="nm">peo-seg</span><span class="pj">PEO</span>
+            <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+          </div>
+          <div class="rc">
+            <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+            <span class="grow"></span><span class="cx">ctx</span>
+            <span class="mini"><i style="width:42%;background:#4CD67A"></i></span>
+            <span class="pct">42%</span><span class="win">1M</span>
+          </div>
+        </div>
+      </div>
+      <p class="tsub" style="color:#5A7A66"><b>綠 · 靜止 · 沒有聲音 · 沒有按鈕 · 12pt</b><br>
+        什麼都不佔走，10 分鐘後自己不見。</p>
+    </div>
+  </div>
+</div>
+
+<table class="cmp">
+  <thead><tr><th>通道</th><th class="a">T1 · 等你</th><th class="g">剛完成</th></tr></thead>
+  <tbody>
+    <tr><td>位置</td><td class="a">螢幕右上角浮出的獨立 NSPanel</td><td class="g">面板裡的一列，面板不開就不存在</td></tr>
+    <tr><td>色相</td><td class="a">琥珀 #FF9E0A（全 app 專屬）</td><td class="g">綠 #4CD67A（既有的 QuotaPalette.tight）</td></tr>
+    <tr><td>主通道</td><td class="a">色相 + 侵入</td><td class="g">明度（抬起）</td></tr>
+    <tr><td>動態</td><td class="a">呼吸，2.4s 循環，不停</td><td class="g">沒有。抬起之後完全靜止</td></tr>
+    <tr><td>聲音</td><td class="a">Submarine</td><td class="g">沒有</td></tr>
+    <tr><td>字級</td><td class="a">19pt 英雄行（它問出口的那句話）</td><td class="g">12pt，跟其他列一模一樣</td></tr>
+    <tr><td>動作</td><td class="a">跳過去 / 稍後</td><td class="g">沒有按鈕（點列本身仍然可以跳）</td></tr>
+    <tr><td>存活</td><td class="a">直到你處理它（5 分鐘後恰好再推一次）</td><td class="g">90 秒全強度，10 分鐘後消失</td></tr>
+    <tr><td>打斷你</td><td class="a">會</td><td class="g">不會。這是它整個存在的前提</td></tr>
+    <tr><td>選單列</td><td class="a">圖示進入警示狀態（環 + 呼吸的 chevron）</td><td class="n">不動一個 pixel</td></tr>
+  </tbody>
+</table>
+
+<p class="cap">
+最後一列是這個方向最該被檢驗的地方：<b>它刻意不碰選單列。</b>
+如果通知通道也一起改了，就不知道是哪一邊救了它 ——
+這個方向的賭注必須是可以單獨被證偽的。
+</p>
+
+<style>
+/* 淺色材質板 —— 「抬起」在淺色下是「更白」，方向不變（亮 = 凸），所以主通道翻面後仍然成立 */
+.fb .surf--l{background:rgba(247,247,249,.84);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.13),0 12px 34px rgba(0,0,0,.24);
+  --txt:rgba(0,0,0,.90);--txt2:rgba(0,0,0,.56);--txt3:rgba(0,0,0,.38);--txt4:rgba(0,0,0,.20);
+  --track:rgba(0,0,0,.13);
+  --rIdle:rgba(0,0,0,.020);--rRun:rgba(0,0,0,.042);
+  --rFresh:rgba(255,255,255,.96);--rFade:rgba(255,255,255,.56);
+  --lift:#ffffff;--liftF:rgba(255,255,255,.75);
+  --blue:#0B6BD6;--green:#1E9A55;--amber:#A15C06;color:var(--txt)}
+.fb .surf--l .row.is-fresh{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.075),0 1px 5px rgba(20,40,25,.18)}
+.fb .surf--l .row.is-fresh::before{background:linear-gradient(100deg,rgba(30,154,85,.14) 0%,rgba(30,154,85,.035) 40%,rgba(30,154,85,0) 66%)}
+.fb .surf--l .row.is-fade{box-shadow:inset 0 0 0 .5px rgba(0,0,0,.055)}
+.fb .surf--l .row.is-wait{background:rgba(255,149,0,.16);box-shadow:inset 0 0 0 .5px rgba(196,110,0,.36)}
+.fb .surf--l .lab.is-fade{color:rgba(30,154,85,.78)}
+.fb .surf--l .rc .dur{color:#1E9A55}
+</style>
+
+<!-- ═══════════════ 7 · 淺色 ═══════════════ -->
+<h2>7 · 淺色（次要 —— 使用者的選單列與面板都是深色的）</h2>
+<p class="h2n">
+翻到淺色時，「抬起」的方向<b>沒有翻</b>：亮＝凸起，所以剛完成的列在淺色下變成<b>近白</b>，
+其他列是淺灰材質上的淡色塊。主通道在兩個外觀下是同一件事，不是兩套語彙。<br>
+綠換成 <code>QuotaPalette.tight(onLight)</code> 的 <b>#1E9A55</b>，琥珀換成 <b>#A15C06</b> ——
+兩個都是 repo 裡已經有的淺色版本，沒有新增色值。
+</p>
+
+<div class="tile" style="padding:20px">
+  <div class="wall wall--l"></div>
+  <div class="flexrow">
+    <div>
+      <div class="surf surf--l">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-wait">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m is-wait" viewBox="0 0 12 12" fill="none" style="color:var(--amber)">
+                <circle cx="6" cy="6" r="4.3" stroke="currentColor" stroke-width="1.15"/>
+                <g stroke="currentColor" stroke-width="1.15" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4.15 4.3 5.7 6 4.15 7.7"/><path d="M6.5 4.3 8.05 6 6.5 7.7"/></g>
+              </svg>
+              <span class="nm">usage</span><span class="pj">usage</span>
+              <span class="grow"></span><span class="lab is-wait">等你回覆</span><span class="el">2m 14s</span>
+            </div>
+            <div class="rc"><span style="font-family:var(--mono);font-size:10px;color:var(--txt2)">INPUT · 它在問你問題</span></div>
+          </div>
+
+          <div class="row is-fresh">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green)">
+                <circle cx="6" cy="6" r="5.2" fill="currentColor"/>
+                <path d="M3.5 6.15 5.15 7.8 8.55 4.3" stroke="#ffffff" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fin">剛完成</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc">
+              <span class="dur">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span>
+              <span class="mini"><i style="width:42%;background:#1E9A55"></i></span>
+              <span class="pct">42%</span><span class="win">1M</span>
+            </div>
+          </div>
+
+          <div class="row is-run">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--blue)"><circle cx="6" cy="6" r="3.1" fill="currentColor"/></svg>
+              <span class="nm">trade-bot</span><span class="pj">okx_rule_engine</span>
+              <span class="grow"></span><span class="lab is-run">執行中</span><span class="el">4m</span>
+            </div>
+            <div class="cxrow"><span class="k">ctx</span><span class="b"><i style="width:61%;background:#1E9A55"></i></span>
+              <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">61%</span></div>
+          </div>
+
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">notes</span><span class="pj">PaperLogApp</span>
+              <span class="grow"></span><span class="lab is-idle">閒置</span><span class="el">3h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <p class="tlab" style="color:#4B4437"><b>衰減</b>（淺色）</p>
+      <div class="surf surf--l">
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <div class="row is-fade">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--green);opacity:.7">
+                <circle cx="6" cy="6" r="4.9" stroke="currentColor" stroke-width="1.1"/>
+                <path d="M3.7 6.1 5.2 7.6 8.3 4.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-fade">完成 · 4 分前</span><span class="el">6m 12s</span>
+            </div>
+            <div class="rc">
+              <span class="dur" style="color:var(--txt2);font-weight:400">跑了 6m 12s</span><span class="sep">·</span><span class="ag">7 個 agent</span>
+              <span class="grow"></span><span class="cx">ctx</span>
+              <span class="mini"><i style="width:42%;background:#1E9A55"></i></span><span class="pct">42%</span>
+            </div>
+          </div>
+          <div class="row is-idle">
+            <span class="row__rail"></span>
+            <div class="hd">
+              <svg class="hd__m" viewBox="0 0 12 12" fill="none" style="color:var(--txt4)"><circle cx="6" cy="6" r="2.9" stroke="currentColor" stroke-width="1.15"/></svg>
+              <span class="nm">peo-seg</span><span class="pj">PEO</span>
+              <span class="grow"></span><span class="lab is-idle">閒置</span><span class="el">16m</span>
+            </div>
+            <div class="cxrow"><span class="k">ctx</span><span class="b"><i style="width:42%;background:#1E9A55"></i></span>
+              <span style="font-family:var(--mono);font-size:9.5px;color:var(--txt2)">42%</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="tsub" style="color:#57503F;max-width:380px"><b>t = 4m</b> 與 <b>t = 10m 01s</b>。
+        淺色下「沉回去」是<b>白色褪回材質色</b>，比深色那邊略微難讀一點 ——<br>
+        見弱點 ①，那正是這個方向最脆弱的地方。</p>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════ 8 · 取捨 ═══════════════ -->
+<h2>8 · 選了什麼 · 拒絕了什麼 · 誠實的弱點</h2>
+
+<div class="note">
+
+  <div class="nc nc--y">
+    <h3>選了什麼</h3>
+    <ol>
+      <li><b>訊號掛在列本身</b>，不加卡片、不加區塊、不加區段。四個狀態用四個<b>不同的感知通道</b>：
+        <u>等你</u>＝色相＋呼吸、執行中＝動態、<em>剛完成</em>＝明度（整列抬起）、閒置＝缺席。
+        所以拿掉顏色還是分得開（第 2 節有灰階對照）。</li>
+      <li><b>完成用「抬起」當主通道、綠當副通道。</b>
+        琥珀的主張是<u>色相</u>，抬起的主張是<b>高度</b> —— 兩者在感知上不可能互相冒充。
+        這就是「不能用琥珀」這條限制的解法，而不是繞道。</li>
+      <li><b>回執寫在既有的 ctx 那一行上。</b>
+        那條長條本來就佔著約 270pt 去畫一條 3pt 膠囊，縮到 42pt 就把
+        <code>跑了 6m12s · 7 個 agent</code> 整份裝進去 ——
+        <em>有 statusline 讀數的 session 一個 pt 都沒加高</em>。</li>
+      <li><b>綠不是新顏色。</b> #4CD67A = <code>QuotaPalette.tight(onDark)</code>
+        srgb(0.30,0.84,0.48)，也是 <code>SessionRow</code> 裡 finished agent pip 已經在用的綠。
+        額度色階長在額度條與圖示上，完成訊號長在 session 列上，兩個表面沒有重疊。</li>
+      <li><b>衰減的兩個門檻都是既有常數。</b>
+        <b>90 秒</b> = 通知的 settle window（G2）；<b>10 分鐘</b> = 每 session 共用預算（G8, 300s）的兩倍。
+        訊號活得比整套通知機制記得這件事還久一點，然後閉嘴。沒有發明第三套節奏。</li>
+      <li><b>衰減是年齡的純函式。</b> 不需要任何計時器：面板開著本來就每 3 秒重畫，
+        面板關著沒有東西要畫。符合「除了有東西在動的那幾秒，沒有重複計時器」。</li>
+      <li><b>前 90 秒完全不變，然後一次跳到第二段。</b> 不做連續淡出 ——
+        連續褪色會讓「它是不是在變」變成另一個要判讀的東西。</li>
+      <li><b>右邊那個時間欄位一欄兩用。</b> 回執在的時候它是「這一輪跑了多久」，
+        回執走了它就換回「session 存活多久」。那一欄在 <code>SessionRow</code> 是
+        <code>layoutPriority(3)</code>，設計上永遠不會被擠掉，是這一列唯一保證看得到的數字。</li>
+      <li><b>閒置列連 ctx 長條一起壓低到 55%。</b>
+        一條滿寬度的綠長條比完成訊號還搶眼，會讓「缺席」這個通道自己失效。
+        <em>這是這個方向唯一動到非完成狀態的一處</em>，寫在這裡而不是藏起來。</li>
+      <li><b>排序：等你 → 剛完成 → 執行中 → 閒置。</b>
+        剛完成排第二而不是第一，因為只有「等你」是有時限的。</li>
+      <li><b>選單列一個 pixel 都不動，也不出聲。</b>
+        這個方向的賭注是「問題不在通知通道」，所以它不碰通知通道 —— 它必須能單獨被證偽。</li>
+    </ol>
+  </div>
+
+  <div class="nc nc--n">
+    <h3>拒絕了什麼</h3>
+    <ol>
+      <li><b>給「完成」一個新色相。</b> 這個 app 已經有三個顏色主張（額度藍/綠/紅、琥珀＝等你）。
+        第四個色相會把面板變成色票本，而且會逼近那條使用者親手釘的紅線。<b>抬起是免費的。</b></li>
+      <li><b>面板頂端一塊「剛完成」區。</b> 使用者已經為了高度拒絕過一張額外的卡；
+        而且一個會出現又消失的區段，會讓底下每一列在它出現的那一瞬間整個跳位。</li>
+      <li><b>右側的 <code>NEW</code> 藥丸。</b> 它會撞到經過時間那一欄，
+        而且藥丸讀起來像一個<b>常駐屬性</b>，不像一個會過期的狀態 —— 與「衰減」這件事的語意相反。</li>
+      <li><b>把「剛完成」排到最上面（比「等你」還前面）。</b>
+        等你是這個 app 裡唯一有時限的狀態。好消息不該把它擠下去。</li>
+      <li><b>在回執裡畫 7 顆綠 pip。</b> <code>SessionRow</code> 已經為這件事寫過註解：
+        「八個 10/10 的綠色 pip 沒有告訴你任何需要知道的事，只是把還在跑的那一個推出畫面。」
+        回執只寫一個數字。</li>
+      <li><b>彈簧 / 滑入 / 閃一下。</b> 抬起用 180ms 交叉淡入，沒有位移、沒有回彈。
+        位移會讓底下的列跟著動，而那些列上可能正有一個你在讀的東西。</li>
+      <li><b>把完成也塞進選單列圖示（瞬時訊號 / 顏色 / 不透明度）。</b>
+        做得到，但那會讓這個方向沒辦法被檢驗 —— 如果兩邊一起改，就不知道是哪一邊救了它。
+        要加也是<b>等這一版被證明不夠</b>之後再加。</li>
+      <li><b>把 T2 <code>batchDrained</code> 也畫成完成列。</b>
+        扇出排空不等於 session 做完（協調者還要寫結論）。兩件事畫成同一個樣子，
+        就是把一個已知的<b>時序差</b>藏進視覺裡。</li>
+    </ol>
+  </div>
+
+  <div class="nc nc--w">
+    <h3>誠實的弱點</h3>
+    <ol>
+      <li><b>抬起是四個通道裡最禁不起材質的一個。</b>
+        面板是 <code>.regularMaterial</code>，底下是使用者任意的桌布。
+        在亮桌布上「比鄰居亮一階」會被材質吃掉一半 —— <b>我押的主通道，正是 OS 有權力削弱的那一個。</b>
+        補償是綠軌與勾，但那就等於在最難的情況下又退回去靠色相。第 7 節的淺色衰減格已經看得出來了。</li>
+      <li><b>它只在你打開面板的時候存在。</b>
+        按 brief 自己的數字，<b>92.6% 的完成不會發出通知</b>；那些完成只有在你 10 分鐘內
+        剛好打開面板時才被看見。對 66% 跑不到三分鐘的 turn 大概會被看見，其餘常常會在沒人看的情況下過期。
+        這是刻意的，但也代表<b>這個方向沒辦法用「使用者有沒有看到」來驗收</b>。</li>
+      <li><b>「跑了多久」有兩個數字，列上只寫得下一個。</b>
+        <code>ranFor</code> 從 <code>unattendedSince</code> 起算，所以
+        <code>waiting → busy → idle</code> 的 turn 會寫「你回覆後 58s」，
+        而使用者記得的是這一輪從頭到尾 20 分鐘。兩個都是真的。
+        我用<b>換動詞</b>去標示時鐘被重設過 —— <b>那是補丁，不是解法</b>。</li>
+      <li><b>「做了多少」最常是空的。</b>
+        一般 Agent 扇出的 agent 完成狀態在這個 repo 仍然是 <code>.unknown</code>
+        （Stage 2 已知缺口），所以 <code>7 個 agent</code> 那一格<b>在最想知道的時候反而寫不出來</b>。
+        寫不出來就不寫 —— 但那代表回執常常只剩一個時間。</li>
+      <li><b>ctx 長條在 70–90% 是黃色的</b>（<code>contextColour</code> 現行行為）。
+        那是這個 app 裡唯一一個不屬於「等你」的黃色，而我把完成回執放在<b>同一行</b>上，
+        等於把這個既有的衝突擺到最顯眼的位置。第 4 節刻意畫了一個 78% 的例子把它露出來，沒有偷偷避開。</li>
+      <li><b>三個同時完成就失效。</b> 抬起是相對的，三列都抬起＝沒有一列抬起（第 5 節第三格）。
+        這不是可以調參數調掉的，是結構性上限。</li>
+      <li><b>沒有「你午餐時完成了三件事」這種東西。</b>
+        10 分鐘後標記就沒了，所以面板永遠說不出「你不在的時候有三件事做完」。
+        這個情況是<b>被放棄的，不是被解掉的</b> —— 要解它需要一份歷史，而歷史需要一塊使用者還沒同意的面板高度。</li>
+    </ol>
+  </div>
+</div>
+
+</div><!-- /.wrap -->
+
+<p class="ft">
+<b>檔案</b> finished-mockups/row-badge.html · 獨立、無網路、CSS 與 SVG 全部內嵌、沒有 emoji（勾與圖示都是內嵌 SVG，近似 SF Symbols）<br>
+<b>尺規</b> 1 CSS px = 1 pt。面板 380pt（<code>PanelView.width</code>）· 列 356pt · 剛完成列 49pt · T1 浮窗 320 × 123pt（<code>AlertView</code>）<br>
+<b>色值</b> 琥珀 #FF9E0A = <code>GlyphRenderer.alert</code> · 綠 #4CD67A / #1E9A55 = <code>QuotaPalette.tight</code> ·
+藍 #4E9BFF / #2975F2 = <code>QuotaPalette.comfortable</code> —— <b>沒有新增任何色值</b><br>
+<b>門檻</b> 90s = 通知 settle window（G2）· 600s = 每 session 預算（G8, 300s）× 2 —— <b>沒有新增任何常數</b><br>
+<b>動畫</b> 只有三個：琥珀軌呼吸 2.4s（既有）· 藍軌光點 2.4s（只在有東西在跑時）· 抬起 180ms 交叉淡入。沒有重複計時器。
+</p>
+</body>
+</html>

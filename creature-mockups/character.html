@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Ruminant</title>
+<style>
+.cr-character{--bg:#0d0f11;--pnl:#15181b;--ln:#262c31;--fg:#e8eaec;--mut:#8b959d;--am:#f0a72b;
+ font:400 14px/1.55 ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif;
+ background:var(--bg);color:var(--fg);padding:32px 16px 72px;min-height:100vh;box-sizing:border-box}
+.cr-character *{box-sizing:border-box}
+.cr-character .wrap{max-width:940px;margin:0 auto}
+.cr-character h1{font:600 26px/1.2 ui-sans-serif,system-ui,sans-serif;margin:0 0 6px;letter-spacing:-.02em}
+.cr-character .sub{color:var(--mut);margin:0 0 34px;max-width:62ch}
+.cr-character h2{font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;
+ text-transform:uppercase;color:var(--mut);margin:0 0 14px;padding-bottom:9px;border-bottom:1px solid var(--ln)}
+.cr-character section{margin:0 0 46px}
+.cr-character .card{background:var(--pnl);border:1px solid var(--ln);border-radius:10px;padding:18px}
+.cr-character .note{color:var(--mut);font-size:12.5px;margin:12px 0 0;max-width:74ch}
+.cr-character .note b{color:var(--fg);font-weight:600}
+.cr-character .defs{position:absolute;width:0;height:0;overflow:hidden}
+.cr-character .mk{display:block;color:inherit}
+.cr-character .mk path,.cr-character .mk rect,.cr-character .mk use,.cr-character .mk text{fill:currentColor}
+.cr-character .mk .am{fill:var(--am)}
+.cr-character .num{font:500 11.5px ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif;
+ font-variant-numeric:tabular-nums;letter-spacing:-.2px;text-anchor:end}
+/* 1 construction */
+.cr-character .cons{background:#f7f7f5;border-radius:10px;padding:14px;overflow-x:auto}
+.cr-character .cons svg{display:block;margin:0 auto;color:#111}
+.cr-character .g1{stroke:#111;stroke-width:.04;opacity:.13;fill:none}
+.cr-character .g2{stroke:#111;stroke-width:.07;opacity:.26;fill:none}
+.cr-character .cc{stroke:#c8452e;stroke-width:.1;fill:none;opacity:.85}
+.cr-character .cx{stroke:#c8452e;stroke-width:.1;opacity:.85}
+.cr-character .tan{stroke:#1f6fb2;stroke-width:.12;fill:none;opacity:.9;stroke-dasharray:.9 .6}
+.cr-character .dim{stroke:#1f6fb2;stroke-width:.1;opacity:.9}
+.cr-character .lbl{font:400 1.35px ui-monospace,Menlo,monospace;fill:#c8452e}
+.cr-character .lbl2{font:400 1.35px ui-monospace,Menlo,monospace;fill:#1f6fb2}
+/* 2 silhouette */
+.cr-character .sil{background:#fff;border-radius:10px;padding:18px;display:flex;gap:34px;align-items:center;flex-wrap:wrap}
+.cr-character .sil svg{color:#000}
+/* 3 menu bar */
+.cr-character .wall{border-radius:10px;overflow:hidden;border:1px solid var(--ln);margin-bottom:14px}
+.cr-character .wall.d{background:linear-gradient(118deg,#1b2a3f 0%,#3a2b4d 46%,#12212e 100%)}
+.cr-character .wall.l{background:linear-gradient(118deg,#dfe7ee 0%,#f3e7dd 46%,#cfd9e2 100%)}
+.cr-character .bar{height:33px;display:flex;align-items:center;gap:13px;padding:0 13px;backdrop-filter:saturate(1.6) blur(14px)}
+.cr-character .wall.d .bar{background:rgba(22,24,28,.46);color:#fff}
+.cr-character .wall.l .bar{background:rgba(255,255,255,.55);color:#000}
+.cr-character .bar .sp{flex:1}
+.cr-character .clk{font:400 13px ui-sans-serif,-apple-system,system-ui,sans-serif;font-variant-numeric:tabular-nums;opacity:.92}
+.cr-character .wall .pad{height:54px}
+/* 4 gallery */
+.cr-character .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:14px}
+.cr-character .st{background:var(--pnl);border:1px solid var(--ln);border-radius:9px;padding:13px}
+.cr-character .st .k{font:500 10.5px/1.3 ui-monospace,Menlo,monospace;letter-spacing:.07em;text-transform:uppercase;color:var(--mut)}
+.cr-character .st .v{font-size:11.5px;color:var(--mut);margin:2px 0 11px;min-height:28px}
+.cr-character .st .real{background:#f7f7f5;border-radius:5px;padding:6px 8px;display:inline-block;color:#000;margin-bottom:9px}
+.cr-character .st .x3{background:#0a0b0c;border:1px solid var(--ln);border-radius:5px;padding:7px;color:#fff;overflow-x:auto}
+/* 5 scenario */
+.cr-character .scn{background:#0a0b0c;border:1px solid var(--ln);border-radius:9px;padding:16px;color:#fff;overflow-x:auto}
+.cr-character .tl{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:16px}
+.cr-character .tl div{font:400 10px/1.35 ui-monospace,Menlo,monospace;color:var(--mut);border-top:1px solid var(--ln);padding-top:6px}
+.cr-character .tl div b{display:block;color:var(--fg);font-weight:600}
+/* scenario animation */
+.cr-character .kanr{transform-box:view-box;transform-origin:0 0;animation:crfill 16s linear infinite}
+.cr-character .bodyg{transform-box:view-box;transform-origin:0 18px;animation:crsettle 16s linear infinite}
+.cr-character .sideg{animation:crside 16s linear infinite}
+.cr-character .turng{opacity:0;animation:crturn 16s linear infinite}
+.cr-character .lid{transform-box:view-box;transform-origin:52px 12.75px;animation:crlid 16s linear infinite}
+.cr-character .aq{transform-box:view-box}
+.cr-character .q1{transform-origin:24.75px 6px;animation:crq1 16s linear infinite}
+.cr-character .q2{transform-origin:28.25px 6px;animation:crq2 16s linear infinite}
+.cr-character .q3{transform-origin:31.75px 6px;animation:crq3 16s linear infinite}
+.cr-character .q4{transform-origin:35.25px 6px;animation:crq4 16s linear infinite}
+.cr-character .q5{transform-origin:38.75px 6px;animation:crq5 16s linear infinite}
+@keyframes crfill{0%,19.9%{transform:scaleX(.4394)}21.4%,100%{transform:scaleX(.4848)}}
+@keyframes crsettle{0%,91.2%{transform:scaleY(1)}92%{transform:scaleY(.955)}93.6%,100%{transform:scaleY(1)}}
+@keyframes crside{0%,50%{opacity:1}51.38%,75%{opacity:0}76.38%,100%{opacity:1}}
+@keyframes crturn{0%,50%{opacity:0}51.38%,75%{opacity:1}76.38%,100%{opacity:0}}
+@keyframes crlid{0%,12.4%{transform:scaleY(1)}12.6%,65.6%{transform:scaleY(0)}66.5%{transform:scaleY(1)}67.4%,92.8%{transform:scaleY(0)}93.4%,100%{transform:scaleY(1)}}
+@keyframes crq1{0%,12.5%{transform:scaleY(0);opacity:1}13.5%,77.5%{transform:scaleY(1);opacity:1}78.25%{transform:scaleY(1.15);opacity:1}81.88%,100%{transform:translateY(-5.2px) scaleY(1.15);opacity:0}}
+@keyframes crq2{0%,18.75%{transform:scaleY(0);opacity:1}19.75%,80.63%{transform:scaleY(1);opacity:1}81.38%{transform:scaleY(1.15);opacity:1}85%,100%{transform:translateY(-5.2px) scaleY(1.15);opacity:0}}
+@keyframes crq3{0%,19.38%{transform:scaleY(0);opacity:1}20.38%,37.5%{transform:scaleY(1);opacity:1}38.25%{transform:scaleY(1.15);opacity:1}41.88%,100%{transform:translateY(-5.2px) scaleY(1.15);opacity:0}}
+@keyframes crq4{0%,20%{transform:translateX(0) scaleY(0);opacity:1}21%,41.88%{transform:translateX(0) scaleY(1);opacity:1}43%,83.75%{transform:translateX(-3.5px) scaleY(1);opacity:1}84.5%{transform:translateX(-3.5px) scaleY(1.15);opacity:1}88.13%,100%{transform:translateX(-3.5px) translateY(-5.2px) scaleY(1.15);opacity:0}}
+@keyframes crq5{0%,20.63%{transform:translateX(0) scaleY(0);opacity:1}21.63%,41.88%{transform:translateX(0) scaleY(1);opacity:1}43%,86.88%{transform:translateX(-3.5px) scaleY(1);opacity:1}87.63%{transform:translateX(-3.5px) scaleY(1.15);opacity:1}91.25%,100%{transform:translateX(-3.5px) translateY(-5.2px) scaleY(1.15);opacity:0}}
+@media (prefers-reduced-motion:reduce){.cr-character .kanr,.cr-character .bodyg,.cr-character .sideg,.cr-character .turng,.cr-character .lid,.cr-character .q1,.cr-character .q2,.cr-character .q3,.cr-character .q4,.cr-character .q5{animation:none!important}.cr-character .turng{opacity:0}.cr-character .lid{transform:scaleY(0)}.cr-character .kanr{transform:scaleX(.4848)}}
+</style>
+</head>
+<body>
+<div class="cr-character">
+<div class="wrap">
+
+<h1>The Ruminant</h1>
+<p class="sub">A 66&times;22pt menu-bar mark for QuotaMonster. Three radii, one stroke weight, two counters, three opacity plateaus. The body <em>is</em> the 5-hour gauge; the ground <em>is</em> the week. One eye, never two.</p>
+
+<!-- ============ shared defs ============ -->
+<svg class="defs" viewBox="0 0 66 22" aria-hidden="true"><defs>
+<path id="cr-bd" fill-rule="evenodd" d="M18 12C17.4 9.4 16.2 6.4 15.2 4.2C17.2 5.4 18.8 6.6 19.8 7.8A6 6 0 0 1 24 6L43 6A6 6 0 0 1 49 12C49.8 10.2 50.8 9.6 52.4 9.2C55.2 9.4 57.4 11 58 13.8C58.2 15.4 57 16.4 55.4 16.6C53.4 17 51 17.4 49.2 18L24 18A6 6 0 0 1 18 12ZM37 12h2v4h-2ZM51 11h2v3.5h-2Z"/>
+<path id="cr-bdt" fill-rule="evenodd" d="M18 12C17.4 9.4 16.2 6.4 15.2 4.2C17.2 5.4 18.8 6.6 19.8 7.8A6 6 0 0 1 24 6L43 6A6 6 0 0 1 49 12C49.8 10 50.6 8.9 52.6 8.7C55 8.9 56.4 10.6 56.6 12.6C56.8 14.8 55.8 16.3 54.2 16.9C53 17.4 51 17.7 49.2 18L24 18A6 6 0 0 1 18 12ZM37 12h2v4h-2ZM50.5 10.2h2.5v4.5h-2.5Z"/>
+<path id="cr-sil" d="M18 12C17.4 9.4 16.2 6.4 15.2 4.2C17.2 5.4 18.8 6.6 19.8 7.8A6 6 0 0 1 24 6L43 6A6 6 0 0 1 49 12C49.8 10.2 50.8 9.6 52.4 9.2C55.2 9.4 57.4 11 58 13.8C58.2 15.4 57 16.4 55.4 16.6C53.4 17 51 17.4 49.2 18L24 18A6 6 0 0 1 18 12Z"/>
+<rect id="cr-q" x="0" y="3" width="1.5" height="3"/>
+<rect id="cr-qm" x="0" y="2" width="1.5" height="4"/>
+<rect id="cr-qt" x="0" y="1.2" width="1.5" height="4.8"/>
+<rect id="cr-lid" x="51" y="11" width="2" height="3.5"/>
+<clipPath id="cr-k23"><rect x="0" y="0" width="23" height="22"/></clipPath>
+<clipPath id="cr-k25"><rect x="0" y="0" width="25" height="22"/></clipPath>
+<clipPath id="cr-k29"><rect x="0" y="0" width="29" height="22"/></clipPath>
+<clipPath id="cr-k35"><rect x="0" y="0" width="35.5" height="22"/></clipPath>
+<clipPath id="cr-k43"><rect x="0" y="0" width="43" height="22"/></clipPath>
+<clipPath id="cr-k52"><rect x="0" y="0" width="52" height="22"/></clipPath>
+<clipPath id="cr-kall"><rect x="0" y="0" width="66" height="22"/></clipPath>
+<clipPath id="cr-kan"><rect class="kanr" x="0" y="0" width="66" height="22"/></clipPath>
+<g id="cr-gnd18"><rect x="15" y="18" width="43" height="1.5" opacity=".25"/><rect x="15" y="18" width="35.5" height="1.5"/></g>
+<g id="cr-wifi"><path d="M4.3 12.5A7 7 0 0 1 15.7 12.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M6.4 14A4.4 4.4 0 0 1 13.6 14" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="10" cy="15.9" r="1.4" fill="currentColor"/></g>
+<g id="cr-bat"><rect x="1" y="7.5" width="18" height="7.5" rx="2.4" fill="none" stroke="currentColor" stroke-width="1.3"/><rect x="2.9" y="9.4" width="10" height="3.7" rx="1.2" fill="currentColor"/><rect x="20.2" y="9.9" width="1.4" height="2.7" rx=".7" fill="currentColor"/></g>
+
+<!-- state groups -->
+<g id="cr-sA"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k23)"><use href="#cr-bd"/></g><use href="#cr-lid"/><rect x="15" y="18" width="43" height="1.5" opacity=".25"/><rect x="15" y="18" width="39" height="1.5"/><text class="num" x="13.5" y="15.5">12</text></g>
+<g id="cr-sB"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k25)"><use href="#cr-bd"/></g><use href="#cr-q" x="24"/><use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">18</text></g>
+<g id="cr-sC"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k29)"><use href="#cr-bd"/></g><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-q" x="34.5"/><use href="#cr-q" x="38"/><use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">28</text></g>
+<g id="cr-sD"><g transform="translate(0,18) scale(1,1.05) translate(0,-18)"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k35)"><use href="#cr-bd"/></g></g><g transform="translate(0,-0.6) translate(0,6) skewX(-11) translate(0,-6)"><use href="#cr-qt" x="24"/><use href="#cr-qt" x="27.5"/><use href="#cr-qt" x="31"/><use href="#cr-qt" x="34.5"/><use href="#cr-qt" x="38"/><use href="#cr-qt" x="41.5"/></g><use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">44</text></g>
+<g id="cr-sE"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k52)"><use href="#cr-bd"/></g><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">85</text></g>
+<g id="cr-sF"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-kall)" opacity=".55"><use href="#cr-bd"/></g><g clip-path="url(#cr-k29)"><use href="#cr-bd"/></g><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-q" x="34.5"/><use href="#cr-q" x="38"/><rect x="59.5" y="11" width="1.5" height="3"/><rect x="63" y="11" width="1.5" height="3"/><use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">28</text></g>
+<g id="cr-sG"><g transform="translate(0,18) scale(1,.875) translate(0,-18)"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k43)"><use href="#cr-bd"/></g><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/></g><rect x="15" y="18" width="43" height="1.5" opacity=".25"/><rect x="15" y="18" width="4" height="1.5"/><rect x="17.5" y="18" width="1.5" height="3"/><text class="num" x="13.5" y="15.5">62</text></g>
+<g id="cr-sH"><use href="#cr-bdt" opacity=".25"/><g clip-path="url(#cr-k29)"><use href="#cr-bdt"/></g><rect class="am" x="50.5" y="10.2" width="2.5" height="4.5"/><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-q" x="34.5"/><use href="#cr-q" x="38"/><use href="#cr-gnd18"/><rect class="am" x="52" y="19.5" width="1.5" height="1.5"/><text class="num" x="13.5" y="15.5">28</text></g>
+<g id="cr-sI"><use href="#cr-bdt" opacity=".25"/><g clip-path="url(#cr-k29)"><use href="#cr-bdt"/></g><rect class="am" x="50.5" y="10.2" width="2.5" height="4.5"/><use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-q" x="34.5"/><use href="#cr-q" x="38"/><use href="#cr-gnd18"/><rect class="am" x="52" y="19.5" width="1.5" height="1.5"/><rect class="am" x="55" y="19.5" width="1.5" height="1.5"/><text class="num" x="13.5" y="15.5">28</text></g>
+<g id="cr-sJ" opacity=".35"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-k29)"><use href="#cr-bd"/></g><use href="#cr-lid"/><rect x="15" y="18" width="6" height="1.5"/><rect x="26" y="18" width="6" height="1.5"/><rect x="37" y="18" width="6" height="1.5"/><rect x="48" y="18" width="6" height="1.5"/><text class="num" x="13.5" y="15.5">28</text></g>
+
+<!-- live scenario -->
+<g id="cr-scn">
+  <g class="bodyg">
+    <g class="sideg"><use href="#cr-bd" opacity=".25"/><g clip-path="url(#cr-kan)"><use href="#cr-bd"/></g></g>
+    <g class="turng"><use href="#cr-bdt" opacity=".25"/><g clip-path="url(#cr-kan)"><use href="#cr-bdt"/></g><rect class="am" x="50.5" y="10.2" width="2.5" height="4.5"/><rect class="am" x="52" y="19.5" width="1.5" height="1.5"/></g>
+    <use class="lid" href="#cr-lid"/>
+  </g>
+  <use class="aq q1" href="#cr-q" x="24"/><use class="aq q2" href="#cr-q" x="27.5"/><use class="aq q3" href="#cr-q" x="31"/><use class="aq q4" href="#cr-q" x="34.5"/><use class="aq q5" href="#cr-q" x="38"/>
+  <use href="#cr-gnd18"/><text class="num" x="13.5" y="15.5">28</text>
+</g>
+</defs></svg>
+
+<!-- ============ 1 construction ============ -->
+<section>
+<h2>1 &nbsp;Construction &mdash; 8&times;</h2>
+<div class="cons">
+<svg viewBox="0 0 66 22" width="528" height="176" class="mk" role="img" aria-label="Construction drawing at eight times scale">
+  <g class="g1">
+    <path d="M1 0V22M2 0V22M3 0V22M5 0V22M7 0V22M9 0V22M11 0V22M13 0V22M15 0V22M17 0V22M19 0V22M21 0V22M23 0V22M25 0V22M27 0V22M29 0V22M31 0V22M33 0V22M35 0V22M37 0V22M39 0V22M41 0V22M43 0V22M45 0V22M47 0V22M49 0V22M51 0V22M53 0V22M55 0V22M57 0V22M59 0V22M61 0V22M63 0V22M65 0V22"/>
+    <path d="M0 1H66M0 3H66M0 5H66M0 7H66M0 9H66M0 11H66M0 13H66M0 15H66M0 17H66M0 19H66M0 21H66"/>
+  </g>
+  <g class="g2"><path d="M0 0H66M0 22H66M0 0V22M66 0V22M0 2H66M0 4H66M0 6H66M0 8H66M0 10H66M0 12H66M0 14H66M0 16H66M0 18H66M0 20H66M4 0V22M8 0V22M12 0V22M16 0V22M20 0V22M24 0V22M28 0V22M32 0V22M36 0V22M40 0V22M44 0V22M48 0V22M52 0V22M56 0V22M60 0V22M64 0V22"/></g>
+  <!-- keylines -->
+  <g class="tan"><path d="M18 6H49"/><path d="M18 18H49"/><path d="M0 3H66"/><path d="M0 19.5H66"/><path d="M38 6V18"/></g>
+  <!-- construction circles -->
+  <g class="cc"><circle cx="24" cy="12" r="6"/><circle cx="43" cy="12" r="6"/><circle cx="52" cy="13" r="4"/><circle cx="56" cy="14" r="2"/></g>
+  <g class="cx"><path d="M22.8 12h2.4M24 10.8v2.4M41.8 12h2.4M43 10.8v2.4M50.8 13h2.4M52 11.8v2.4M54.8 14h2.4M56 12.8v2.4"/></g>
+  <!-- final shape -->
+  <use href="#cr-bd" opacity=".9"/>
+  <use href="#cr-q" x="24"/><use href="#cr-q" x="27.5"/><use href="#cr-q" x="31"/><use href="#cr-q" x="34.5"/><use href="#cr-q" x="38"/><use href="#cr-q" x="41.5"/>
+  <rect x="15" y="18" width="43" height="1.5" opacity=".25"/><rect x="15" y="18" width="35.5" height="1.5"/>
+  <text class="num" x="13.5" y="15.5">28</text>
+  <!-- labels -->
+  <g class="lbl"><text x="21.4" y="4.6">R6</text><text x="40.4" y="4.6">R6</text><text x="50.6" y="8.2">R4</text><text x="57.4" y="17.4">R2</text></g>
+  <g class="lbl2">
+    <text x="24" y="2.2">1.5 ink / 2.0 counter, pitch 3.5</text>
+    <text x="0.4" y="2.2">cap y=3</text>
+    <text x="0.4" y="21.2">ground y=18&ndash;19.5 (1.5)</text>
+    <text x="34" y="21.2">50% keyline x=38</text>
+    <text x="44.2" y="21.2">gauge x0=18 &rarr; x1=58, L=40 (1pt=2.5%)</text>
+  </g>
+  <g class="dim"><path d="M38 20.2V18.6M24 2.6V3.4M43 2.6V3.4"/></g>
+</svg>
+</div>
+<p class="note"><b>Read it as a glyph, not a picture.</b> Two R6 circles at (24,12) and (43,12) are joined on their common tangents at y=6 and y=18 &mdash; that capsule is the vessel, and the 19pt flat between the tangent points is exactly what six 1.5pt quills at 3.5pt pitch need (1.5 ink + 2.0 counter, the measured 1&times; floor). Head is R4 at (52,13), muzzle R2 at (56,14), snout tip x=58. Three radii, no fourth. Every edge lands on a whole or half point; 1.5pt elements sit on half-point centrelines so their three device pixels land whole at 2&times;. The girth counter is not decoration &mdash; centred on x=38 it <em>is</em> the 50% mark of the 40pt gauge, so the fill edge always has a landmark beside it.</p>
+</section>
+
+<!-- ============ 2 silhouette ============ -->
+<section>
+<h2>2 &nbsp;Silhouette test</h2>
+<div class="sil">
+  <svg class="mk" viewBox="0 0 66 22" width="66" height="22" role="img" aria-label="Silhouette at real size"><use href="#cr-sil"/></svg>
+  <svg class="mk" viewBox="0 0 66 22" width="198" height="66" role="img" aria-label="Silhouette at three times"><use href="#cr-sil"/></svg>
+</div>
+<p class="note"><b>It passes, with one caveat I will not hide.</b> As solid mass with every counter, quill and ground element removed, it still reads as a low grazing animal facing right: rump, dead-flat back, dropped head, blunt snout, tail hook. Ink coverage of its bounding box is roughly 44%, inside the 35&ndash;60% band that separates marks that survive 16px from marks that smear &mdash; and it is mass, not outline, which is the actual difference. The caveat: without the ground line under it the creature floats and the tail hook is the weakest passage, because it is the only place the drawing goes below 1.5pt of width. In shipping form the ground is always present, so it never appears alone like this.</p>
+</section>
+
+<!-- ============ 3 menu bar ============ -->
+<section>
+<h2>3 &nbsp;In the bar &mdash; real size</h2>
+<div class="wall d">
+  <div class="bar">
+    <span class="sp"></span>
+    <svg class="mk" viewBox="0 0 66 22" width="66" height="22" aria-label="QuotaMonster"><use href="#cr-sF"/></svg>
+    <svg class="mk" viewBox="0 0 26 22" width="26" height="22" aria-label="Battery"><use href="#cr-bat"/></svg>
+    <svg class="mk" viewBox="0 0 20 22" width="20" height="22" aria-label="Wi-Fi"><use href="#cr-wifi"/></svg>
+    <span class="clk">Thu 2:15</span>
+  </div>
+  <div class="pad"></div>
+</div>
+<div class="wall l">
+  <div class="bar">
+    <span class="sp"></span>
+    <svg class="mk" viewBox="0 0 66 22" width="66" height="22" aria-label="QuotaMonster"><use href="#cr-sF"/></svg>
+    <svg class="mk" viewBox="0 0 26 22" width="26" height="22" aria-label="Battery"><use href="#cr-bat"/></svg>
+    <svg class="mk" viewBox="0 0 20 22" width="20" height="22" aria-label="Wi-Fi"><use href="#cr-wifi"/></svg>
+    <span class="clk">Thu 2:15</span>
+  </div>
+  <div class="pad"></div>
+</div>
+<p class="note"><b>Optical weight against the system glyphs.</b> The battery and Wi-Fi beside it are drawn at 1.3&ndash;1.5pt on the same 22pt working area, and the Ruminant's 1.5pt is deliberately a hair heavier because it is mostly filled mass rather than outline &mdash; filled forms read lighter per unit of stroke than a ring does. The 25% empty vessel is what keeps it from becoming a black puck: only about a third of the mark is at full ink. On the light bar the same path gains apparent weight through irradiation, which is why the empty plateau sits at 25% rather than 35%; if it went higher the light-bar version would look muddy.</p>
+</section>
+
+<!-- ============ 4 gallery ============ -->
+<section>
+<h2>4 &nbsp;State gallery &mdash; real size and 3&times;</h2>
+<div class="grid">
+
+<div class="st"><div class="k">Idle &middot; 0 agents</div><div class="v">12% used. Smooth back, aperture closed, body perfectly still.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sA"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sA"/></svg></div></div>
+
+<div class="st"><div class="k">1 agent</div><div class="v">18% used. One quill; the aperture opens.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sB"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sB"/></svg></div></div>
+
+<div class="st"><div class="k">5 agents</div><div class="v">28% used, no burn projection. Five quills from the rear forward.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sC"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sC"/></svg></div></div>
+
+<div class="st"><div class="k">10+ agents</div><div class="v">44%. Six quills at 1.6&times; height, sheared 11&deg; forward, spine arched 5%. Breaks the 3pt top margin on purpose.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sD"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sD"/></svg></div></div>
+
+<div class="st"><div class="k">High quota &middot; 85%</div><div class="v">Solid fill reaches the jaw. The girth counter is swallowed, which is itself the signal: past 50%.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sE"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sE"/></svg></div></div>
+
+<div class="st"><div class="k">Burn overrun &middot; real data</div><div class="v">28% solid, 92%/h. Ghost pins at the snout; two ticks = exhaustion inside the hour. 7-day 18%.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sF"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sF"/></svg></div></div>
+
+<div class="st"><div class="k">7-day binding</div><div class="v">91% of the week gone. Ground ends in a cliff at x=19, stub drops below the band, body crouches 12.5%.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sG"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sG"/></svg></div></div>
+
+<div class="st"><div class="k">Needs input &middot; 1 blocked</div><div class="v">Head turns, snout foreshortens, one amber aperture, one notch below the line. Gauge stays readable.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sH"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sH"/></svg></div></div>
+
+<div class="st"><div class="k">Needs input &middot; 2 blocked</div><div class="v">Still one eye. The count lives in the notches, never in the face.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sI"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sI"/></svg></div></div>
+
+<div class="st"><div class="k">Stale data</div><div class="v">Whole mark to 35%, last-known fill held, aperture closed, ground broken into dashes.</div>
+<div class="real"><svg class="mk" viewBox="0 0 66 22" width="66" height="22"><use href="#cr-sJ"/></svg></div>
+<div class="x3"><svg class="mk" viewBox="0 0 66 22" width="198" height="66"><use href="#cr-sJ"/></svg></div></div>
+
+</div>
+<p class="note"><b>The numeral means one thing in every state: percent of the 5-hour window used.</b> It never swaps to a wait time. That was the Grazer's worst bug &mdash; a digit that changes meaning is worse than no digit &mdash; and the cost of fixing it is that exact wait duration now lives in the dropdown, with the mark carrying only the three severity bands of the notches. Agent count above six is likewise a two-band texture (7&ndash;9 medium, 10+ tall and sheared) rather than a count, because six 1.5pt quills with 2pt counters is all 19pt of ridge can hold.</p>
+</section>
+
+<!-- ============ 5 scenario ============ -->
+<section>
+<h2>5 &nbsp;Live scenario &mdash; 16s loop</h2>
+<div class="scn">
+  <svg class="mk" viewBox="0 0 66 22" width="396" height="132" role="img" aria-label="Animated scenario at six times"><use href="#cr-scn"/></svg>
+  <div style="margin-top:14px"><svg class="mk" viewBox="0 0 66 22" width="66" height="22" aria-hidden="true"><use href="#cr-scn"/></svg></div>
+</div>
+<div class="tl">
+  <div><b>0.0&ndash;2.0</b>Idle. Zero motion, aperture shut.</div>
+  <div><b>2.0</b>One agent. Quill rises, 160ms.</div>
+  <div><b>3.0&ndash;3.3</b>Fan-out to five, staggered 100ms.</div>
+  <div><b>3.2</b>Fill steps 28&rarr;33%, 240ms.</div>
+  <div><b>6.0&ndash;6.7</b>Agent done: flick 120ms, rise 5.2pt + fade 580ms.</div>
+  <div><b>6.7&ndash;6.88</b>Spine re-spaces, 180ms.</div>
+  <div><b>8.0</b>Session blocks: head turns, 220ms. Blink at 10.5s.</div>
+  <div><b>12.0&ndash;14.9</b>Clears, agents finish, settle 260ms, then still.</div>
+</div>
+<p class="note"><b>Every animation here is event-triggered and terminates.</b> The only clock-driven motion is the blink while blocked, once per 60s with a hard stop at 10 minutes (<code>animation-iteration-count:10</code>). After the settle at 14.9s nothing moves at all until the next event &mdash; the stillness is the completion signal. <code>prefers-reduced-motion</code> freezes every state to its static end frame with no information lost. One honest shortcut in this demo: the 220ms turn is a cross-dissolve between two silhouettes rather than a true path interpolation; shipping it means giving both paths identical node counts and tweening them in Core Graphics.</p>
+</section>
+
+</div>
+</div>
+</body>
+</html>

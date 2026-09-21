@@ -1,0 +1,465 @@
+<div class="mb-dual">
+<style>
+/* ============ QuotaMonster · CHANNEL · all rules scoped to .mb-dual ============ */
+.mb-dual{
+  --bg:#0a0b0f; --panel:#121419; --panel2:#171a21; --bd:rgba(255,255,255,.085);
+  --tx:#e8eaf0; --tx2:#98a0b2; --tx3:#616a7e; --acc:#FF2D55;
+  background:var(--bg); color:var(--tx); border-radius:16px; padding:30px 30px 36px;
+  font:13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased; max-width:1180px;
+}
+.mb-dual *{box-sizing:border-box}
+.mb-dual h2{font:600 22px/1.2 inherit;margin:0 0 6px;letter-spacing:-.4px}
+.mb-dual h3{font:600 11px/1.2 inherit;margin:34px 0 12px;letter-spacing:1.3px;text-transform:uppercase;color:var(--tx3)}
+.mb-dual h3:first-of-type{margin-top:26px}
+.mb-dual p{margin:0 0 10px;color:var(--tx2);max-width:74ch}
+.mb-dual b.k{color:var(--tx);font-weight:600}
+.mb-dual .lede{font-size:14.5px;color:var(--tx);max-width:80ch}
+.mb-dual .hr{height:1px;background:var(--bd);margin:26px 0 0}
+
+/* ---------- channel primer ---------- */
+.mb-dual .prim{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0 4px}
+.mb-dual .prim div{background:var(--panel);border:1px solid var(--bd);border-radius:11px;padding:13px 14px}
+.mb-dual .prim h4{font:600 12px/1.3 inherit;margin:0 0 5px;color:var(--tx);letter-spacing:.1px}
+.mb-dual .prim p{font-size:11.5px;line-height:1.5;margin:0;color:var(--tx2)}
+.mb-dual .prim em{font-style:normal;color:var(--acc)}
+
+/* ---------- THE ICON ---------- */
+.mb-dual .qm{display:inline-flex;align-items:center;gap:4px;width:76px;height:22px;padding:0 4px;flex:0 0 76px}
+.mb-dual .qmn{width:28px;flex:0 0 28px;text-align:right;font-size:11px;line-height:1;font-weight:590;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;letter-spacing:-.15px;color:var(--ink)}
+.mb-dual .qmp{display:block;overflow:visible}
+.mb-dual .qmp *{shape-rendering:geometricPrecision}
+
+/* floor = the 5-hour window */
+.mb-dual .hist{fill:var(--ink);stroke:var(--ink);stroke-width:.9;stroke-linejoin:round}
+.mb-dual .gnd{stroke:var(--ink4);stroke-width:1}
+.mb-dual .rst{stroke:var(--ink3);stroke-width:.9}
+.mb-dual .proj{stroke:var(--ink);stroke-width:1;stroke-dasharray:1.6 1.2;
+  transform-box:view-box;transform-origin:20.16px 11.94px;transform:rotate(var(--rot,-61.64deg));opacity:.92}
+.mb-dual .dry{fill:url(#mbdual-hD)}
+.mb-dual [data-bar="light"] .dry{fill:url(#mbdual-hL)}
+.mb-dual .tk{stroke:var(--ink4);stroke-width:.75}
+.mb-dual .cap{stroke:var(--ink);stroke-width:1.1;stroke-linecap:butt}
+
+/* roof = the 7-day window */
+.mb-dual .rl{stroke:var(--ink3);stroke-width:1;stroke-dasharray:.85 1.5}
+.mb-dual .rf{stroke:var(--ink);stroke-width:1}
+.mb-dual .rt{stroke:var(--ink2);stroke-width:.85}
+.mb-dual .rghost{stroke:var(--ink3);stroke-width:.8;stroke-dasharray:1 1.7}
+.mb-dual .bind .rf,.mb-dual .bind .rl{stroke-width:1.5}
+
+/* live edge = agents */
+.mb-dual .ag rect{fill:var(--ink);transform-box:fill-box;transform-origin:bottom}
+.mb-dual .inc{fill:var(--ink);transform-box:fill-box;transform-origin:bottom}
+.mb-dual .glow{stroke:var(--ink);stroke-width:.9;stroke-linecap:round}
+.mb-dual .rip{fill:var(--ink);transform-box:fill-box;transform-origin:center}
+.mb-dual .swp{fill:url(#mbdual-sD)}
+.mb-dual [data-bar="light"] .swp{fill:url(#mbdual-sL)}
+.mb-dual .sink{opacity:.42;transform:translateY(2.1px)}
+
+/* blocked = state change of the whole object */
+.mb-dual .blk{transform-box:fill-box;transform-origin:bottom}
+.mb-dual .bb{fill:var(--ink)}
+.mb-dual .slit{stroke:var(--acc);stroke-width:.9;stroke-linecap:butt}
+.mb-dual .tally{fill:var(--acc);transform-box:fill-box;transform-origin:left}
+.mb-dual .flare{fill:none;stroke:var(--acc);stroke-width:1}
+
+/* stale = ink withdrawn */
+.mb-dual .stale .hist{fill:none;stroke:var(--ink3);stroke-width:.8;stroke-dasharray:1.7 1.5}
+.mb-dual .stale .rst,.mb-dual .stale .gnd{stroke:var(--ink4)}
+.mb-dual .stale .rf{stroke:var(--ink3);stroke-dasharray:1.7 1.5}
+.mb-dual .stale .rt{stroke:var(--ink4)}
+.mb-dual .stale .qmn,.mb-dual .qm.stale .qmn{color:var(--ink3)}
+
+/* ---------- menu bars ---------- */
+.mb-dual .wall{position:relative;border-radius:12px;overflow:hidden;border:1px solid var(--bd)}
+.mb-dual .wall .sky{position:absolute;inset:0}
+.mb-dual .wall--l .sky{background:
+  radial-gradient(60% 120% at 12% -10%,#fff6e6 0%,rgba(255,246,230,0) 60%),
+  radial-gradient(50% 130% at 82% 120%,#cfe6f7 0%,rgba(207,230,247,0) 62%),
+  linear-gradient(120deg,#f7e4cf 0%,#f0d3bb 30%,#d8e3ef 62%,#eef4fb 100%)}
+.mb-dual .wall--d .sky{background:
+  radial-gradient(55% 130% at 18% -20%,#3a2b5e 0%,rgba(58,43,94,0) 62%),
+  radial-gradient(50% 120% at 88% 130%,#0d4a55 0%,rgba(13,74,85,0) 60%),
+  linear-gradient(125deg,#161a30 0%,#221b38 34%,#0e2733 70%,#070d14 100%)}
+.mb-dual .wall--x .sky{background:
+  repeating-linear-gradient(58deg,#f2f2f2 0 9px,#101010 9px 18px),
+  linear-gradient(90deg,#ff5a3c,#ffd23c 25%,#2fd27a 50%,#3c9bff 75%,#c04cff)}
+.mb-dual .wall--x .sky{background-blend-mode:overlay}
+.mb-dual .wall .body{position:relative;height:74px}
+.mb-dual .mbar{position:relative;height:33px;display:flex;align-items:center;justify-content:flex-end;
+  gap:13px;padding:0 9px 0 12px;backdrop-filter:blur(26px) saturate(1.6);-webkit-backdrop-filter:blur(26px) saturate(1.6)}
+.mb-dual .wall--l .mbar{background:rgba(255,255,255,.52);--ink:rgba(0,0,0,.88);--ink2:rgba(0,0,0,.52);--ink3:rgba(0,0,0,.27);--ink4:rgba(0,0,0,.14)}
+.mb-dual .wall--d .mbar{background:rgba(6,8,14,.44);--ink:rgba(255,255,255,.95);--ink2:rgba(255,255,255,.58);--ink3:rgba(255,255,255,.30);--ink4:rgba(255,255,255,.16)}
+.mb-dual .wall--x .mbar{background:rgba(10,10,14,.40);--ink:rgba(255,255,255,.97);--ink2:rgba(255,255,255,.62);--ink3:rgba(255,255,255,.34);--ink4:rgba(255,255,255,.19)}
+.mb-dual .mbar .left{margin-right:auto;display:flex;align-items:center;gap:14px}
+.mb-dual .nb{color:var(--ink);opacity:.82;display:block}
+.mb-dual .clk{color:var(--ink);font-size:11.5px;font-weight:500;letter-spacing:.1px;font-variant-numeric:tabular-nums}
+.mb-dual .barcap{display:flex;gap:10px;align-items:baseline;margin:0 0 7px}
+.mb-dual .barcap span{font-size:11px;color:var(--tx3);letter-spacing:.3px}
+.mb-dual .barcap b{font-size:11px;font-weight:600;color:var(--tx2)}
+.mb-dual .bars{display:grid;gap:16px;margin-top:14px}
+
+/* ---------- gallery ---------- */
+.mb-dual .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:10px}
+.mb-dual .tile{align-self:start;background:var(--panel);border:1px solid var(--bd);border-radius:11px;overflow:hidden}
+.mb-dual .chip{height:33px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(125deg,#1b2036,#101b24);
+  --ink:rgba(255,255,255,.95);--ink2:rgba(255,255,255,.58);--ink3:rgba(255,255,255,.30);--ink4:rgba(255,255,255,.16)}
+.mb-dual .chip[data-bar="light"]{background:linear-gradient(125deg,#efe2d2,#dbe6f0);
+  --ink:rgba(0,0,0,.88);--ink2:rgba(0,0,0,.52);--ink3:rgba(0,0,0,.27);--ink4:rgba(0,0,0,.14)}
+.mb-dual .tile figcaption{padding:9px 11px 11px;border-top:1px solid var(--bd)}
+.mb-dual .tile .t{font-size:11.5px;font-weight:600;color:var(--tx);letter-spacing:.1px}
+.mb-dual .tile .d{font-size:10.5px;line-height:1.45;color:var(--tx3);margin-top:3px}
+.mb-dual .tile .d em{font-style:normal;color:var(--tx2)}
+
+/* ---------- scenario ---------- */
+.mb-dual .scwrap{background:var(--panel);border:1px solid var(--bd);border-radius:13px;padding:16px 16px 14px}
+.mb-dual .loupe{height:74px;display:flex;align-items:center;padding-left:14px;border-radius:9px;margin-top:14px;
+  background:linear-gradient(125deg,#1b2036,#0e1a23);
+  --ink:rgba(255,255,255,.95);--ink2:rgba(255,255,255,.58);--ink3:rgba(255,255,255,.30);--ink4:rgba(255,255,255,.16)}
+.mb-dual .loupe .z{transform:scale(3);transform-origin:left center}
+.mb-dual .rail{position:relative;height:86px;margin-top:16px;border-top:1px solid var(--bd)}
+.mb-dual .rail i{position:absolute;top:0;width:1px;height:7px;background:var(--bd)}
+.mb-dual .rail u{position:absolute;top:10px;font-style:normal;text-decoration:none;font-size:9.5px;line-height:1.35;
+  color:var(--tx3);transform:translateX(-1px);max-width:108px;letter-spacing:.1px}
+.mb-dual .rail u.lo{top:44px}
+.mb-dual .rail u b{display:block;color:var(--tx2);font-weight:600;font-size:9.5px}
+.mb-dual .rail .ph{position:absolute;top:-1px;height:2px;background:var(--tx3);opacity:.32}
+.mb-dual .rail .ph.hot{background:var(--acc);opacity:.85}
+.mb-dual .runner{position:absolute;top:-4px;width:2px;height:8px;background:var(--acc);border-radius:1px;
+  animation:mbdual-run 19s linear infinite}
+@keyframes mbdual-run{from{left:0}to{left:100%}}
+
+/* ---------- notes ---------- */
+.mb-dual .notes{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mb-dual .note{background:var(--panel);border:1px solid var(--bd);border-radius:11px;padding:14px 15px}
+.mb-dual .note h4{font:600 11px/1.2 inherit;letter-spacing:1.1px;text-transform:uppercase;color:var(--tx3);margin:0 0 9px}
+.mb-dual .note ul{margin:0;padding-left:16px}
+.mb-dual .note li{font-size:11.5px;line-height:1.6;color:var(--tx2);margin-bottom:5px}
+.mb-dual .note li b{color:var(--tx);font-weight:600}
+.mb-dual .note li code{font:11px/1 ui-monospace,"SF Mono",Menlo,monospace;color:var(--tx);background:var(--panel2);
+  padding:1px 4px;border-radius:3px}
+
+/* ================= SCENARIO KEYFRAMES · 19s loop ================= */
+.mb-dual .scene .dia{animation:mbdual-dia 19s linear infinite}
+.mb-dual .scene .proj{animation:mbdual-proj 19s linear infinite}
+.mb-dual .scene .dry{animation:mbdual-dry 19s linear infinite}
+.mb-dual .scene .inc{animation:mbdual-inc 19s steps(1,end) infinite}
+.mb-dual .scene .glow{animation:mbdual-glow 19s linear infinite}
+.mb-dual .scene .rip{animation:mbdual-rip 19s linear infinite}
+.mb-dual .scene .swp{animation:mbdual-swp 19s linear infinite}
+.mb-dual .scene .cap{animation:mbdual-cap 19s steps(1,end) infinite}
+.mb-dual .scene .blk{animation:mbdual-blk 19s cubic-bezier(.22,1.2,.36,1) infinite}
+.mb-dual .scene .slit{animation:mbdual-slit 19s steps(1,end) infinite}
+.mb-dual .scene .tally{animation:mbdual-tally 19s linear infinite}
+.mb-dual .scene .flare{animation:mbdual-flare 19s linear infinite}
+.mb-dual .scene .c1{animation:mbdual-c1 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c2{animation:mbdual-c2 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c3{animation:mbdual-c3 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c4{animation:mbdual-c4 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c5{animation:mbdual-c5 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c6{animation:mbdual-c6 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .scene .c7{animation:mbdual-c7 19s cubic-bezier(.3,1.1,.4,1) infinite}
+.mb-dual .cutm{animation:mbdual-cutm 19s cubic-bezier(.3,1.1,.4,1) infinite}
+
+@keyframes mbdual-dia{0%,68.42%{opacity:1}69.2%{opacity:0}92.6%{opacity:0}92.86%{opacity:1}100%{opacity:1}}
+@keyframes mbdual-proj{
+ 0%,10.53%{opacity:0;transform:rotate(-8deg)}
+ 12.37%{opacity:.92;transform:rotate(-24deg)}
+ 21.05%{opacity:.92;transform:rotate(-24deg)}
+ 25.0%{opacity:.92;transform:rotate(-69deg)}
+ 42.11%{opacity:.92;transform:rotate(-69deg)}
+ 57.89%{opacity:.92;transform:rotate(-25deg)}
+ 59.37%{opacity:0;transform:rotate(-10deg)}
+ 66.32%{opacity:0;transform:rotate(-10deg)}
+ 68.16%{opacity:.92;transform:rotate(-24deg)}
+ 96.32%{opacity:.92;transform:rotate(-24deg)}
+ 97.79%{opacity:0;transform:rotate(-10deg)}
+ 100%{opacity:0;transform:rotate(-8deg)}}
+@keyframes mbdual-dry{
+ 0%,21.05%{opacity:0;transform:translateX(36px)}
+ 22.1%{opacity:0;transform:translateX(33px)}
+ 25.0%{opacity:1;transform:translateX(24.2px)}
+ 42.11%{opacity:1;transform:translateX(24.2px)}
+ 57.89%{opacity:1;transform:translateX(34.6px)}
+ 59.37%{opacity:0;transform:translateX(36px)}
+ 100%{opacity:0;transform:translateX(36px)}}
+@keyframes mbdual-inc{
+ 0%{transform:scaleY(0)}
+ 29.47%{transform:scaleY(.05)}36.84%{transform:scaleY(.10)}
+ 43.58%{transform:scaleY(.23)}46.21%{transform:scaleY(.36)}48.84%{transform:scaleY(.49)}
+ 51.47%{transform:scaleY(.61)}54.11%{transform:scaleY(.74)}56.74%{transform:scaleY(.87)}
+ 59.37%{transform:scaleY(1)}100%{transform:scaleY(1)}}
+@keyframes mbdual-glow{
+ 0%,42.11%{opacity:0}43.58%{opacity:.95}
+ 59.37%{opacity:.95}70.0%{opacity:.95}
+ /* 2.0s afterglow ends 13.7s = 72.1%, then 600ms fade to nothing */
+ 72.11%{opacity:.95}75.26%{opacity:0}100%{opacity:0}}
+@keyframes mbdual-rip{
+ 0%,42.11%{opacity:0;transform:scaleX(.4)}42.2%{opacity:.85;transform:scaleX(.55)}43.06%{opacity:0;transform:scaleX(1.4)}
+ 44.74%{opacity:0;transform:scaleX(.4)}44.83%{opacity:.85;transform:scaleX(.55)}45.69%{opacity:0;transform:scaleX(1.4)}
+ 47.37%{opacity:0;transform:scaleX(.4)}47.46%{opacity:.85;transform:scaleX(.55)}48.32%{opacity:0;transform:scaleX(1.4)}
+ 50.0%{opacity:0;transform:scaleX(.4)}50.09%{opacity:.85;transform:scaleX(.55)}50.95%{opacity:0;transform:scaleX(1.4)}
+ 52.63%{opacity:0;transform:scaleX(.4)}52.72%{opacity:.85;transform:scaleX(.55)}53.58%{opacity:0;transform:scaleX(1.4)}
+ 55.26%{opacity:0;transform:scaleX(.4)}55.35%{opacity:.85;transform:scaleX(.55)}56.21%{opacity:0;transform:scaleX(1.4)}
+ 57.89%{opacity:0;transform:scaleX(.4)}57.98%{opacity:.85;transform:scaleX(.55)}58.84%{opacity:0;transform:scaleX(1.4)}
+ 100%{opacity:0;transform:scaleX(.4)}}
+@keyframes mbdual-swp{
+ 0%,57.89%{opacity:0;transform:translateX(-8px)}
+ 58.05%{opacity:1;transform:translateX(-8px)}
+ 61.35%{opacity:1;transform:translateX(35px)}
+ 61.58%{opacity:0;transform:translateX(38px)}
+ 100%{opacity:0;transform:translateX(-8px)}}
+@keyframes mbdual-cap{0%{opacity:1}10.53%{opacity:0}59.37%{opacity:1}66.32%{opacity:0}97.79%{opacity:1}100%{opacity:1}}
+@keyframes mbdual-blk{
+ 0%,68.42%{opacity:0;transform:scaleY(.28)}
+ 68.55%{opacity:1;transform:scaleY(.34)}
+ 69.74%{opacity:1;transform:scaleY(1)}
+ 92.11%{opacity:1;transform:scaleY(1)}
+ 92.72%{opacity:1;transform:scaleY(.28)}
+ 92.78%,100%{opacity:0;transform:scaleY(.28)}}
+@keyframes mbdual-slit{0%,68.9%{opacity:0}69.0%{opacity:1}92.11%{opacity:1}92.18%{opacity:0}100%{opacity:0}}
+@keyframes mbdual-tally{
+ 0%,69.74%{opacity:0;transform:scaleX(0)}
+ 69.9%{opacity:1;transform:scaleX(.01)}
+ 92.11%{opacity:1;transform:scaleX(.30)}
+ 92.18%{opacity:0;transform:scaleX(.30)}
+ 100%{opacity:0;transform:scaleX(0)}}
+@keyframes mbdual-flare{
+ 0%,68.42%{opacity:0}68.7%{opacity:.9}71.05%{opacity:0}
+ 84.21%{opacity:0}84.5%{opacity:1}85.3%{opacity:.2}85.9%{opacity:1}87.6%{opacity:0}
+ 100%{opacity:0}}
+@keyframes mbdual-cutm{0%,68.42%{transform:scaleX(0)}69.74%{transform:scaleX(1)}92.11%{transform:scaleX(1)}92.6%{transform:scaleX(0)}100%{transform:scaleX(0)}}
+
+@keyframes mbdual-c1{0%,10.53%{transform:scaleY(0) translateY(0);opacity:0}12.37%{transform:scaleY(1) translateY(0);opacity:1}
+ 57.89%{transform:scaleY(1) translateY(0);opacity:1}59.37%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 59.5%,66.32%{transform:scaleY(0) translateY(0);opacity:0}68.16%{transform:scaleY(1) translateY(0);opacity:1}
+ 96.32%{transform:scaleY(1) translateY(0);opacity:1}97.79%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 97.9%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c2{0%,21.05%{transform:scaleY(0) translateY(0);opacity:0}22.63%{transform:scaleY(1) translateY(0);opacity:1}
+ 55.26%{transform:scaleY(1) translateY(0);opacity:1}56.74%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 56.9%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c3{0%,21.84%{transform:scaleY(0) translateY(0);opacity:0}23.42%{transform:scaleY(1) translateY(0);opacity:1}
+ 52.63%{transform:scaleY(1) translateY(0);opacity:1}54.11%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 54.3%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c4{0%,22.63%{transform:scaleY(0) translateY(0);opacity:0}24.21%{transform:scaleY(1) translateY(0);opacity:1}
+ 50.0%{transform:scaleY(1) translateY(0);opacity:1}51.47%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 51.6%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c5{0%,23.42%{transform:scaleY(0) translateY(0);opacity:0}25.0%{transform:scaleY(1) translateY(0);opacity:1}
+ 47.37%{transform:scaleY(1) translateY(0);opacity:1}48.84%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 49.0%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c6{0%,24.21%{transform:scaleY(0) translateY(0);opacity:0}25.79%{transform:scaleY(1) translateY(0);opacity:1}
+ 44.74%{transform:scaleY(1) translateY(0);opacity:1}46.21%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 46.4%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+@keyframes mbdual-c7{0%,25.0%{transform:scaleY(0) translateY(0);opacity:0}26.58%{transform:scaleY(1) translateY(0);opacity:1}
+ 42.11%{transform:scaleY(1) translateY(0);opacity:1}43.58%{transform:scaleY(1) translateY(3.1px);opacity:0}
+ 43.7%,100%{transform:scaleY(0) translateY(0);opacity:0}}
+
+/* ---- reduced motion: every smooth transition becomes a discrete state change.
+       No translation, no scaling in flight — the sequence still plays, as steps. ---- */
+@media (prefers-reduced-motion:reduce){
+  .mb-dual .scene *,.mb-dual .cutm{animation-timing-function:steps(1,end)!important}
+  .mb-dual .scene .rip,.mb-dual .scene .swp,.mb-dual .scene .flare{animation:none!important;opacity:0!important}
+  .mb-dual .runner{animation:none;left:0;opacity:.4}
+  .mb-dual .rmnote{display:block!important}
+}
+.mb-dual .rmnote{display:none;margin-top:10px;font-size:11px;color:var(--acc)}
+</style>
+
+<!-- ===================== shared defs (namespaced ids) ===================== -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <pattern id="mbdual-hD" width="2.5" height="2.5" patternUnits="userSpaceOnUse" patternTransform="rotate(48)">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="rgba(255,255,255,.36)" stroke-width=".65"/></pattern>
+  <pattern id="mbdual-hL" width="2.5" height="2.5" patternUnits="userSpaceOnUse" patternTransform="rotate(48)">
+    <line x1="0" y1="0" x2="0" y2="2.5" stroke="rgba(0,0,0,.34)" stroke-width=".65"/></pattern>
+  <linearGradient id="mbdual-sD" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".98"/>
+    <stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+  <linearGradient id="mbdual-sL" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#000" stop-opacity="0"/><stop offset=".5" stop-color="#000" stop-opacity=".8"/>
+    <stop offset="1" stop-color="#000" stop-opacity="0"/></linearGradient>
+  <clipPath id="mbdual-cp"><rect x="0" y="1.5" width="36" height="14.5"/></clipPath>
+  <mask id="mbdual-m1" maskUnits="userSpaceOnUse" x="-2" y="-2" width="40" height="20">
+    <rect x="-2" y="-2" width="40" height="20" fill="#fff"/>
+    <path d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z" fill="#000" stroke="#000" stroke-width=".9" stroke-linejoin="round"/>
+    <line x1="0" y1="1" x2="36" y2="1" stroke="#000" stroke-width="1"/>
+    <rect x="6.1" y="0" width=".8" height="3.3" fill="#000"/>
+    <rect x="17.16" y="9.94" width="3" height="1" fill="#000"/>
+    <rect x="20.9" y="0" width="1.7" height="16" fill="#000"/>
+  </mask>
+  <mask id="mbdual-m3" maskUnits="userSpaceOnUse" x="-2" y="-2" width="40" height="20">
+    <rect x="-2" y="-2" width="40" height="20" fill="#fff"/>
+    <path d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z" fill="#000" stroke="#000" stroke-width=".9" stroke-linejoin="round"/>
+    <line x1="0" y1="1" x2="36" y2="1" stroke="#000" stroke-width="1"/>
+    <rect x="6.1" y="0" width=".8" height="3.3" fill="#000"/>
+    <rect x="17.16" y="9.94" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="8.49" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="7.04" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="5.59" width="3" height="1" fill="#000"/>
+    <rect x="20.9" y="0" width="1.7" height="16" fill="#000"/>
+  </mask>
+  <mask id="mbdual-mL" maskUnits="userSpaceOnUse" x="-2" y="-2" width="40" height="20">
+    <rect x="-2" y="-2" width="40" height="20" fill="#fff"/>
+    <path d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z" fill="#000" stroke="#000" stroke-width=".9" stroke-linejoin="round"/>
+    <line x1="0" y1="1" x2="36" y2="1" stroke="#000" stroke-width="1"/>
+    <rect x="6.1" y="0" width=".8" height="3.3" fill="#000"/>
+    <rect x="17.16" y="9.94" width="3" height="1" fill="#000"/>
+    <rect class="cutm" x="20.9" y="0" width="1.7" height="16" fill="#000"
+      style="transform-box:fill-box;transform-origin:center"/>
+  </mask>
+  <mask id="mbdual-mHi" maskUnits="userSpaceOnUse" x="0" y="0" width="36" height="16">
+    <rect x="0" y="0" width="36" height="16" fill="#fff"/>
+    <rect x="17.16" y="4.13" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="5.58" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="7.03" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="8.48" width="3" height="1" fill="#000"/>
+    <rect x="17.16" y="9.93" width="3" height="1" fill="#000"/>
+  </mask>
+</defs></svg>
+
+<h2>CHANNEL</h2>
+<p class="lede">The icon is a <b class="k">channel with a floor and a roof</b>. The floor is the 5-hour window — a real
+plot of what this window has already cost, with a dotted forecast fired off its leading edge and a hatched
+<b class="k">dry zone</b> where that forecast hits the ceiling before the reset does. The roof is the 7-day window — a
+hairline whose solid part is the week spent and whose tick is where the week <em>should</em> be by now. Agents are the
+cells stacked on the floor's leading edge, because agents are the reason the floor rises. A finished agent is
+<b class="k">absorbed into the floor</b>. A blocked session swells the floor until it fills the whole channel and cuts
+it in half. Nothing here is a badge bolted to anything else.</p>
+
+<div class="prim">
+  <div><h4>GEOMETRY carries quota</h4><p>Floor height = 5-hour spent. Roof fill = 7-day spent, roof tick = 7-day pace.
+  The clear air between them is the room you have. When the week truly binds, the roof descends into the plot and the
+  forecast collides with <em>it</em> instead of the top.</p></div>
+  <div><h4>THE LEADING EDGE carries activity</h4><p>One cell per running agent, stacked where the floor is rising —
+  0 cells is a flat capped terminus, 10+ saturates to a notched bar. The forecast's slope <em>is</em> the burn rate, so
+  activity and quota share one mark honestly: activity is the derivative of quota.</p></div>
+  <div><h4>INK carries state</h4><p>Hollow = stale, no confidence. Normal = live. Solid = a human is blocking work.
+  One continuous axis, three states, readable with no colour at all. Colour appears in exactly one place in the whole
+  icon: <em>the cut, and only when you are the bottleneck.</em></p></div>
+</div>
+
+<h3>On the bar — light, dark, and a hostile wallpaper</h3>
+<div class="bars">
+
+  <div class="wall wall--l"><div class="sky"></div><div class="body">
+    <div class="mbar" data-bar="light">
+      <div class="left"><svg class="nb" width="13" height="14" viewBox="0 0 13 14"><path d="M6.5 1.1 12 4.4v5.2L6.5 12.9 1 9.6V4.4Z" fill="currentColor"/></svg>
+        <span class="clk" style="font-weight:700">usage</span></div>
+      <span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="25.79" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(25.79px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/><rect x="17.16" y="9.49" width="3" height="1"/><rect x="17.16" y="8.04" width="3" height="1"/><rect x="17.16" y="6.59" width="3" height="1"/><rect x="17.16" y="5.14" width="3" height="1"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span>
+      <svg class="nb" width="16" height="12" viewBox="0 0 16 12"><path d="M1 4.2a10.4 10.4 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3.7 7a6.3 6.3 0 0 1 8.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10.1" r="1.3" fill="currentColor"/></svg>
+      <svg class="nb" width="25" height="12" viewBox="0 0 25 12"><rect x=".6" y="1.7" width="21" height="8.6" rx="2.6" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><rect x="2" y="3.1" width="13" height="5.8" rx="1.4" fill="currentColor"/><path d="M23.3 4.7v2.6a2.4 2.4 0 0 0 0-2.6Z" fill="currentColor" opacity=".55"/></svg>
+      <svg class="nb" width="14" height="12" viewBox="0 0 14 12"><rect x="1" y="1.4" width="12" height="3.7" rx="1.85" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="4.3" cy="3.25" r="1.05" fill="currentColor"/><rect x="1" y="6.9" width="12" height="3.7" rx="1.85" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="9.7" cy="8.75" r="1.05" fill="currentColor"/></svg>
+      <span class="clk">Tue 1:28 AM</span>
+    </div>
+  </div></div>
+
+  <div class="wall wall--d"><div class="sky"></div><div class="body">
+    <div class="mbar" data-bar="dark">
+      <div class="left"><svg class="nb" width="13" height="14" viewBox="0 0 13 14"><path d="M6.5 1.1 12 4.4v5.2L6.5 12.9 1 9.6V4.4Z" fill="currentColor"/></svg>
+        <span class="clk" style="font-weight:700">usage</span></div>
+      <span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="25.79" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(25.79px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/><rect x="17.16" y="9.49" width="3" height="1"/><rect x="17.16" y="8.04" width="3" height="1"/><rect x="17.16" y="6.59" width="3" height="1"/><rect x="17.16" y="5.14" width="3" height="1"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span>
+      <svg class="nb" width="16" height="12" viewBox="0 0 16 12"><path d="M1 4.2a10.4 10.4 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3.7 7a6.3 6.3 0 0 1 8.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10.1" r="1.3" fill="currentColor"/></svg>
+      <svg class="nb" width="25" height="12" viewBox="0 0 25 12"><rect x=".6" y="1.7" width="21" height="8.6" rx="2.6" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><rect x="2" y="3.1" width="13" height="5.8" rx="1.4" fill="currentColor"/><path d="M23.3 4.7v2.6a2.4 2.4 0 0 0 0-2.6Z" fill="currentColor" opacity=".55"/></svg>
+      <svg class="nb" width="14" height="12" viewBox="0 0 14 12"><rect x="1" y="1.4" width="12" height="3.7" rx="1.85" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="4.3" cy="3.25" r="1.05" fill="currentColor"/><rect x="1" y="6.9" width="12" height="3.7" rx="1.85" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="9.7" cy="8.75" r="1.05" fill="currentColor"/></svg>
+      <span class="clk">Tue 1:28 AM</span>
+    </div>
+  </div></div>
+
+  <div class="wall wall--x"><div class="sky"></div><div class="body">
+    <div class="mbar" data-bar="dark">
+      <div class="left"><svg class="nb" width="13" height="14" viewBox="0 0 13 14"><path d="M6.5 1.1 12 4.4v5.2L6.5 12.9 1 9.6V4.4Z" fill="currentColor"/></svg>
+        <span class="clk" style="font-weight:700">usage</span></div>
+      <span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-m1)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9"/><rect class="tally" x="0" y="14.9" width="36" height="1.1" style="transform:scaleX(.2)"/></g></svg></span>
+      <svg class="nb" width="16" height="12" viewBox="0 0 16 12"><path d="M1 4.2a10.4 10.4 0 0 1 14 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3.7 7a6.3 6.3 0 0 1 8.6 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8" cy="10.1" r="1.3" fill="currentColor"/></svg>
+      <svg class="nb" width="25" height="12" viewBox="0 0 25 12"><rect x=".6" y="1.7" width="21" height="8.6" rx="2.6" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><rect x="2" y="3.1" width="13" height="5.8" rx="1.4" fill="currentColor"/><path d="M23.3 4.7v2.6a2.4 2.4 0 0 0 0-2.6Z" fill="currentColor" opacity=".55"/></svg>
+      <span class="clk">Tue 1:31 AM</span>
+    </div>
+  </div></div>
+</div>
+<p style="margin-top:10px;font-size:11.5px">Same 76&times;22pt item on all three. The glyph is a pure template image
+(one alpha channel, tinted by AppKit) except the cut, which is the only non-template pixel in the app.
+The third strip is the blocked state on a deliberately hostile wallpaper: a solid mass survives anything.</p>
+<h3>State gallery &mdash; every state, at 1pt = 1px</h3>
+<div class="gal">
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">idle &mdash; nothing running</div><div class="d">No cells: the leading edge is a flat cap. No forecast, because there is no burn to project. The 5h floor and the 7d roof are still exact.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="36" y2="5.56" style="--rot:0deg"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">1 agent</div><div class="d">One cell. The forecast fires but never reaches the ceiling before the right edge &mdash; <em>no dry zone, so nothing is wrong.</em></div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="25.79" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(25.79px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/><rect x="17.16" y="9.49" width="3" height="1"/><rect x="17.16" y="8.04" width="3" height="1"/><rect x="17.16" y="6.59" width="3" height="1"/><rect x="17.16" y="5.14" width="3" height="1"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">5 agents &mdash; the real data</div><div class="d">92%/h. Forecast hits the ceiling at 25.8 &rarr; hatch from there to the reset: <em>dry 47 min from now, and dry for 1h25m.</em> The two faint baseline ticks are the 3h and 4h marks &mdash; you read the gap in hours, not in a legend.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="22.89" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(22.89px)"/><g class="ag"><rect x="17.16" y="3.30" width="3" height="8.64"/><rect x="17.16" y="1.65" width="3" height="1.05"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">10+ agents</div><div class="d">The stack saturates: a solid column with a notch cut near the top meaning &ldquo;more than fits.&rdquo; Forecast goes near-vertical, dry zone swallows most of the window.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">85%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" mask="url(#mbdual-mHi)" d="M0 16L0 15.9C5 14.7 11 10.4 18.72 5.6L20.16 3.68L20.16 16Z"/><line class="proj" x1="20.16" y1="3.68" x2="21.96" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(21.96px)"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">5h high &mdash; 85% used</div><div class="d">Floor has climbed to the roof; the clear air <em>is</em> the headroom. With no room above, the cells knock <em>downward into</em> the floor &mdash; same count, same place, still five.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp bind" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="21.10" y2="10.2" style="--rot:0deg"/><rect class="dry" x="0" y="10.2" width="36" height="5.8" style="transform:translateX(21.1px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/></g></g><line class="rghost" x1="0" y1="1" x2="36" y2="1"/><line class="rl" x1="0" y1="10.2" x2="36" y2="10.2"/><line class="rf" x1="0" y1="10.2" x2="32.8" y2="10.2"/><line class="rt" x1="28.8" y1="8.7" x2="28.8" y2="11.9" style="stroke:var(--ink)"/></svg></span></div><figcaption><div class="t">7d binding</div><div class="d">Week at 91% with its pace tick <em>behind</em> the fill: over budget. So the roof descends out of the frame line into the plot, the forecast collides with the roof instead of the top, and the dry zone starts almost immediately. The ghosted hairline shows where the ceiling used to be.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-m1)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9"/><rect class="tally" x="0" y="14.9" width="36" height="1.1" style="transform:scaleX(.2)"/></g></svg></span></div><figcaption><div class="t">needs input &mdash; 1 session</div><div class="d">Polarity flip: the floor swells until it fills the channel, and the channel is <em>cut</em>. One hole = one stalled agent. The single red hairline in the cut is the only colour this app ever spends.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-m3)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9" stroke-dasharray="3.1 1.55"/><rect class="tally" x="0" y="14.9" width="36" height="1.1" style="transform:scaleX(.62)"/><rect class="flare" x="-1.1" y="-1.1" width="38.2" height="18.2" rx="2.6" style="opacity:.85"/></g></svg></span></div><figcaption><div class="t">needs input &mdash; 3 sessions</div><div class="d">The cut breaks into three dashes, one per blocked session; four holes = four stalled agents. The red underline is the wait tally &mdash; here past six minutes, so the block has also grown its escalation outline.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><rect class="inc" x="17.16" y="10.74" width="3" height="1.2" style="transform:scaleY(1)"/><line class="glow" x1="17.16" y1="10.74" x2="20.16" y2="10.74"/><line class="proj" x1="20.16" y1="11.94" x2="25.79" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(25.79px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/><rect x="17.16" y="9.49" width="3" height="1"/><rect x="17.16" y="8.04" width="3" height="1"/><rect x="17.16" y="6.59" width="3" height="1"/></g><g class="ag"><rect class="sink" x="17.16" y="5.14" width="3" height="1"/></g><rect class="rip" x="16.3" y="11.5" width="5.2" height=".85" style="opacity:.85;transform:scaleX(1.1)"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">agent just finished (t+0.2s)</div><div class="d">The cell does not vanish. It detaches, sinks into the floor and is <em>absorbed</em>: the floor steps up by exactly the quota that agent spent, and a ripple runs out along the top edge.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">29%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><rect class="inc" x="17.16" y="10.74" width="3" height="1.2" style="transform:scaleY(1)"/><line class="glow" x1="17.16" y1="10.74" x2="20.16" y2="10.74"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/><rect class="swp" x="0" y="10.05" width="7" height="1" style="transform:translateX(13px)"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">burst settled (t+0.45s)</div><div class="d">Last of seven absorbed, column empty. One sweep &mdash; once &mdash; passes left to right through the accumulated floor. That is the only signal that means &ldquo;the fan-out is done,&rdquo; and it is the floor's own edge, not a new mark.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm "><b class="qmn">29%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><rect class="inc" x="17.16" y="10.74" width="3" height="1.2" style="transform:scaleY(1)"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">t+2.4s &mdash; terminated</div><div class="d">The afterglow has decayed. Every animation this object owns has ended. All that is left is the permanent, real thing: the floor is 1pt higher than it was.</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip"><span class="qm stale"><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94" style="opacity:.4"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">data stale &mdash; 12 min old</div><div class="d">Ink withdraws. The floor goes hollow, the roof goes fully dotted, the number dims, the forecast and the cells are removed outright &mdash; you cannot project from numbers you no longer trust, so it does not pretend to.</div></figcaption></figure>
+</div>
+<h3>Same states on a light bar</h3><div class="gal">
+<figure class="tile" style="margin:0"><div class="chip" data-bar="light"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">idle</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip" data-bar="light"><span class="qm "><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="proj" x1="20.16" y1="11.94" x2="25.79" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(25.79px)"/><g class="ag"><rect x="17.16" y="10.94" width="3" height="1"/><rect x="17.16" y="9.49" width="3" height="1"/><rect x="17.16" y="8.04" width="3" height="1"/><rect x="17.16" y="6.59" width="3" height="1"/><rect x="17.16" y="5.14" width="3" height="1"/></g></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">5 agents</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip" data-bar="light"><span class="qm "><b class="qmn">85%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" mask="url(#mbdual-mHi)" d="M0 16L0 15.9C5 14.7 11 10.4 18.72 5.6L20.16 3.68L20.16 16Z"/><line class="proj" x1="20.16" y1="3.68" x2="21.96" y2="1.5" style="--rot:0deg"/><rect class="dry" x="0" y="1.5" width="36" height="14.5" style="transform:translateX(21.96px)"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">85% used</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip" data-bar="light"><span class="qm"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-m1)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9"/><rect class="tally" x="0" y="14.9" width="36" height="1.1" style="transform:scaleX(.2)"/></g></svg></span></div><figcaption><div class="t">needs input</div></figcaption></figure>
+<figure class="tile" style="margin:0"><div class="chip" data-bar="light"><span class="qm stale"><b class="qmn">28%</b><svg class="qmp " viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94" style="opacity:.4"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></svg></span></div><figcaption><div class="t">stale</div></figcaption></figure>
+</div>
+
+<h3>Live scenario &mdash; 19s loop, real durations</h3>
+<div class="scwrap">
+  <div class="barcap"><b>1&times; &mdash; actual size on the bar</b><span>76 &times; 22pt, fixed width, nothing around it moves</span></div>
+  <div class="wall wall--d" style="border-radius:9px"><div class="sky"></div><div class="body" style="height:33px">
+    <div class="mbar" data-bar="dark">
+      <div class="left"><span class="clk" style="font-weight:700;opacity:.7">usage-97 &nbsp;&middot;&nbsp; f1-e3</span></div>
+      <span class="qm scene"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="dia"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><rect class="inc" x="17.16" y="10.74" width="3" height="1.2"/><line class="glow" x1="17.16" y1="10.74" x2="20.16" y2="10.74"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/><line class="proj" x1="20.16" y1="11.94" x2="38" y2="11.94"/><rect class="dry" x="0" y="1.5" width="36" height="14.5"/><g class="ag"><rect class="c1" x="17.16" y="10.94" width="3" height="1"/><rect class="c2" x="17.16" y="9.49" width="3" height="1"/><rect class="c3" x="17.16" y="8.04" width="3" height="1"/><rect class="c4" x="17.16" y="6.59" width="3" height="1"/><rect class="c5" x="17.16" y="5.14" width="3" height="1"/><rect class="c6" x="17.16" y="3.69" width="3" height="1"/><rect class="c7" x="17.16" y="2.24" width="3" height="1"/></g><rect class="rip" x="16.3" y="11.5" width="5.2" height=".85"/><rect class="swp" x="0" y="10.05" width="7" height="1"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></g><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-mL)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9"/><rect class="tally" x="0" y="14.9" width="36" height="1.1"/></g><rect class="flare" x="-1.1" y="-1.1" width="38.2" height="18.2" rx="2.6"/></svg></span>
+      <svg class="nb" width="25" height="12" viewBox="0 0 25 12"><rect x=".6" y="1.7" width="21" height="8.6" rx="2.6" fill="none" stroke="currentColor" stroke-width="1" opacity=".55"/><rect x="2" y="3.1" width="13" height="5.8" rx="1.4" fill="currentColor"/><path d="M23.3 4.7v2.6a2.4 2.4 0 0 0 0-2.6Z" fill="currentColor" opacity=".55"/></svg>
+      <span class="clk">Tue 1:28 AM</span>
+    </div>
+  </div></div>
+
+  <div class="barcap" style="margin-top:18px"><b>3&times; loupe</b><span>the same element, magnified &mdash; nothing added</span></div>
+  <div class="loupe"><div class="z">
+      <span class="qm scene"><b class="qmn">28%</b><svg class="qmp" viewBox="0 0 36 16" width="36" height="16" aria-hidden="true"><g class="dia"><g clip-path="url(#mbdual-cp)"><line class="gnd" x1="0" y1="16" x2="36" y2="16"/><line class="rst" x1="35.55" y1="2" x2="35.55" y2="16"/><line class="tk" x1="21.6" y1="14.2" x2="21.6" y2="16"/><line class="tk" x1="28.8" y1="14.2" x2="28.8" y2="16"/><path class="hist" d="M0 16L0 15.94C5 15.78 10 15.45 18.72 14.61L20.16 11.94L20.16 16Z"/><rect class="inc" x="17.16" y="10.74" width="3" height="1.2"/><line class="glow" x1="17.16" y1="10.74" x2="20.16" y2="10.74"/><line class="cap" x1="18.4" y1="11.94" x2="20.16" y2="11.94"/><line class="proj" x1="20.16" y1="11.94" x2="38" y2="11.94"/><rect class="dry" x="0" y="1.5" width="36" height="14.5"/><g class="ag"><rect class="c1" x="17.16" y="10.94" width="3" height="1"/><rect class="c2" x="17.16" y="9.49" width="3" height="1"/><rect class="c3" x="17.16" y="8.04" width="3" height="1"/><rect class="c4" x="17.16" y="6.59" width="3" height="1"/><rect class="c5" x="17.16" y="5.14" width="3" height="1"/><rect class="c6" x="17.16" y="3.69" width="3" height="1"/><rect class="c7" x="17.16" y="2.24" width="3" height="1"/></g><rect class="rip" x="16.3" y="11.5" width="5.2" height=".85"/><rect class="swp" x="0" y="10.05" width="7" height="1"/></g><line class="rl" x1="0" y1="1" x2="36" y2="1"/><line class="rf" x1="0" y1="1" x2="6.48" y2="1"/><line class="rt" x1="12.43" y1="0" x2="12.43" y2="2.7"/></g><g class="blk"><rect class="bb" x="0" y="0" width="36" height="16" rx="1.7" mask="url(#mbdual-mL)"/><line class="slit" x1="21.75" y1="2.1" x2="21.75" y2="13.9"/><rect class="tally" x="0" y="14.9" width="36" height="1.1"/></g><rect class="flare" x="-1.1" y="-1.1" width="38.2" height="18.2" rx="2.6"/></svg></span>
+  </div></div>
+
+  <div class="rail">
+    <div class="ph" style="left:0;width:10.53%"></div>
+    <div class="ph" style="left:10.53%;width:47.36%;opacity:.6"></div>
+    <div class="ph" style="left:57.89%;width:10.53%"></div>
+    <div class="ph hot" style="left:68.42%;width:23.69%"></div>
+    <div class="ph" style="left:92.11%;width:7.89%;opacity:.6"></div>
+    <div class="runner"></div>
+    <i style="left:0"></i><u style="left:0"><b>0.0s idle</b>nothing running; flat cap, no forecast</u>
+    <i style="left:10.53%"></i><u class="lo" style="left:10.53%"><b>2.0s +1 agent</b>cell rises 320ms, forecast appears</u>
+    <i style="left:21.05%"></i><u style="left:21.05%"><b>4.0s fan-out</b>6 more over 700ms; dry zone hatches in</u>
+    <i style="left:42.11%"></i><u class="lo" style="left:42.11%"><b>8.0s finished</b>cell sinks 280ms, floor steps, ripple 180ms</u>
+    <i style="left:57.89%"></i><u style="left:57.89%"><b>11.0&ndash;11.7s drained</b>7th absorbed; one 700ms sweep, then nothing moves</u>
+    <i style="left:68.42%"></i><u class="lo" style="left:68.42%"><b>13.0s BLOCKED</b>floor swells to fill the channel, cut opens</u>
+    <i style="left:84.21%"></i><u style="left:84.21%"><b>16.0s escalate</b>tally longer; a double-flare, not a repeat</u>
+    <i style="left:92.11%"></i><u class="lo" style="left:92.11%"><b>17.5s cleared</b>block collapses back into the floor</u>
+  </div>
+  <div class="rmnote">Reduced motion is active: the same sequence is playing as discrete steps &mdash; no sliding,
+  no scaling, no flares. Every state above is still reached and still labelled.</div>
+</div>
+
+<h3>Motion budget &amp; the honest parts</h3>
+<div class="notes">
+  <div class="note"><h4>Every animation this icon owns</h4><ul>
+    <li><b>agent starts</b> &mdash; cell scales up from its own base, <code>320ms</code>. Terminates.</li>
+    <li><b>agent finishes</b> &mdash; cell detaches and sinks <code>280ms</code>; floor steps up by its real cost; ripple along the top edge <code>180ms</code>. Terminates.</li>
+    <li><b>afterglow</b> &mdash; the new floor increment holds a bright top edge for <code>2.0s</code>, then fades over <code>600ms</code>. Terminates.</li>
+    <li><b>fan-out drained to zero</b> &mdash; one gradient sweep through the floor, left to right, <code>700ms</code>, exits the frame. Fires once per drain, never on a single completion. Terminates.</li>
+    <li><b>dry zone first appears</b> &mdash; hatch slides in from the reset edge, <code>600ms</code>. Fires once per crossing, not once per sample. Terminates.</li>
+    <li><b>block opens</b> &mdash; floor swells to fill the channel, <code>220ms</code>; cut opens with it. Terminates.</li>
+    <li><b>block flare</b> &mdash; <code>500ms</code> rim at t=0, then a <em>double</em> blink at 2min, 6min, 15min. Escalating, not repeating, and each one terminates.</li>
+    <li><b>block clears</b> &mdash; collapses back to the floor level, <code>200ms</code>. Terminates.</li>
+    <li><b>nothing else.</b> Between events the icon is a still diagram. Idle is therefore not a look you have to learn &mdash; it is literal stillness.</li>
+  </ul></div>
+  <div class="note"><h4>What I would expect to be attacked</h4><ul>
+    <li>The roof's horizontal axis is <em>the week</em> while the floor's is <em>this 5-hour window</em>. Same footprint, two time bases. They rhyme (both fill left&rarr;right toward their own reset on the right edge) but it is a real seam, and it is the one thing the popover has to teach once.</li>
+    <li>The 7-day number is not printed. The roof gives you position to about &plusmn;1.5% and &ldquo;ahead of / behind pace&rdquo; instantly; the exact 18% lives in the popover. If that is unacceptable the fix is 8pt more width, not a second number stacked under the first.</li>
+    <li>A single real absorb moves the floor by a fraction of a point. The ripple and the afterglow are doing the perceptual work; the geometry change is honest but sub-pixel until several land. The 3&times; loupe above is where you can actually see it.</li>
+    <li>The blocked state destroys the forecast while it is up &mdash; the floor and roof survive as knockouts, the projection does not. That is deliberate (you are the bottleneck, the burn rate is meaningless) but it does mean the quota reading degrades exactly when you are staring at it.</li>
+    <li>At 85%+ the cells knock downward into the floor. It works, but it is a second reading rule for one rare case.</li>
+  </ul></div>
+</div>
+</div>

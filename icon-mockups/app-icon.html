@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant"><head><meta charset="utf-8">
+<title>QuotaMonster — app icon 候選</title>
+<style>
+ :root{--bg:#131316;--fg:#e8e8ea;--dim:#8a8a90;--line:#2a2a2f}
+ *{box-sizing:border-box}
+ body{margin:0;padding:40px;background:var(--bg);color:var(--fg);
+      font:14px/1.7 -apple-system,"PingFang TC",sans-serif}
+ h1{font-size:20px;margin:0 0 6px}
+ .lede{color:var(--dim);max-width:70ch;margin:0 0 4px}
+ .warn{color:#ffb454;max-width:72ch;margin:14px 0 0;font-size:13px}
+ .row{display:flex;gap:28px;align-items:flex-start;padding:30px 0;
+      border-top:1px solid var(--line);flex-wrap:wrap}
+ .big{width:180px;flex:none}
+ .big svg{width:180px;height:180px;display:block;
+          filter:drop-shadow(0 10px 22px rgba(0,0,0,.55))}
+ .meta{flex:1;min-width:280px}
+ .meta h2{font-size:15px;margin:0 0 4px}
+ .meta p{margin:0 0 8px;color:var(--dim);font-size:13px;max-width:52ch}
+ .sizes{display:flex;gap:18px;align-items:flex-end;margin-top:12px}
+ .sizes figure{margin:0;text-align:center}
+ .sizes figcaption{font-size:10px;color:var(--dim);margin-top:5px}
+ .tag{display:inline-block;font-size:11px;color:#9ecbff;border:1px solid #27405e;
+      border-radius:4px;padding:1px 6px;margin-right:6px}
+ code{background:#1e1e22;padding:1px 5px;border-radius:3px;font-size:12px}
+</style></head><body>
+<h1>QuotaMonster — app icon 候選</h1>
+<p class="lede">Finder / DMG / 系統設定裡看到的那一顆，<b>不是</b>選單列那個 template 圖示。
+幾何直接取自 <code>GlyphGeometry.swift</code> 出貨值：外弧 r=7.25/stroke 1.50、內弧 r=4.15/stroke 1.40、
+<code>gaugeStart 220°</code> 順時針掃 260°（底部留 100° 開口）、生物＝圓角矩形 4.10×3.04 + 兩顆 r=0.95 的葉。</p>
+<p class="lede">外框是 macOS 26/27 的實測比例：1024 畫布、主體 816×816、四邊各留 104px。</p>
+<p class="warn">⚠️ 規矩 24：琥珀／黃只保留給「有人在等你輸入」。所以<b>沒有任何一個候選用黃色</b>。
+⚠️ 規矩 2：靜態 icon 必須挑定一個狀態 —— 這是設計決定，不是資料決定。以下全部畫「額度寬裕、1 個 agent 在跑」。</p>
+<div id="out"></div>
+<script>
+const C=11, R_OUT=7.25, W_OUT=1.50, R_IN=4.15, W_IN=1.40;
+const START=220, SWEEP=260;
+const RAIL_A=-67.65, RAIL_B=-112.35;
+const P=(r,deg)=>{const t=deg*Math.PI/180;return [C+r*Math.cos(t), C-r*Math.sin(t)];};
+function arc(r,from,sweepCW){                       // 順時針＝角度遞減
+  const to=from-sweepCW, [x0,y0]=P(r,from), [x1,y1]=P(r,to);
+  const large=Math.abs(sweepCW)>180?1:0;
+  return `M ${x0} ${y0} A ${r} ${r} 0 ${large} 1 ${x1} ${y1}`;  // sweep-flag 1 = 螢幕上順時針
+}
+function squircle(size,n=5){                        // 超橢圓，比圓角矩形接近 Apple 的形狀
+  const a=size/2, pts=[];
+  for(let i=0;i<=240;i++){
+    const t=i/240*2*Math.PI, ct=Math.cos(t), st=Math.sin(t);
+    pts.push([a+a*Math.sign(ct)*Math.pow(Math.abs(ct),2/n),
+              a+a*Math.sign(st)*Math.pow(Math.abs(st),2/n)]);
+  }
+  return 'M '+pts.map(p=>p.map(v=>v.toFixed(2)).join(' ')).join(' L ')+' Z';
+}
+const creature = `
+  <rect x="8.95" y="9.858" width="4.10" height="3.042" rx="0.95"/>
+  <circle cx="9.90" cy="10.35" r="0.95"/>
+  <circle cx="12.10" cy="10.35" r="0.95"/>`;
+
+// remaining = 剩餘比例；lit = 亮弧顏色；track = 暗軌顏色
+// ⚠️ 三色階與「只留生物」都在這裡處理，不做字串手術 ——
+//    P(r,90) 在 JS 裡是 11.000000000000002，用 cx="11" 去比對永遠不會中，
+//    那會讓候選 E 靜靜地畫成單色版而沒有人發現。
+function glyph(o){
+  const rem=o.remaining ?? .78, lit=o.lit, track=o.track, ink=o.ink;
+  if(o.bare) return `<g fill="${ink}">${creature}</g>`;   // 候選 D：連 50% 標記都不要
+  const [mx,my]=P(R_OUT,90), [nx,ny]=P(R_IN,90);
+  // ⚠️ 三色階用**真正的門檻**換算角度，不是隨手三等分：
+  //    critical <20%、tight <50%（QuotaThresholds.standard）。
+  //    220 − 0.20×260 = 168°（紅/綠界）、220 − 0.50×260 = 90°（綠/藍界，正好是正上方
+  //    那顆 50% 標記點）。段與段之間用 butt，否則圓端互相覆蓋會把色界推移約 6°；
+  //    只在整條弧的兩個**外端**補圓，等效於出貨版的 .round。
+  const TRI=[[220,52,'#FF615C'],[168,78,'#4CD67A'],[90,130,'#2975F2']];
+  const litOuter = o.tri
+    ? `<g stroke-linecap="butt">` +
+      TRI.map(([f,sw,c])=>`<path d="${arc(R_OUT,f,sw)}" stroke="${c}" stroke-width="${W_OUT}"/>`).join('') +
+      `</g>`
+    : `<path d="${arc(R_OUT,START,SWEEP*rem)}" stroke="${lit}" stroke-width="${W_OUT}"/>`;
+  const triCaps = o.tri
+    ? `<circle cx="${P(R_OUT,220)[0]}" cy="${P(R_OUT,220)[1]}" r="${W_OUT/2}" fill="#FF615C"/>
+       <circle cx="${P(R_OUT,-40)[0]}" cy="${P(R_OUT,-40)[1]}" r="${W_OUT/2}" fill="#2975F2"/>`
+    : '';
+  const rail = o.agents===0 ? ''
+    : `<circle cx="${P(R_OUT,-90)[0]}" cy="${P(R_OUT,-90)[1]}" r="${W_OUT/2}" fill="${lit}"/>`;
+  return `
+  <g fill="none" stroke-linecap="round">
+    <path d="${arc(R_OUT,START,SWEEP)}" stroke="${track}" stroke-width="${W_OUT}"/>
+    <path d="${arc(R_IN ,START,SWEEP)}" stroke="${track}" stroke-width="${W_IN}"/>
+    ${litOuter}
+    <path d="${arc(R_IN ,START,SWEEP*(o.inner??rem))}" stroke="${lit}" stroke-width="${W_IN}"/>
+    <path d="${arc(R_OUT,RAIL_A,RAIL_A-RAIL_B)}" stroke="${track}" stroke-width="${W_OUT}"/>
+  </g>
+  <circle cx="${mx}" cy="${my}" r="${W_OUT/2}" fill="${o.tri?'#FFFFFF':lit}" opacity="${rem>.5?0.42:1}"/>
+  <circle cx="${nx}" cy="${ny}" r="${W_IN/2}"  fill="${lit}" opacity="${rem>.5?0.42:1}"/>
+  ${triCaps}
+  ${rail}
+  <g fill="${ink}">${creature}</g>`;
+}
+function icon(o,px){
+  const body=816/1024, pad=(1-body)/2;
+  const g = o.glyphScale ?? 1;
+  const inner = 22/g;                                 // 放大生物＝縮小 viewBox
+  return `<svg viewBox="0 0 1024 1024" width="${px}" height="${px}" shape-rendering="geometricPrecision">
+    <defs>
+      <linearGradient id="${o.id}g" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="${o.bg[0]}"/><stop offset="1" stop-color="${o.bg[1]}"/>
+      </linearGradient>
+      <clipPath id="${o.id}c"><path d="${squircle(816)}" transform="translate(104,104)"/></clipPath>
+    </defs>
+    <g clip-path="url(#${o.id}c)">
+      <rect x="104" y="104" width="816" height="816" fill="url(#${o.id}g)"/>
+      ${o.sheen?`<ellipse cx="512" cy="180" rx="520" ry="300" fill="#fff" opacity=".10"/>`:''}
+    </g>
+    <svg x="104" y="104" width="816" height="816"
+         viewBox="${(22-inner)/2} ${(22-inner)/2} ${inner} ${inner}">${glyph(o)}</svg>
+  </svg>`;
+}
+const CANDS=[
+ {id:'a',name:'A — 品牌藍實底，白弧白生物',
+  note:'最像一個「產品」。藍是這個 app 的 comfortable 色（#2975F2→#004DBF）。白色雙弧在任何桌布上都站得住，小尺寸也最不容易糊。',
+  bg:['#3B87F5','#0043A8'],lit:'#FFFFFF',track:'rgba(255,255,255,.28)',ink:'#FFFFFF',sheen:1,agents:1},
+ {id:'b',name:'B — 深墨底，藍弧白生物',
+  note:'就是你夜裡在選單列真正看到的樣子，只是放大。辨識度來自形狀不是色塊，放在淺色 Dock 上對比最強。',
+  bg:['#2A2A30','#141417'],lit:'#2975F2',track:'rgba(255,255,255,.18)',ink:'#FFFFFF',agents:1},
+ {id:'c',name:'C — 淺底，深藍弧與深墨生物',
+  note:'淺色系統的長相，像 Apple 自家工具。缺點：深色 Dock 上會變成一塊亮白，反而搶眼過頭。',
+  bg:['#FFFFFF','#E4E6EB'],lit:'#004DBF',track:'rgba(0,0,0,.14)',ink:'#1C1C1E',agents:1},
+ {id:'d',name:'D — 只留生物，放大 1.9 倍',
+  note:'把雙弧整個拿掉，只留那隻生物當標記。16px 下唯一還清楚的候選 —— 但它丟掉了「這是一個量表」這層意思。',
+  bg:['#3B87F5','#0043A8'],lit:'#FFFFFF',track:'transparent',ink:'#FFFFFF',
+  glyphScale:1.9,agents:0,bare:1,sheen:1},
+ {id:'e',name:'E — 深墨底，外弧走完整三色階',
+  note:'外弧用額度色階的**真實門檻**分三段：紅 &lt;20%、綠 &lt;50%、藍 ≥50%。綠/藍的交界正好是正上方那顆 50% 標記點 —— 同一套幾何，不是湊的。一眼說明這個 app 在量什麼。',
+  bg:['#2A2A30','#141417'],lit:'#2975F2',track:'rgba(255,255,255,.18)',ink:'#FFFFFF',agents:1,tri:1},
+];
+document.getElementById('out').innerHTML = CANDS.map(o=>{
+  const small=[128,64,32,16].map(px=>
+    `<figure>${icon(o,px)}<figcaption>${px}px</figcaption></figure>`).join('');
+  return `<div class="row"><div class="big">${icon(o,180)}</div>
+    <div class="meta"><h2>${o.name}</h2><p>${o.note}</p>
+      <div class="sizes">${small}</div></div></div>`;
+}).join('');
+</script></body></html>

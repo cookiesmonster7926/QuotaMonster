@@ -1,0 +1,9 @@
+{
+ "agentType": "general-purpose",
+ "description": "Verify the build",
+ "toolUseId": "toolu_CHILD",
+ "parentAgentId": "plain1",
+ "spawnDepth": 2,
+ "requestShape": "foreground",
+ "requestNonInteractive": false
+}

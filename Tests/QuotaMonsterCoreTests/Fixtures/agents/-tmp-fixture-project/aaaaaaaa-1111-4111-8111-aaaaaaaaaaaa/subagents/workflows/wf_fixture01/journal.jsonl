@@ -1,0 +1,6 @@
+{"type": "launched"}
+{"type": "started", "key": "k1", "agentId": "w1", "label": "build:alpha", "phase": "Build"}
+{"type": "started", "key": "k2", "agentId": "w2", "label": "build:beta", "phase": "Build"}
+{"type": "started", "key": "k3", "agentId": "w3", "label": "build:gamma", "phase": "Build"}
+{"type": "result", "key": "k1", "agentId": "w1", "result": {"ok": true}}
+{"type": "failed", "key": "k3", "agentId": "w3"}

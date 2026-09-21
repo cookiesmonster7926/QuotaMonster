@@ -1,0 +1,331 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Orbit</title><style>
+@property --fmoAmp{syntax:"<number>";inherits:true;initial-value:0}
+@property --fmoSlp{syntax:"<number>";inherits:true;initial-value:0}
+@keyframes fmoBob{0%,100%{transform:translateY(0)}50%{transform:translateY(-.35px)}}
+@keyframes fmoAmp{0%,11%{--fmoAmp:0}11.1%,44.3%{--fmoAmp:1}44.4%,80.5%{--fmoAmp:0}80.6%,88.8%{--fmoAmp:1}88.9%,100%{--fmoAmp:0}}
+@keyframes fmoSlp{0%,94.3%{--fmoSlp:0}96%,100%{--fmoSlp:1}}
+@keyframes fmoA5{0%,86%{stroke-dasharray:187.2 360}94.4%,100%{stroke-dasharray:0 360}}
+@keyframes fmoA7{0%,86%{stroke-dasharray:213.2 360}94.4%,100%{stroke-dasharray:0 360}}
+@keyframes fmoQ{0%,44.3%{opacity:1}44.4%,80.5%{opacity:0}80.6%,100%{opacity:1}}
+@keyframes fmoAl{0%,44.3%{opacity:0}44.4%,80.5%{opacity:1}80.6%,100%{opacity:0}}
+@keyframes fmoRg{0%,58.2%{stroke-dasharray:360 0}58.3%,72.1%{stroke-dasharray:153.4 26.6}72.2%,100%{stroke-dasharray:93.4 26.6}}
+@keyframes fmoD1{0%,11%{opacity:0}11.1%,16.6%{opacity:1}16.7%,80.5%{opacity:0}80.6%,88.8%{opacity:1}88.9%,100%{opacity:0}}
+@keyframes fmoD3{0%,16.6%{opacity:0}16.7%,27.7%{opacity:1}27.8%,38.8%{opacity:0}38.9%,44.3%{opacity:1}44.4%,100%{opacity:0}}
+@keyframes fmoDm{0%,27.7%{opacity:0}27.8%,38.8%{opacity:1}38.9%,100%{opacity:0}}
+.fm-orbit{--bg:#f7f5f0;--pnl:#fff;--ink:#16130f;--dim:#6b655c;--ln:#e4dfd4;--gd:#cdc6b8;--acc:#9a5518;--al:#c3341c;
+font:14px/1.62 ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif;color:var(--ink);background:var(--bg);padding:26px 16px 60px;-webkit-font-smoothing:antialiased}
+@media (prefers-color-scheme:dark){.fm-orbit:not([data-theme=light]){--bg:#141210;--pnl:#1d1a16;--ink:#f0ece3;--dim:#9b9488;--ln:#302b24;--gd:#4a443a;--acc:#dc9a54;--al:#ff6a4d}}
+.fm-orbit[data-theme=dark]{--bg:#141210;--pnl:#1d1a16;--ink:#f0ece3;--dim:#9b9488;--ln:#302b24;--gd:#4a443a;--acc:#dc9a54;--al:#ff6a4d}
+.fm-orbit *{box-sizing:border-box}
+.fm-orbit .wrap{max-width:1000px;margin:0 auto}
+.fm-orbit h1{font:640 27px/1.2 ui-sans-serif,system-ui;letter-spacing:-.022em;margin:0 0 6px}
+.fm-orbit .lede{color:var(--dim);margin:0 0 4px;max-width:66ch}
+.fm-orbit h2{font:640 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.15em;text-transform:uppercase;color:var(--acc);margin:52px 0 6px;padding-bottom:8px;border-bottom:1px solid var(--ln)}
+.fm-orbit h3{font:640 13.5px/1.4 ui-sans-serif,system-ui;margin:22px 0 6px}
+.fm-orbit p{margin:0 0 10px;max-width:70ch}
+.fm-orbit .nt{color:var(--dim);font-size:12.6px;max-width:72ch}
+.fm-orbit .pnl{background:var(--pnl);border:1px solid var(--ln);border-radius:12px;padding:16px}
+.fm-orbit .row{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+.fm-orbit table{border-collapse:collapse;font:12.4px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;width:100%;margin:8px 0 4px}
+.fm-orbit th{text-align:left;color:var(--dim);font-weight:600;border-bottom:1px solid var(--ln);padding:5px 9px 5px 0}
+.fm-orbit td{padding:4px 9px 4px 0;border-bottom:1px solid var(--ln);vertical-align:top}
+.fm-orbit .mk{display:block;overflow:visible}
+.fm-orbit .mk{--c5:var(--ink);--c7:#5d8f4a;--cc:#2e6d9c;--ca:var(--al)}
+.fm-orbit .mk.tpl{--c5:currentColor;--c7:currentColor;--cc:currentColor;--ca:currentColor}
+.fm-orbit .a5,.fm-orbit .a7,.fm-orbit .rg{fill:none;stroke-width:1.3;stroke-linecap:round}
+.fm-orbit .a5,.fm-orbit .a7{transform:rotate(-220deg);transform-origin:11px 12.3px;stroke-dasharray:var(--d) 360}
+.fm-orbit .a5{stroke:var(--c5)}.fm-orbit .a7{stroke:var(--c7)}
+.fm-orbit .rg{stroke:var(--ca);stroke-dasharray:var(--d) var(--g);stroke-dashoffset:-13.3}
+.fm-orbit .cr{fill:var(--cc)}
+.fm-orbit .cr.slp{transform:translateY(.5px) scaleY(.86);transform-origin:11px 12.2px}
+.fm-orbit .run .cr{animation:fmoBob 1.6s ease-in-out infinite}
+.fm-orbit .gd{fill:none;stroke:var(--gd);stroke-width:.05}
+.fm-orbit .gdd{fill:none;stroke:var(--gd);stroke-width:.05;stroke-dasharray:.42 .3}
+.fm-orbit .lb{fill:var(--dim);font:.72px ui-monospace,Menlo,monospace}
+.fm-orbit .lba{fill:var(--acc);font:600 .72px ui-monospace,Menlo,monospace}
+.fm-orbit .cap{font:11.4px/1.35 ui-monospace,Menlo,monospace;color:var(--dim);margin:6px 0 0;text-align:center}
+.fm-orbit .cell{display:flex;flex-direction:column;align-items:center;gap:4px}
+.fm-orbit .box{position:relative;width:88px;height:88px;border:1px dashed var(--gd);border-radius:3px}
+.fm-orbit .box .mk{position:absolute;inset:0}
+.fm-orbit .ruler{position:relative;padding:20px 0 4px}
+.fm-orbit .ruler .rl{position:absolute;left:0;right:0;height:0;border-top:1px solid var(--acc);opacity:.55}
+.fm-orbit .ruler .r1{top:20px}.fm-orbit .ruler .r2{top:108px}
+.fm-orbit .ruler .rt{position:absolute;right:0;top:2px;font:10.5px ui-monospace,Menlo,monospace;color:var(--acc)}
+.fm-orbit .strip{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fm-orbit .sil{background:#fff;border:1px solid var(--ln);border-radius:8px;padding:10px;color:#000}
+.fm-orbit .silk{background:#000;border:1px solid var(--ln);border-radius:8px;padding:10px;color:#fff}
+.fm-orbit .bar{position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--ln)}
+.fm-orbit .wall{height:118px;background:
+ radial-gradient(120% 90% at 18% 8%,#f0b36b 0%,transparent 55%),
+ radial-gradient(100% 80% at 88% 22%,#7ea6d8 0%,transparent 58%),
+ linear-gradient(160deg,#2c3f63 0%,#5d4b72 46%,#b2705f 100%)}
+.fm-orbit .mbar{position:absolute;top:0;left:0;right:0;height:33px;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 12px;backdrop-filter:blur(22px) saturate(1.5);-webkit-backdrop-filter:blur(22px) saturate(1.5)}
+.fm-orbit .mbar.lt{background:rgba(250,250,250,.62);color:#1a1a1a}
+.fm-orbit .mbar.dk{background:rgba(22,22,24,.58);color:#f2f2f2}
+.fm-orbit .mbar .mk{flex:none}
+.fm-orbit .clk{font:500 12.5px ui-sans-serif,system-ui;letter-spacing:.01em}
+.fm-orbit .tag{display:inline-block;font:11px ui-monospace,Menlo,monospace;color:var(--dim);border:1px solid var(--ln);border-radius:5px;padding:1px 6px}
+.fm-orbit .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:14px}
+.fm-orbit .gi{display:flex;flex-direction:column;align-items:center;gap:6px;padding:10px 6px;border:1px solid var(--ln);border-radius:9px;background:var(--pnl)}
+.fm-orbit .gi .rs{display:flex;align-items:center;gap:8px}
+.fm-orbit .lv .lvq{animation:fmoQ 18s infinite}
+.fm-orbit .lv .lval{animation:fmoAl 18s infinite}
+.fm-orbit .lv .a5{animation:fmoA5 18s infinite}
+.fm-orbit .lv .a7{animation:fmoA7 18s infinite}
+.fm-orbit .lv .rg{animation:fmoRg 18s infinite}
+.fm-orbit .lv .lvd1{animation:fmoD1 18s infinite}
+.fm-orbit .lv .lvd3{animation:fmoD3 18s infinite}
+.fm-orbit .lv .lvdm{animation:fmoDm 18s infinite}
+.fm-orbit .lv .lvcr{animation:fmoAmp 18s infinite,fmoSlp 18s infinite,fmoBob 1.6s ease-in-out infinite;transform-origin:11px 12.2px;
+ transform:translateY(calc(var(--fmoSlp)*.5px)) scaleY(calc(1 - var(--fmoSlp)*.14))}
+.fm-orbit .lv .lvw{animation:fmoAmp 18s infinite;transform:translateY(calc(var(--fmoAmp) * 0px))}
+.fm-orbit .tl{display:flex;font:10.8px ui-monospace,Menlo,monospace;color:var(--dim);border-top:1px solid var(--ln);margin-top:10px;padding-top:6px}
+.fm-orbit .tl span{flex:1;border-left:1px solid var(--ln);padding-left:5px}
+.fm-orbit .warn{border-left:3px solid var(--al);padding:2px 0 2px 12px;margin:12px 0}
+@media (prefers-reduced-motion:reduce){
+ .fm-orbit *{animation:none!important}
+ .fm-orbit .lv .lvq{opacity:0}.fm-orbit .lv .lval{opacity:1}
+ .fm-orbit .lv .rg{stroke-dasharray:153.4 26.6}
+ .fm-orbit .lv .lvcr{transform:none}
+}
+@media (max-width:620px){.fm-orbit .box{width:66px;height:66px}.fm-orbit .ruler .r2{top:86px}}
+</style></head><body><div class="fm-orbit"><div class="wrap">
+
+<svg width="0" height="0" aria-hidden="true" style="position:absolute"><defs>
+<g id="fmoBg"><g style="fill:none;stroke:currentColor;stroke-width:1.3;stroke-linecap:round;stroke-dasharray:260 100;opacity:.26;transform:rotate(-220deg);transform-origin:11px 12.3px"><circle cx="11" cy="12.3" r="7.35" pathLength="360"/><circle cx="11" cy="12.3" r="4.15" pathLength="360"/></g></g>
+<g id="fmoBd"><circle cx="11" cy="4.95" r=".65" style="fill:var(--c5)"/><circle cx="11" cy="8.15" r=".65" style="fill:var(--c7)"/></g>
+<g id="fmoD1" style="fill:var(--cc)"><circle cx="11" cy="14.25" r=".45"/></g>
+<g id="fmoD2" style="fill:var(--cc)"><circle cx="12.0043" cy="13.9715" r=".45"/><circle cx="9.9957" cy="13.9715" r=".45"/></g>
+<g id="fmoD3" style="fill:var(--cc)"><circle cx="11" cy="14.25" r=".45"/><circle cx="12.7217" cy="13.2155" r=".45"/><circle cx="9.2783" cy="13.2155" r=".45"/></g>
+<path id="fmoDm" d="M9.3463 13.3333A1.95 1.95 0 0 0 12.6537 13.3333" style="fill:none;stroke:var(--cc);stroke-width:.9;stroke-linecap:round"/>
+<path id="fmoCr" d="M12.4 10.95A.6 .6 0 0 0 11.2667 10.6751A.3 .3 0 0 1 10.7333 10.6751A.6 .6 0 0 0 9.6 10.95L9.6 11.25A.95 .95 0 0 0 10.55 12.2L11.45 12.2A.95 .95 0 0 0 12.4 11.25Z"/>
+<g id="fmoCv" style="fill:none;stroke:var(--ca);stroke-width:1;stroke-linecap:round;stroke-linejoin:round"><path d="M7.35 11.4 8.45 12.3 7.35 13.2"/><path d="M10.45 11.4 11.55 12.3 10.45 13.2"/><path d="M13.55 11.4 14.65 12.3 13.55 13.2"/></g>
+<g id="fmoBat" style="fill:none;stroke:currentColor;stroke-width:1;stroke-linecap:round;stroke-linejoin:round"><rect x=".5" y="1.5" width="21" height="10" rx="3.1"/><path d="M23 5.2v3.1" style="stroke-width:1.6"/><rect x="2.4" y="3.4" width="13" height="6.2" rx="1.6" style="fill:currentColor;stroke:none"/></g>
+<g id="fmoWifi" style="fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round"><path d="M1 4.6A12.4 12.4 0 0 1 17 4.6"/><path d="M4 7.9A7.9 7.9 0 0 1 14 7.9"/><path d="M6.9 11.1A3.6 3.6 0 0 1 11.1 11.1"/><circle cx="9" cy="13.4" r=".95" style="fill:currentColor;stroke:none"/></g>
+</defs></svg>
+
+<h1>Orbit</h1>
+<p class="lede">Two open quota arcs, a 16.00pt outer circle, a creature in the mouth and the agent count on its own orbit between the creature and the inner ring. Corrections 1, 2 and 3 applied; correction 4 resolved as a bead, with the notch proved impossible first.</p>
+<p class="nt">Live data throughout: 5-hour window 72% remaining, 7-day window 82% remaining, 4 sessions live, 5 agents running, 1 session blocked for 2 minutes. 1pt = 1px. CSS only, no script, no external assets.</p>
+
+<h2>1 &nbsp;Construction</h2>
+<div class="row">
+<div class="pnl"><svg width="470" height="470" viewBox="-5.6 -1.6 28.6 28.6" aria-hidden="true">
+<rect x="0" y="0" width="22" height="22" class="gdd"/>
+<rect x="3" y="4.3" width="16" height="13.3746" class="gd" style="stroke:var(--acc);opacity:.45"/>
+<line x1="11" y1="1.4" x2="11" y2="21" class="gdd"/><line x1="1.4" y1="12.3" x2="20.6" y2="12.3" class="gdd"/>
+<circle cx="11" cy="12.3" r="8" class="gd"/><circle cx="11" cy="12.3" r="6.7" class="gd"/><circle cx="11" cy="12.3" r="4.8" class="gd"/><circle cx="11" cy="12.3" r="3.5" class="gd"/><circle cx="11" cy="12.3" r="2.4" class="gd"/><circle cx="11" cy="12.3" r="1.5" class="gd"/>
+<g class="mk" style="--c5:var(--ink);--c7:#5d8f4a;--cc:#2e6d9c"><use href="#fmoBg"/><use href="#fmoBd"/>
+<circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/>
+<circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/>
+<use href="#fmoD3"/><use class="cr" href="#fmoCr"/></g>
+<g style="stroke:var(--acc);stroke-width:.06;fill:none"><path d="M-2.2 4.3H11M-2.2 4.95H9.8M-2.2 5.6H11M-2.2 7.5H11M-2.2 8.15H9.8M-2.2 8.8H11M-2.2 9.9H10.2M-2.2 10.8H10.4"/></g>
+<g class="lb"><text x="-5.5" y="4.15">r 8.00 ink edge</text><text x="-5.5" y="5.45">r 6.70</text><text x="-5.5" y="7.35">r 4.80</text><text x="-5.5" y="8.65">r 3.50</text><text x="-5.5" y="9.75">r 2.40</text><text x="-5.5" y="10.65">r 1.50</text></g>
+<g class="lba"><text x="-5.5" y="4.82">r 7.35 &#183; 5h</text><text x="-5.5" y="8.02">r 4.15 &#183; 7d</text></g>
+<g class="lb"><text x="11.6" y="4.15">1.30 stroke</text><text x="11.6" y="6.6">1.90 counter A</text><text x="11.6" y="7.35">1.30 stroke</text><text x="19.4" y="9.35">1.10 ctr B</text><text x="19.4" y="10.5">0.90 orbit</text></g>
+<text x="3" y="3.6" class="lba">ink 16.000 &#215; 13.3746pt &#183; fixed in every state</text>
+<text x="11" y="20.4" class="lb" text-anchor="middle">centre (11.00, 12.30) &#183; box 22.00 &#215; 22.00pt</text>
+</svg><p class="cap">A &#183; radial stack, ~21&#215;. Creature and orbit share r&lt;3.50 angularly, not radially.</p></div>
+
+<div class="pnl"><svg width="470" height="470" viewBox="-3.3 -1.6 28.6 28.6" aria-hidden="true">
+<circle cx="11" cy="12.3" r="7.35" class="gdd"/><circle cx="11" cy="12.3" r="1.95" class="gdd"/>
+<g class="gd"><path d="M11 12.3 5.37 7.58M11 12.3 11 3.6M11 12.3 16.63 17.02M11 12.3 5.37 17.02M11 12.3 16.63 7.58"/></g>
+<g class="mk" style="--c5:var(--ink);--c7:#5d8f4a;--cc:#2e6d9c"><use href="#fmoBg"/><use href="#fmoBd"/>
+<circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/>
+<circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/>
+<use href="#fmoD3"/><use class="cr" href="#fmoCr"/></g>
+<path d="M4.4 9.9A8.9 8.9 0 0 1 17.6 9.9" class="gd" style="stroke:var(--acc);opacity:.6"/>
+<text x="11" y="1.9" class="lba" text-anchor="middle">sweep 260&#176; &#183; 220&#176; &#8594; &#8722;40&#176;</text>
+<text x="11" y="21.1" class="lba" text-anchor="middle">mouth 100&#176; (89.8&#176; after round caps)</text>
+<g class="lb"><text x="3.6" y="7.1" text-anchor="end">220&#176;</text><text x="18.4" y="7.1">&#8722;40&#176;</text><text x="11" y="3.1" text-anchor="middle">90&#176; TDC = 50% mark</text>
+<text x="11" y="16.4" text-anchor="middle">orbit r 1.95 &#183; stroke 0.90</text>
+<text x="18.4" y="17.6">dots &#8722;28&#176;/&#8722;90&#176;/&#8722;152&#176;</text><text x="18.4" y="18.6">pitch 62&#176; &#183; chord 2.0086</text>
+<text x="3.6" y="12.1" text-anchor="end">180&#176;</text><text x="18.4" y="12.1">0&#176;</text></g>
+</svg><p class="cap">B &#183; angles, ~21&#215;. Beads sit at 90&#176;, the exact midpoint of the 260&#176; sweep.</p></div>
+
+<div class="pnl"><svg width="300" height="300" viewBox="0.6 1.9 20.8 20.8" aria-hidden="true">
+<g class="mk tpl" style="color:var(--al)"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:93.4;--g:26.6"/><use href="#fmoCv"/></g>
+<g class="gd"><path d="M11 12.3 19.1 12.3M11 12.3 6.95 5.28M11 12.3 6.95 19.32"/></g>
+<text x="11" y="3.3" class="lba" text-anchor="middle">alert ring &#183; N = 3</text>
+<g class="lb"><text x="11" y="21.9" text-anchor="middle">gap 26.58&#176; = 3.4100pt &#183; visible counter 2.1100pt</text>
+<text x="11" y="22.9" text-anchor="middle">mark 93.4&#176; = 11.984pt &#183; circumference 46.1814pt</text></g>
+</svg><p class="cap">C &#183; segmentation, ~14&#215;. Gap centres at 0&#176;, 120&#176;, 240&#176;.</p></div>
+</div>
+
+<table><tr><th>band</th><th>radius</th><th>pt</th><th>% of 16.00</th><th>floor</th></tr>
+<tr><td>outer 5h stroke</td><td>8.00 &#8594; 6.70</td><td>1.30</td><td>8.1</td><td>ok, &gt;1.25 practical</td></tr>
+<tr><td>counter A</td><td>6.70 &#8594; 4.80</td><td>1.90</td><td>11.9</td><td>0.10 under 1x</td></tr>
+<tr><td>inner 7d stroke</td><td>4.80 &#8594; 3.50</td><td>1.30</td><td>8.1</td><td>ok</td></tr>
+<tr><td>counter B</td><td>3.50 &#8594; 2.40</td><td>1.10</td><td>6.9</td><td>2x only</td></tr>
+<tr><td>agent orbit stroke</td><td>2.40 &#8594; 1.50</td><td>0.90</td><td>5.6</td><td>2x only</td></tr>
+<tr><td>free core</td><td>1.50 &#8594; 0</td><td>1.50</td><td>9.4</td><td>&#8212;</td></tr>
+<tr><td><b>total spent</b></td><td></td><td><b>8.00</b></td><td></td><td>1.00 of the 9.00 given back to hold &#216; 16.00</td></tr></table>
+
+<h2>2 &nbsp;Rounding audit</h2>
+<div class="row">
+<div class="pnl"><svg width="430" height="430" viewBox="7.4 8.6 6.4 6.4" aria-hidden="true">
+<g class="mk" style="--cc:var(--ink)"><use class="cr" href="#fmoCr"/><use href="#fmoD3"/></g>
+<g class="gd" style="stroke:var(--acc);opacity:.75;stroke-width:.035">
+<circle cx="10.2" cy="10.95" r=".6"/><circle cx="11.8" cy="10.95" r=".6"/><circle cx="11" cy="10.5377" r=".3"/><circle cx="10.55" cy="11.25" r=".95"/><circle cx="11.45" cy="11.25" r=".95"/></g>
+<g class="lba" style="font-size:.34px"><text x="9.35" y="10.2">R 0.60 crown</text><text x="11.95" y="10.2">R 0.60 crown</text>
+<text x="11" y="9.9" text-anchor="middle">R 0.30 valley fillet &#8595;</text>
+<text x="7.6" y="12.1">R 0.95</text><text x="12.7" y="12.1">R 0.95</text>
+<text x="7.6" y="11.05">tangent, no corner</text>
+<text x="11" y="14.95" text-anchor="middle">R 0.45 discs &#183; counters 1.108pt</text></g>
+</svg><p class="cap">Creature at ~67&#215;. Five construction circles, zero vertices. Valley depth 0.4877pt.</p></div>
+
+<div class="pnl" style="flex:1;min-width:290px">
+<h3 style="margin-top:0">Every vertex, and its radius</h3>
+<table><tr><th>vertex</th><th>treatment</th><th>R (pt)</th></tr>
+<tr><td>arc terminals &#215;6 (live + track ends &#215;4)</td><td>round cap</td><td>0.650</td></tr>
+<tr><td>50% bead &#215;2</td><td>full circle</td><td>0.650</td></tr>
+<tr><td>orbit discs &#215;3</td><td>full circle</td><td>0.450</td></tr>
+<tr><td>orbit saturation arc ends &#215;2</td><td>round cap</td><td>0.450</td></tr>
+<tr><td>creature crowns &#215;2</td><td>arc (no vertex)</td><td>0.600</td></tr>
+<tr><td><b>creature valley</b></td><td>concave fillet</td><td><b>0.300</b></td></tr>
+<tr><td>crown&#8594;flank &#215;2</td><td>G1 tangent</td><td>no corner</td></tr>
+<tr><td>bottom corners &#215;2</td><td>arc</td><td>0.950</td></tr>
+<tr><td>flank&#8594;corner, corner&#8594;base &#215;4</td><td>G1 tangent</td><td>no corner</td></tr>
+<tr><td>chevron apexes &#215;3</td><td>linejoin round</td><td>0.500</td></tr>
+<tr><td>chevron tails &#215;6</td><td>round cap</td><td>0.500</td></tr>
+<tr><td>alert segment ends &#215;2N</td><td>round cap</td><td>0.650</td></tr>
+<tr><td>sleeping pose (&#215;0.86 in y)</td><td>all of the above</td><td>min 0.258</td></tr></table>
+<p class="nt"><b>No vertex in this mark is still a point.</b> Smallest radius awake is 0.300pt (valley fillet); asleep it is 0.258pt. Both are below the 1x floor &#8212; at 1x the valley closes and the crown reads as one dome. That is the only place correction 1 is invisible, and it costs no information.</p>
+</div></div>
+
+<h3>The 50% marks, at 16&#215; and at 44&#215;</h3>
+<div class="row">
+<div class="pnl"><div class="row" style="gap:18px;align-items:center">
+<div class="cell"><svg width="128" height="72" viewBox="7 3.6 8 4.5" class="mk" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/></svg><p class="cap">16&#215; &#183; 72% left<br>bead fused, invisible</p></div>
+<div class="cell"><svg width="128" height="72" viewBox="7 3.6 8 4.5" class="mk" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:98.8"/></svg><p class="cap">16&#215; &#183; 38% left<br>bead exposed on the track</p></div>
+<div class="cell"><svg width="128" height="72" viewBox="7 6.8 8 4.5" class="mk" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:98.8"/></svg><p class="cap">16&#215; &#183; inner arc, 38%<br>same construction</p></div>
+</div></div>
+<div class="pnl"><svg width="352" height="220" viewBox="9.2 3.9 6.4 4" aria-hidden="true">
+<g class="mk" style="--c5:var(--ink)"><use href="#fmoBg"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:98.8"/><use href="#fmoBd"/></g>
+<g class="gd" style="stroke:var(--acc);stroke-width:.03"><circle cx="11" cy="12.3" r="8"/><circle cx="11" cy="12.3" r="6.7"/><circle cx="11" cy="12.3" r="7.35" style="stroke-dasharray:.12 .1"/><path d="M12.1 4.3H14.6M12.1 5.6H14.6M11.75 4.95H14.6"/></g>
+<g class="lba" style="font-size:.26px"><text x="14.75" y="4.38">band outer edge y 4.3000</text><text x="14.75" y="5.03">centreline y 4.9500</text><text x="14.75" y="5.68">band inner edge y 5.6000</text>
+<text x="9.3" y="4.3">bead top y 4.3000 &#183; protrusion 0.0000</text><text x="9.3" y="5.72">bead base y 5.6000 &#183; protrusion 0.0000</text>
+<text x="9.3" y="6.6">disc &#216; 1.3000 = stroke width exactly &#183; tangent to both edges</text>
+<text x="9.3" y="7.0">no counter anywhere &#8212; nothing to fall below the 2.0pt floor</text></g>
+</svg><p class="cap">44&#215; &#183; the bead is tangent to both band edges and crosses neither, outward or inward.</p></div>
+</div>
+<p class="nt"><b>Why bead, not notch.</b> Correction 1 forces round caps, and a round cap eats 0.65pt of the gap from each side, so a notch&#8217;s visible counter is (gap &#8722; 1.30). Clearing the 2.0pt 1x floor needs a 3.30pt gap: <b>25.7&#176; on the outer arc and 45.6&#176; on the inner</b>, which is 17.5% of the inner gauge and is visually a second mouth &#8212; and it is the same 3.4pt size as the alert ring&#8217;s segmentation gap, so one gesture would mean two things. The notch cannot be built. The bead can, because it never needs a counter: painted under the live arc at full opacity, it is invisible while quota is above half (when you already know), and it stands alone as full ink on a 26% track the moment quota drops below half. It is the only sub-2pt feature in the mark that fully survives 1x.</p>
+
+<h2>3 &nbsp;Width invariance</h2>
+<p class="nt">Eleven states. Same 22.00 &#215; 22.00pt item, same 16.000 &#215; 13.3746pt ink box, x 3.000&#8211;19.000 and y 4.300&#8211;17.6746 in every one. The two orange rules are the ink box top and bottom, drawn once across the whole row.</p>
+<div class="pnl ruler"><div class="rl r1"></div><div class="rl r2"></div><span class="rt">ink box 16.000 &#215; 13.3746pt &#183; identical in all 11</span>
+<div class="strip" style="align-items:flex-start">
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">0 agents</p></div>
+<div class="cell"><div class="box"><svg class="mk run" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD1"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">1</p></div>
+<div class="cell"><div class="box"><svg class="mk run" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">3</p></div>
+<div class="cell"><div class="box"><svg class="mk run" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">5 &#8594; &#8220;4+&#8221;</p></div>
+<div class="cell"><div class="box"><svg class="mk run" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">10 &#8594; &#8220;4+&#8221;</p></div>
+<div class="cell"><div class="box"><svg class="mk run" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">15 &#8594; &#8220;4+&#8221;</p></div>
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></svg></div><p class="cap">blocked 1</p></div>
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:153.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">blocked 2</p></div>
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:93.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">blocked 3</p></div>
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:45.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">blocked 5</p></div>
+<div class="cell"><div class="box"><svg class="mk" viewBox="0 0 22 22" aria-hidden="true"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:0"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:0"/><use class="cr slp" href="#fmoCr"/></svg></div><p class="cap">asleep</p></div>
+</div>
+<div class="strip" style="margin-top:14px;padding-top:12px;border-top:1px solid var(--ln)">
+<span class="tag">same eleven at 1&#215;</span>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD1"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:153.4;--g:26.6"/><use href="#fmoCv"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:93.4;--g:26.6"/><use href="#fmoCv"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:45.4;--g:26.6"/><use href="#fmoCv"/></svg>
+<svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:0"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:0"/><use class="cr slp" href="#fmoCr"/></svg>
+</div></div>
+<p class="nt">The agent readout&#8217;s outermost ink is at r 2.40pt &#8212; 5.60pt inside the silhouette edge. It is structurally incapable of changing the item&#8217;s width, which is the whole point of putting it on an orbit rather than in a row.</p>
+
+<h2>4 &nbsp;Silhouette test</h2>
+<div class="row">
+<div class="sil"><div class="strip">
+<svg class="mk tpl" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:98.8"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:93.4;--g:26.6"/><use href="#fmoCv"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:0"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:0"/><use class="cr slp" href="#fmoCr"/></svg>
+</div><p class="cap" style="text-align:left">solid black, 1&#215; then 4&#215; &#183; 72% &#183; 38% with bead exposed &#183; blocked 3 &#183; asleep</p></div>
+<div class="silk"><div class="strip">
+<svg class="mk tpl" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD3"/><use class="cr" href="#fmoCr"/></svg>
+<svg class="mk tpl" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:93.4;--g:26.6"/><use href="#fmoCv"/></svg>
+</div><p class="cap" style="text-align:left">inverted &#183; alpha only, no colour</p></div>
+</div>
+
+<h2>5 &nbsp;Menu bar, real size</h2>
+<div class="row">
+<div style="flex:1;min-width:300px"><div class="bar"><div class="wall"></div><div class="mbar lt">
+<svg class="mk tpl" viewBox="0 0 22 22" width="22" height="22" style="color:currentColor"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg>
+<svg width="24" height="13" viewBox="0 0 24 13" aria-hidden="true"><use href="#fmoBat"/></svg>
+<svg width="18" height="15" viewBox="0 0 18 15" aria-hidden="true"><use href="#fmoWifi"/></svg>
+<span class="clk">Thu 09:41</span></div></div><p class="cap">light bar &#183; 33pt tall, translucent &#183; mark at 1&#215;</p></div>
+<div style="flex:1;min-width:300px"><div class="bar"><div class="wall"></div><div class="mbar dk">
+<svg class="mk tpl" viewBox="0 0 22 22" width="22" height="22" style="color:var(--al)"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></svg>
+<svg width="24" height="13" viewBox="0 0 24 13" aria-hidden="true"><use href="#fmoBat"/></svg>
+<svg width="18" height="15" viewBox="0 0 18 15" aria-hidden="true"><use href="#fmoWifi"/></svg>
+<span class="clk">Thu 09:41</span></div></div><p class="cap">dark bar &#183; needs-input, 1 blocked &#183; the only coloured state</p></div>
+</div>
+
+<h2>6 &nbsp;State gallery</h2>
+<div class="gal">
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">idle &#183; 72 / 82<br>creature still</p></div>
+<div class="gi"><div class="rs"><svg class="mk run" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg><svg class="mk run" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoDm"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap"><b>live data</b><br>5 agents, bobbing</p></div>
+<div class="gi"><div class="rs"><svg class="mk run" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD2"/><use class="cr" href="#fmoCr"/></svg><svg class="mk run" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use href="#fmoD2"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">2 agents<br>two cells</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:98.8"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:98.8"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">5h at 38%<br><b>bead exposed</b></p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:31.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:98.8"/><use class="cr" href="#fmoCr"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:31.2"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:98.8"/><use class="cr" href="#fmoCr"/></svg></div><p class="cap">12 / 38<br>both beads exposed</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:0"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:0"/><use class="cr slp" href="#fmoCr"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><use href="#fmoBg"/><use href="#fmoBd"/><circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:0"/><circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:0"/><use class="cr slp" href="#fmoCr"/></svg></div><p class="cap">asleep &#183; exhausted<br>lowered, flattened, no eye</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></svg></div><p class="cap"><b>needs input &#183; 1</b><br>continuous ring</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:153.4;--g:26.6"/><use href="#fmoCv"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:153.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">needs input &#183; 2<br>two half rings</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:45.4;--g:26.6"/><use href="#fmoCv"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:45.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">needs input &#183; 5<br>45.4&#176; each</p></div>
+<div class="gi"><div class="rs"><svg class="mk" viewBox="0 0 22 22" width="22" height="22"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:18.4;--g:26.6"/><use href="#fmoCv"/></svg><svg class="mk" viewBox="0 0 22 22" width="88" height="88"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:18.4;--g:26.6"/><use href="#fmoCv"/></svg></div><p class="cap">needs input &#183; 8+<br><b>ceiling, saturated</b></p></div>
+</div>
+
+<h2>7 &nbsp;Live scenario</h2>
+<div class="pnl"><div class="row" style="align-items:center;gap:26px">
+<svg class="mk lv" viewBox="0 0 22 22" width="176" height="176" aria-hidden="true">
+<g class="lvq"><use href="#fmoBg"/><use href="#fmoBd"/>
+<circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/>
+<circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/>
+<use class="lvd1" href="#fmoD1" style="opacity:0"/><use class="lvd3" href="#fmoD3" style="opacity:0"/><use class="lvdm" href="#fmoDm" style="opacity:0"/>
+<g class="lvcr"><use class="cr" href="#fmoCr"/></g></g>
+<g class="lval" style="opacity:0"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></g>
+</svg>
+<svg class="mk lv" viewBox="0 0 22 22" width="22" height="22" aria-hidden="true">
+<g class="lvq"><use href="#fmoBg"/><use href="#fmoBd"/>
+<circle class="a5" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:187.2"/>
+<circle class="a7" cx="11" cy="12.3" r="4.15" pathLength="360" style="--d:213.2"/>
+<use class="lvd1" href="#fmoD1" style="opacity:0"/><use class="lvd3" href="#fmoD3" style="opacity:0"/><use class="lvdm" href="#fmoDm" style="opacity:0"/>
+<g class="lvcr"><use class="cr" href="#fmoCr"/></g></g>
+<g class="lval" style="opacity:0"><circle class="rg" cx="11" cy="12.3" r="7.35" pathLength="360" style="--d:360;--g:0"/><use href="#fmoCv"/></g>
+</svg>
+<div style="flex:1;min-width:250px"><p class="nt" style="margin:0">18s loop, CSS only. Left 8&#215;, right 1&#215; &#8212; the same element at the size it ships.</p></div>
+</div>
+<div class="tl"><span>0&#8211;2s<br>idle</span><span>2&#8211;3s<br>wake, 1</span><span>3&#8211;5s<br>3 agents</span><span>5&#8211;7s<br>5, saturated</span><span>7&#8211;8s<br>back to 3</span><span>8&#8211;10.5s<br>blocked 1</span><span>10.5&#8211;13s<br>blocked 2</span><span>13&#8211;14.5s<br>blocked 3</span><span>14.5&#8211;16s<br>cleared, 1</span><span>16&#8211;17s<br>quota drains</span><span>17&#8211;18s<br>asleep</span></div>
+</div>
+<p class="nt"><b>Reduced motion.</b> Under <code>prefers-reduced-motion: reduce</code> every animation is removed and the scenario freezes on the blocked-2 frame &#8212; a closed red ring in two half segments with three chevrons. Nothing is carried by motion alone: agent count is the orbit, blocked count is the segmentation, quota is arc length, sleep is pose plus two empty tracks. The bob is decoration and is the only thing lost.</p>
+
+<h2>8 &nbsp;Rasterisation note</h2>
+<table><tr><th>feature</th><th>pt</th><th>1x</th><th>2x</th><th>what was done</th></tr>
+<tr><td>arc strokes</td><td>1.300</td><td>ok</td><td>ok</td><td>above the 1.25 practical floor; 8.1% of the mark, inside the 1.3&#8211;1.8 band</td></tr>
+<tr><td>50% beads</td><td>1.300 &#216;</td><td>ok</td><td>ok</td><td>designed to need no counter &#8212; the only sub-2pt feature that fully survives 1x</td></tr>
+<tr><td>alert segmentation counter</td><td>2.110</td><td>ok</td><td>ok</td><td>gap set to 3.41pt so the visible counter clears 2.0</td></tr>
+<tr><td>creature mass</td><td>2.80 &#215; 1.85</td><td>ok</td><td>ok</td><td>filled, no interior detail, zero eyes</td></tr>
+<tr><td>counter A (arc to arc)</td><td>1.900</td><td><b>fail</b></td><td>ok</td><td>0.10 under. Closest possible while holding &#216; 16.00; thinner arcs would go grey</td></tr>
+<tr><td>counter B</td><td>1.100</td><td>fail</td><td>ok</td><td>accepted; creature touches inner arc at 1x</td></tr>
+<tr><td>orbit stroke</td><td>0.900</td><td>fail</td><td>ok</td><td>accepted</td></tr>
+<tr><td>orbit counters</td><td>1.108</td><td>fail</td><td>ok</td><td><b>the count is lost at 1x</b>; degrades to &#8220;activity present&#8221;</td></tr>
+<tr><td>creature to outboard disc</td><td>0.940</td><td>fail</td><td><b>fail</b></td><td>0.12 under even the 2x floor; a hairline at 2x, touching at 1x</td></tr>
+<tr><td>chevron counters</td><td>1.000</td><td>fail</td><td>ok</td><td>merge into a zigzag at 1x; ring + colour still carry the state</td></tr>
+<tr><td>crown valley depth</td><td>0.488 (R 0.300)</td><td>fail</td><td>~1px</td><td>one dome at 1x; charm lost, information intact</td></tr>
+<tr><td>sleeping pose min radius</td><td>0.258</td><td>fail</td><td>fail</td><td>sleep carried by pose + empty tracks + stillness, any two of which suffice</td></tr></table>
+<div class="warn"><p class="nt" style="margin:0"><b>Parity, stated not overclaimed.</b> The outer ink edge sits at exactly r 8.00 from (11.00, 12.30), so it lands on whole device pixels at all four cardinal crossings: y 4.300, x 3.000 and 19.000. A 1.30pt stroke cannot then put its inner edge on a whole pixel, and no fractional stroke on a circle can &#8212; I snapped what a circular stroke lets you snap and claim nothing further. Centre y 12.30 puts the ink box midpoint at 10.987, 0.013pt off the box centre.</p></div>
+<p class="nt" style="margin-top:14px"><b>Ink.</b> Outer circle &#216; <b>16.000pt</b> &#8212; the same as Tailscale&#8217;s shipping StatusBarIcon (16.00 &#215; 16.00) and SF Symbol <code>circle</code> at pointSize 16. Drawn alpha bounding box <b>16.000 &#215; 13.3746pt</b>, shorter than it is wide because the bottom is deliberately open. Item width fixed at 22.00pt in every state.</p>
+
+</div></div></body></html>

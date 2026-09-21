@@ -1,0 +1,422 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T1 提示視窗 · 四個方向並排</title><style>
+/* ==========================================================================
+   QuotaMonster · T1 提示視窗 · 四個方向的並排比較頁
+   選擇器全部掛在 .idx 底下（沿用 panel-mockups / alert-mockups 的檔案慣例）。
+   本頁 1 CSS px = 1 pt。沒有外部資源，CSS 與 SVG 全部內嵌，沒有 emoji。
+   四張 mockup 用 iframe 以「真實尺寸」嵌入：預設不縮放，一格一格橫向並排。
+   ========================================================================== */
+.idx{
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+  /* 警示琥珀 = GlyphRenderer.alert, srgb(1.00,0.62,0.04)。這一頁也只有它有顏色。 */
+  --amber:#FF9E0A; --amber-txt:#FFB13C; --amber-dim:rgba(255,158,10,.13);
+  --page:#0d0f12; --ink:#e9edf3; --dim:#8d96a3; --dim2:#5e6773;
+  --line:#20262e; --line2:#171c22; --card:#14181d;
+  /* 欄寬 1240pt：四張 mockup 裡最寬的固定元件是 question 的 1180pt 舞台，
+     加上頁面左右 24pt 留白 = 1228pt。1240 讓每一張都不會被裁、也不會出現內層橫捲軸。 */
+  --cw:1240px; --fh:900px; --s:1;
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC","Segoe UI",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  background:var(--page);color:var(--ink);font-size:13.5px;line-height:1.6;}
+.idx *{box-sizing:border-box;margin:0;padding:0;}
+.idx a{color:inherit;}
+
+/* ---------- 頁首 ---------- */
+.idx .hd{max-width:1180px;margin:0 auto;padding:36px 24px 0;}
+.idx .hd__top{display:flex;align-items:flex-start;gap:13px;}
+.idx .hd__gl{flex:none;width:26px;height:26px;color:var(--amber);display:block;margin-top:2px;}
+.idx h1{font:650 26px/1.22 inherit;letter-spacing:-.022em;margin:0 0 8px;}
+.idx h1 span{color:var(--dim);font-weight:400;}
+.idx .lede{color:var(--dim);max-width:76ch;font-size:13.5px;}
+.idx .lede b{color:var(--ink);font-weight:600;}
+.idx .lede em{font-style:normal;color:var(--amber-txt);}
+
+.idx h2{font:600 10.5px/1.4 var(--mono);letter-spacing:.17em;text-transform:uppercase;color:var(--amber);
+  margin:44px 0 0;padding-bottom:9px;border-bottom:1px solid var(--line);}
+
+/* ---------- 看的時候問自己的三個問題 ---------- */
+.idx .qs{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin:18px 0 0;list-style:none;}
+.idx .q{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:15px 16px 16px;
+  position:relative;overflow:hidden;}
+.idx .q::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5px;background:var(--amber);opacity:.85;}
+.idx .q__n{font:600 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--dim2);
+  display:block;margin-bottom:9px;}
+.idx .q__t{font:650 14.5px/1.4 inherit;letter-spacing:-.012em;margin-bottom:7px;display:block;}
+.idx .q__b{font-size:12.6px;color:var(--dim);line-height:1.62;}
+.idx .q__b b{color:var(--ink);font-weight:600;}
+
+/* ---------- 不變的前提 ---------- */
+.idx .inv{margin:14px 0 0;padding:11px 14px;border:1px dashed var(--line);border-radius:9px;
+  font-size:11.8px;line-height:1.75;color:var(--dim2);display:flex;flex-wrap:wrap;gap:4px 16px;}
+.idx .inv b{color:var(--dim);font-weight:600;}
+.idx .inv i{font-style:normal;color:var(--amber-txt);opacity:.8;}
+.idx .inv span{white-space:nowrap;}
+
+/* ---------- 工具列（黏在頂端） ---------- */
+.idx .bar{position:sticky;top:0;z-index:40;margin-top:26px;
+  background:rgba(13,15,18,.88);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);
+  border-top:1px solid var(--line);border-bottom:1px solid var(--line);}
+.idx .bar__in{max-width:1180px;margin:0 auto;padding:9px 24px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.idx .grp{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:7px;overflow:hidden;}
+.idx .grp__lb{font:600 9.5px/1 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim2);
+  padding:0 9px 0 2px;}
+.idx button{font-family:inherit;background:none;border:0;color:var(--dim);cursor:pointer;
+  font:500 11.5px/1 inherit;padding:7px 11px;border-right:1px solid var(--line);white-space:nowrap;}
+.idx .grp button:last-child{border-right:0;}
+.idx button:hover{color:var(--ink);background:rgba(255,255,255,.045);}
+.idx button[aria-pressed="true"]{background:var(--amber);color:#1B1405;font-weight:650;}
+.idx .bar__sp{flex:1 1 auto;min-width:8px;}
+.idx .jump{display:flex;gap:6px;}
+.idx .jump button{border:1px solid var(--line);border-radius:7px;font:500 11.5px/1 inherit;padding:7px 10px;}
+.idx .jump button em{font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--dim2);margin-right:5px;}
+.idx .hint{font:11px/1 var(--mono);color:var(--dim2);letter-spacing:.02em;}
+
+/* ---------- 並排軌道 ---------- */
+.idx .rail{display:flex;align-items:flex-start;gap:22px;overflow-x:auto;overflow-y:visible;
+  padding:26px 24px 60px;scroll-padding-left:24px;}
+.idx .rail.is-stack{flex-direction:column;align-items:center;overflow-x:visible;gap:44px;}
+
+.idx .col{flex:none;width:calc(var(--cw) * var(--s));display:flex;flex-direction:column;scroll-margin-left:24px;}
+
+/* 欄首：編號 · 名字 · 尺寸 · 一句話 */
+.idx .col__hd{border-top:2px solid var(--amber);padding:12px 0 13px;}
+.idx .col__l1{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.idx .col__n{font:650 10.5px/1 var(--mono);letter-spacing:.14em;color:var(--amber);flex:none;}
+.idx .col__name{font:650 18px/1.2 inherit;letter-spacing:-.018em;}
+.idx .col__name i{font-style:normal;color:var(--dim);font-weight:400;font-size:14px;margin-left:5px;}
+.idx .col__open{margin-left:auto;flex:none;font:500 11px/1 inherit;color:var(--dim2);text-decoration:none;
+  border:1px solid var(--line);border-radius:6px;padding:6px 9px;white-space:nowrap;}
+.idx .col__open:hover{color:var(--amber-txt);border-color:rgba(255,158,10,.4);}
+.idx .dims{display:flex;flex-wrap:wrap;gap:6px;margin:11px 0 0;}
+.idx .dim{font:11px/1 var(--mono);color:var(--dim);border:1px solid var(--line);border-radius:5px;
+  padding:5px 8px;letter-spacing:.01em;white-space:nowrap;}
+.idx .dim b{color:var(--ink);font-weight:600;}
+.idx .dim u{text-decoration:none;color:var(--dim2);}
+.idx .pos{margin:9px 0 0;font:11px/1.55 var(--mono);color:var(--dim2);letter-spacing:.01em;}
+.idx .why{margin:11px 0 0;font-size:13px;line-height:1.66;color:var(--dim);max-width:88ch;}
+.idx .why b{color:var(--ink);font-weight:600;}
+.idx .why em{font-style:normal;color:var(--amber-txt);}
+
+/* 畫面本體 */
+.idx .frame{position:relative;width:calc(var(--cw) * var(--s));height:calc(var(--fh) * var(--s));
+  border:1px solid var(--line);border-radius:11px;overflow:hidden;background:#0b0d10;
+  box-shadow:0 18px 44px rgba(0,0,0,.5);}
+.idx .frame iframe{position:absolute;left:0;top:0;width:var(--cw);height:var(--fh);border:0;display:block;
+  transform:scale(var(--s));transform-origin:0 0;background:#0d0f12;}
+.idx .frame__fb{position:absolute;inset:0;z-index:0;display:flex;align-items:center;justify-content:center;
+  text-align:center;padding:30px;font-size:12.5px;line-height:1.7;color:var(--dim2);}
+.idx .frame__fb b{color:var(--dim);font-weight:600;}
+.idx .frame iframe{z-index:1;}
+
+/* 弱點 */
+.idx .wk{margin:13px 0 0;border:1px solid var(--line);border-left:2.5px solid rgba(255,158,10,.55);
+  border-radius:0 9px 9px 0;background:var(--line2);padding:13px 15px 14px;}
+.idx .wk__lb{font:600 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--amber);
+  display:block;margin-bottom:8px;}
+.idx .wk p{font-size:12.6px;line-height:1.72;color:var(--dim);}
+.idx .wk p + p{margin-top:8px;}
+.idx .wk b{color:var(--ink);font-weight:600;}
+.idx .wk code{font:11.5px var(--mono);color:var(--amber-txt);}
+
+/* ---------- 縮放中的警告條（縮放 ≠ 真實尺寸，不准它安靜地騙人） ---------- */
+.idx .warn{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:60;display:none;
+  align-items:center;gap:9px;padding:9px 15px;border-radius:9px;
+  background:var(--amber);color:#1B1405;font:650 12px/1 inherit;letter-spacing:-.005em;
+  box-shadow:0 12px 30px rgba(0,0,0,.55);}
+.idx .warn svg{display:block;flex:none;}
+.idx.is-scaled .warn{display:flex;}
+
+/* ---------- 頁尾 ---------- */
+.idx .ft{max-width:1180px;margin:0 auto;padding:0 24px 70px;border-top:1px solid var(--line);
+  padding-top:18px;font:11.5px/1.8 var(--mono);color:var(--dim2);letter-spacing:.01em;}
+.idx .ft b{color:var(--dim);font-weight:600;}
+
+@media (max-width:900px){
+  .idx .qs{grid-template-columns:1fr;}
+}
+</style></head>
+<body class="idx" id="page">
+
+<header class="hd">
+  <div class="hd__top">
+    <svg class="hd__gl" viewBox="0 0 22 22" aria-hidden="true">
+      <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+      <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="7.6,7.8 10,11 7.6,14.2"/><polyline points="10.2,7.8 12.6,11 10.2,14.2"/><polyline points="12.8,7.8 15.2,11 12.8,14.2"/></g></svg>
+    <div>
+      <h1>T1 提示視窗 <span>· 四個方向並排</span></h1>
+      <p class="lede">一個 Claude Code session 卡住、在等人回話的時候，選單列下面應該掉出什麼東西。
+        四張 mockup 都在下面<b>以真實尺寸</b>嵌入（1 CSS px = 1 pt，預設不縮放），
+        排列順序照<b>視窗高度由小到大</b>——38pt、72pt、123pt、142pt——因為「佔多少畫面」正是這四個方向真正的分歧。
+        <em>它們不是四種樣式，是四種對「打斷」的態度。</em></p>
+    </div>
+  </div>
+
+  <h2>看的時候問自己這三題</h2>
+  <ol class="qs">
+    <li class="q">
+      <span class="q__n">問題 01 · 一秒</span>
+      <span class="q__t">餘光瞄一眼，一秒內讀完了嗎？</span>
+      <p class="q__b">別正眼盯著看。把視線放到畫面別的地方，用餘光掃過去，
+        看一秒內有沒有同時拿到<b>哪個專案</b>、<b>在等什麼</b>、<b>等了多久</b>這三件事。
+        如果需要先對焦、再讀、再想一次「這在講什麼」，那就不是一秒，是三秒——而三秒的東西不配打斷人。</p>
+    </li>
+    <li class="q">
+      <span class="q__n">問題 02 · 代價</span>
+      <span class="q__t">它配得上這次打斷、而且會讓開嗎？</span>
+      <p class="q__b">它闖進來的那一刻，有沒有把<b>唯一那個動作（跳過去）</b>直接放到手邊、
+        關掉它也不用找？然後——它會不會走？
+        一個賴著不走、愈長愈高、開始長出第二顆按鈕的東西，已經變成第二個面板了，
+        而面板使用者本來就打得開，不需要它自己跳出來。</p>
+    </li>
+    <li class="q">
+      <span class="q__n">問題 03 · 誠實</span>
+      <span class="q__t">≥3 合併成一則之後，它還誠實嗎？</span>
+      <p class="q__b">設計文件要求同類事件 ≥3 就<b>合併成一則</b>，所以這一格是四個方向最容易說謊的地方。
+        看它有沒有假裝自己知道它其實不知道的事：<b>總共幾個</b>、<b>等最久的是誰</b>、
+        <b>按下去會被帶到哪一個</b>、<b>被折起來的還有幾個</b>——有沒有全部講明白，
+        還是含糊成一句「有幾個在等你」然後把人丟回面板（那等於沒通知）。</p>
+    </li>
+  </ol>
+
+  <p class="inv">
+    <b>不變的前提（違反就不用看了）：</b>
+    <span><i>·</i> 琥珀只屬於「等你」，quota 的藍→綠→紅不該出現在這裡</span>
+    <span><i>·</i> 深色才算數，淺色只是附錄</span>
+    <span><i>·</i> 一個動作「跳過去」＋ 一個不用找的關閉</span>
+    <span><i>·</i> 專案名／等什麼／等多久，三件都要在</span>
+    <span><i>·</i> 繁體中文，SF Symbols 以內嵌 SVG 近似，不用 emoji</span>
+  </p>
+</header>
+
+<div class="bar">
+  <div class="bar__in">
+    <div class="grp" role="group" aria-label="版面">
+      <span class="grp__lb" style="padding-left:9px">版面</span>
+      <button type="button" data-layout="rail" aria-pressed="true">並排</button>
+      <button type="button" data-layout="stack" aria-pressed="false">堆疊</button>
+    </div>
+    <div class="grp" role="group" aria-label="視窗高度">
+      <span class="grp__lb" style="padding-left:9px">高度</span>
+      <button type="button" data-fh="620" aria-pressed="false">短</button>
+      <button type="button" data-fh="900" aria-pressed="true">中</button>
+      <button type="button" data-fh="1600" aria-pressed="false">長</button>
+    </div>
+    <div class="grp" role="group" aria-label="縮放">
+      <span class="grp__lb" style="padding-left:9px">縮放</span>
+      <button type="button" data-s="1" aria-pressed="true">真實尺寸</button>
+      <button type="button" data-s="0.7" aria-pressed="false">70%</button>
+      <button type="button" data-s="0.5" aria-pressed="false">50%</button>
+    </div>
+    <div class="bar__sp"></div>
+    <div class="jump">
+      <button type="button" data-go="c1"><em>1</em>Toast</button>
+      <button type="button" data-go="c2"><em>2</em>Edge</button>
+      <button type="button" data-go="c3"><em>3</em>Question</button>
+      <button type="button" data-go="c4"><em>4</em>Card</button>
+    </div>
+    <span class="hint">按 1–4 跳欄</span>
+  </div>
+</div>
+
+<main class="rail" id="rail">
+
+  <!-- ============================ 01 · TOAST ============================ -->
+  <section class="col" id="c1">
+    <div class="col__hd">
+      <div class="col__l1">
+        <span class="col__n">01</span>
+        <h3 class="col__name">Toast<i>橫幅</i></h3>
+        <a class="col__open" href="toast.html" target="_blank" rel="noopener">單獨開啟 →</a>
+      </div>
+      <div class="dims">
+        <span class="dim"><u>1 個</u> <b>380 × 38 pt</b></span>
+        <span class="dim"><u>2 個</u> <b>380 × 38 pt ×2</b>（間距 7，共 83）</span>
+        <span class="dim"><u>≥3</u> <b>380 × 56 pt</b></span>
+      </div>
+      <p class="pos">位置：選單列下方 6pt，右緣對齊狀態項目右緣（距螢幕右緣 194.7pt），不是對齊螢幕邊——那裡是系統通知的地盤。</p>
+      <p class="why">賭<b>最小的佔地面積</b>加<b>最熟悉的形狀</b>：寬度就是下拉面板的 380pt，
+        所以同一個 session 在橫幅和面板裡落在同一欄；起首那顆標記是選單列圖示 1:1；
+        <em>整個視窗唯一的填色面積就是「跳過去」</em>。</p>
+    </div>
+    <div class="frame">
+      <div class="frame__fb"><div><b>這一格是空的？</b><br>瀏覽器擋掉了本機 iframe。<br>用上面的「單獨開啟 →」直接開 toast.html。</div></div>
+      <iframe src="toast.html" title="Toast — T1 提示視窗" loading="lazy"></iframe>
+    </div>
+    <div class="wk">
+      <span class="wk__lb">誠實的弱點</span>
+      <p>1512pt 寬的螢幕上，一個 <b>38pt 高</b>的東西就是很小。使用者的眼睛如果在左下角，
+        這條橫幅可能整整 8 秒都待在餘光之外——它是靠選單列圖示、提示音、橫幅三件事<b>同時</b>響才成立的。
+        單獨評分，它是這四個裡面<b>存在感最低</b>的，而那正是「最小佔地面積」這個賭注要付的錢，換個顏色救不回來。</p>
+      <p>第二個、比較小的代價：合併時按鈕標籤變長（「跳到等最久的」）、時間字串也變長（12m 04s），
+        證據行塞得下的名字就變少——<b>6 個在等的時候只點得出兩個</b>。</p>
+    </div>
+  </section>
+
+  <!-- ============================ 02 · EDGE ============================ -->
+  <section class="col" id="c2">
+    <div class="col__hd">
+      <div class="col__l1">
+        <span class="col__n">02</span>
+        <h3 class="col__name">Edge<i>貼邊</i></h3>
+        <a class="col__open" href="edge.html" target="_blank" rel="noopener">單獨開啟 →</a>
+      </div>
+      <div class="dims">
+        <span class="dim"><u>1 個</u> <b>300 × 72 pt</b></span>
+        <span class="dim"><u>2 個</u> <b>300 × 102 pt</b></span>
+        <span class="dim"><u>≥3</u> <b>300 × 92 pt</b>（比兩個還矮）</span>
+        <span class="dim"><u>寬度恆為</u> <b>300 pt</b></span>
+      </div>
+      <p class="pos">位置：上緣與選單列下緣齊平，上方直角、下方 11pt 圓角，無箭頭、無間隙。寬度固定，只有高度會動。</p>
+      <p class="why">它不是選單列旁邊的 popover，<b>是從選單列拉下來的一格抽屜</b>。
+        歸屬感靠三件事綁回去：同一個琥珀 <code>#FF9E0A</code>、視窗左上那顆<b>就是</b>選單列圖示（連分段數都跟著等待數走）、
+        以及頂條上一段 <em>22pt 寬的加厚</em>，正好壓在狀態項目正下方。</p>
+    </div>
+    <div class="frame">
+      <div class="frame__fb"><div><b>這一格是空的？</b><br>瀏覽器擋掉了本機 iframe。<br>用上面的「單獨開啟 →」直接開 edge.html。</div></div>
+      <iframe src="edge.html" title="Edge — T1 提示視窗" loading="lazy"></iframe>
+    </div>
+    <div class="wk">
+      <span class="wk__lb">誠實的弱點</span>
+      <p><b>那個 x 座標不是我們的</b>，而這個方向把全部身家壓在它上面。多裝一個選單列 app，整排就往左位移；
+        開 Bartender 或 Ice、或瀏海把列塞滿，那顆圖示<b>根本不在畫面上</b>——繫繩指向空氣，
+        Edge 退化成「黏在螢幕頂端的一塊板子」，比單純的 toast 還糟。（檔案裡有誠實畫出這個退化版本，沒有假裝。）</p>
+      <p>其次：全螢幕 app 會把整條選單列藏起來，錨點可以<b>根本不存在</b>，而這一版沒有回答那時候怎麼辦。
+        第三：因為齊平、沒有邊框，它很容易被當成<b>某個 app 的下拉選單</b>；琥珀是唯一的分辨線索，沒有第二道防線。</p>
+      <p>順帶一個不管選哪個方向都值得留著的發現：右緣夾制<b>在 Mac 上其實從來不會觸發</b>——
+        系統項目永遠佔住最右邊約 180pt，300pt 的視窗對齊任何構得到的狀態項目 x 都還在畫面內。
+        那段 clamp 是保險，不是常態路徑；真正的變動全部是往左的。</p>
+    </div>
+  </section>
+
+  <!-- ========================== 03 · QUESTION =========================== -->
+  <section class="col" id="c3">
+    <div class="col__hd">
+      <div class="col__l1">
+        <span class="col__n">03</span>
+        <h3 class="col__name">Question<i>問句</i></h3>
+        <a class="col__open" href="question.html" target="_blank" rel="noopener">單獨開啟 →</a>
+      </div>
+      <div class="dims">
+        <span class="dim"><u>1 個</u> <b>320 × 123 pt</b></span>
+        <span class="dim"><u>2 個</u> <b>320 × 187 pt</b></span>
+        <span class="dim"><u>≥3</u> <b>320 × 160 pt</b></span>
+        <span class="dim"><u>尺寸為</u> <b>實測</b>（頁內腳本量完寫回圖說）</span>
+      </div>
+      <p class="pos">位置：右對齊在選單列圖示下方 8pt，尖角指回那顆圖示（四種狀態下缺口中心對齊誤差都在 0.5px 內）。</p>
+      <p class="why">19pt 的主行<b>就是那個 session 自己講的那句話</b>——「要我繼續嗎？」、「可以執行 <code>rm -rf .build</code> 嗎？」——
+        不是第三人稱的轉述。等待類別被降級成 10pt 的 chip，
+        <em>因為類別要解碼一次，句子不用</em>，而解碼正是這個方向想省掉的那一步。</p>
+    </div>
+    <div class="frame">
+      <div class="frame__fb"><div><b>這一格是空的？</b><br>瀏覽器擋掉了本機 iframe。<br>用上面的「單獨開啟 →」直接開 question.html。</div></div>
+      <iframe src="question.html" title="Question — T1 提示視窗" loading="lazy"></iframe>
+    </div>
+    <div class="wk">
+      <span class="wk__lb">誠實的弱點</span>
+      <p>把 app 的身分拿掉，代價是<b>第一次</b>。第二次以後免費，第一次不是：
+        在不熟或共用的機器上，一個沒有署名的琥珀視窗問你「可以執行 <code>rm -rf .build</code> 嗎？」還配一顆顯眼的按鈕，
+        正好是使用者<b>被訓練成要懷疑</b>的形狀。檔案裡給的最便宜解法是在「稍後」左邊放 8.5pt／24% 的 QUOTAMONSTER
+        ——低於第一眼的門檻，但「這是什麼？」那一瞥找得到。它<b>不能</b>回到第一行。</p>
+      <p>另外兩個比較小的：兩個在等時 <b>187pt 是單人的一倍半</b>，而 15.5pt 的第二個問句離 19pt 主行夠近，
+        順序其實是靠位置和填色按鈕撐的，不是靠字級；還有主行是<b>單行尾部截斷</b>，
+        真正長的問句會變成刪節號，而 mockup 只示範了短句和中句，<b>沒有證明截斷之後還讀得通</b>。</p>
+    </div>
+  </section>
+
+  <!-- ============================ 04 · CARD ============================ -->
+  <section class="col" id="c4">
+    <div class="col__hd">
+      <div class="col__l1">
+        <span class="col__n">04</span>
+        <h3 class="col__name">Card<i>卡片</i></h3>
+        <a class="col__open" href="card.html" target="_blank" rel="noopener">單獨開啟 →</a>
+      </div>
+      <div class="dims">
+        <span class="dim"><u>1 個</u> <b>300 × 142 pt</b></span>
+        <span class="dim"><u>2 個</u> <b>300 × 201 pt</b>（硬天花板）</span>
+        <span class="dim"><u>≥3</u> <b>300 × 142 pt</b>（與單人同高）</span>
+      </div>
+      <p class="pos">位置：右上角，選單列下方 8pt、右緣內縮 12pt，無 popover 箭頭，浮著不貼邊。高度為實際 render 量測（headless Chrome 1×，含 0.5pt 細線）。</p>
+      <p class="why">用<b>下拉面板自己的零件</b>蓋出來——同樣的 12/7pt 圓角、9pt 內距、8.5–15pt 字級、3pt 琥珀導軌、
+        連字串都是面板已經在用的那幾句。再把材質關係<b>整個反過來</b>：
+        <em>面板是中性材質裡一張琥珀卡，這裡是琥珀材質裡幾張中性卡</em>，
+        所以它是同一個 app，但不會被讀成「面板自己打開了」。</p>
+    </div>
+    <div class="frame">
+      <div class="frame__fb"><div><b>這一格是空的？</b><br>瀏覽器擋掉了本機 iframe。<br>用上面的「單獨開啟 →」直接開 card.html。</div></div>
+      <iframe src="card.html" title="Card — T1 提示視窗" loading="lazy"></iframe>
+    </div>
+    <div class="wk">
+      <span class="wk__lb">誠實的弱點</span>
+      <p><b>一致性是賭注，也是破綻。</b>半徑、節奏、字級都一樣，兩個表面共用同一個輪廓，
+        分野只剩顏色（整片琥珀底）、寬度（窄 80pt）和那個不存在的箭頭——
+        而這三件<b>在淺色模式下全部最弱</b>：琥珀得壓暗成 <code>#E08A00</code>，
+        與淺色面板之間的亮度差比深色時小得多。</p>
+      <p>兩個人在等的時候它長到 <b>201pt、兩顆按鈕</b>，開始像一個小面板而不是一則訊息；
+        如果「兩個同時」才是常態，這個方向的重心就放錯了。
+        它也繼承了 NSPanel 的天花板：沒有通知中心歷史、鎖定畫面上不存在——人不在螢幕前就等於沒發生過
+        （這也是設計文件要它搭一發 osascript 通知的原因）。</p>
+      <p>最後：琥珀底色壓低了內層中性卡的對比，次要讀數（像 ctx）根本放不進來；
+        而為了讓權限 chip 不被截斷，它得縮成 <code>Bash · git push</code>，
+        <b>掉了 <code>--force</code></b>——那恐怕正是整句話裡最該讓人警覺的部分。</p>
+    </div>
+  </section>
+
+</main>
+
+<div class="warn" role="status">
+  <svg width="13" height="13" viewBox="0 0 13 13" aria-hidden="true">
+    <path d="M6.5 1.4 12.2 11.4H.8Z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+    <path d="M6.5 5.2v2.9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+    <circle cx="6.5" cy="9.8" r=".8" fill="currentColor"/></svg>
+  <span id="warnTxt">縮放中 — 這不是真實尺寸，別拿它判斷「一秒讀不讀得完」</span>
+</div>
+
+<footer class="ft">
+  <b>來源：</b>toast.html · edge.html · question.html · card.html（同一個資料夾，各自獨立、可單獨開啟）<br>
+  <b>本頁：</b>1 CSS px = 1 pt · 預設不縮放 · 無外部資源、無網路、CSS 與 SVG 全內嵌 · 無 emoji<br>
+  <b>提醒：</b>四張 mockup 都以深色為主、淺色只是附錄——這個專案已經被淺色 render 誤導過兩次，請照深色判斷。
+</footer>
+
+<script>
+(function(){
+  var page=document.getElementById('page'), rail=document.getElementById('rail');
+  function press(sel,btn){
+    var all=document.querySelectorAll(sel);
+    for(var i=0;i<all.length;i++){all[i].setAttribute('aria-pressed', all[i]===btn?'true':'false');}
+  }
+  document.addEventListener('click',function(e){
+    var b=e.target.closest ? e.target.closest('button') : null;
+    if(!b) return;
+    if(b.dataset.layout){
+      rail.classList.toggle('is-stack', b.dataset.layout==='stack');
+      press('[data-layout]',b);
+    }else if(b.dataset.fh){
+      page.style.setProperty('--fh', b.dataset.fh+'px');
+      press('[data-fh]',b);
+    }else if(b.dataset.s){
+      var s=parseFloat(b.dataset.s);
+      page.style.setProperty('--s', String(s));
+      page.classList.toggle('is-scaled', s!==1);
+      document.getElementById('warnTxt').textContent =
+        '縮放中 '+Math.round(s*100)+'% — 這不是真實尺寸，別拿它判斷「一秒讀不讀得完」';
+      press('[data-s]',b);
+    }else if(b.dataset.go){
+      var el=document.getElementById(b.dataset.go);
+      if(el) el.scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});
+    }
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.metaKey||e.ctrlKey||e.altKey) return;
+    var t=e.target && e.target.tagName;
+    if(t==='INPUT'||t==='TEXTAREA') return;
+    var n={'1':'c1','2':'c2','3':'c3','4':'c4'}[e.key];
+    if(!n) return;
+    var el=document.getElementById(n);
+    if(el){el.scrollIntoView({behavior:'smooth', inline:'start', block:'nearest'});}
+  });
+})();
+</script>
+</body></html>

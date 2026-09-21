@@ -1,0 +1,703 @@
+<meta charset="utf-8">
+<div class="al-card"><style>
+/* ============================================================================
+   QuotaMonster · T1 警示視窗 — 方向「卡片」
+   所有選擇器都掛在 .al-card 底下（沿用 panel-mockups 的檔案慣例）。
+   1px = 1pt。視窗一律以真實尺寸繪製，不縮放。
+   ============================================================================ */
+.al-card{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","IBM Plex Sans TC","PingFang TC",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;
+  line-height:1;font-size:13px;background:#0b0c11;color:rgba(255,255,255,.72);padding:28px 24px 36px;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace}
+.al-card *{box-sizing:border-box;margin:0;padding:0}
+.al-card svg{display:block}
+.al-card em{font-style:normal}
+
+/* ---------- 頁面骨架 ---------- */
+.al-card .al-page{max-width:920px;margin:0 auto}
+.al-card .al-kick{font-size:9.5px;font-weight:660;letter-spacing:.14em;color:rgba(255,158,10,.78)}
+.al-card h1{font-size:22px;font-weight:660;letter-spacing:-.4px;color:rgba(255,255,255,.95);margin:10px 0 9px;line-height:1.25}
+.al-card .al-lede{font-size:12.5px;line-height:1.72;color:rgba(255,255,255,.60);max-width:720px}
+.al-card .al-lede b{color:rgba(255,255,255,.90);font-weight:640}
+.al-card .al-specs{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+.al-card .al-spec{font-size:10px;letter-spacing:.02em;padding:5px 9px;border-radius:6px;
+  background:rgba(255,158,10,.10);border:.5px solid rgba(255,158,10,.28);color:#FFB23E;white-space:nowrap}
+.al-card .al-spec em{color:rgba(255,255,255,.52);margin-left:5px}
+.al-card h2{font-size:10px;font-weight:660;letter-spacing:.13em;color:rgba(255,255,255,.40);
+  margin:38px 0 12px;padding-top:16px;border-top:.5px solid rgba(255,255,255,.09)}
+.al-card .al-cap{font-size:11px;line-height:1.7;color:rgba(255,255,255,.50);max-width:700px;margin-top:12px}
+.al-card .al-cap b{color:rgba(255,255,255,.86);font-weight:620}
+.al-card .al-row{display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap}
+
+/* ============================================================================
+   設計代幣。深淺兩套分開給 —— 同一組色值不可能兩邊都對。
+   ⚠️ 藍/綠/紅（額度色階）在這個視窗裡一次都不會出現：這裡講的不是額度。
+   ============================================================================ */
+.al-card .al-dark{
+  --amber:#FF9E0A;            /* = GlyphRenderer.alert (1.00, 0.62, 0.04) */
+  --amber-t:#FFB23E;          /* 琥珀底上的文字色 */
+  --onamber:#231804;          /* 實心琥珀按鈕上的字 */
+  --win:linear-gradient(180deg,rgba(78,50,12,.80) 0%,rgba(44,32,16,.87) 100%);
+  --wedge:rgba(255,158,10,.34);--whair:rgba(255,158,10,.20);
+  --ins:rgba(0,0,0,.30);--cedge:rgba(255,255,255,.075);--hair:rgba(255,255,255,.12);
+  --t1:rgba(255,255,255,.95);--t2:rgba(255,255,255,.60);--t3:rgba(255,255,255,.40);
+  --chip:rgba(255,255,255,.07);
+  --sh:0 20px 46px rgba(0,0,0,.58),0 3px 10px rgba(0,0,0,.42),inset 0 .5px 0 rgba(255,255,255,.11)}
+.al-card .al-light{
+  --amber:#E08A00;--amber-t:#8F5300;--onamber:#2B1A00;
+  --win:linear-gradient(180deg,rgba(255,247,234,.90) 0%,rgba(252,240,224,.88) 100%);
+  --wedge:rgba(224,138,0,.40);--whair:rgba(224,138,0,.24);
+  --ins:rgba(255,255,255,.66);--cedge:rgba(0,0,0,.07);--hair:rgba(0,0,0,.11);
+  --t1:rgba(0,0,0,.88);--t2:rgba(0,0,0,.56);--t3:rgba(0,0,0,.38);
+  --chip:rgba(0,0,0,.05);
+  --sh:0 18px 40px rgba(40,26,0,.24),0 2px 8px rgba(40,26,0,.16),inset 0 .5px 0 rgba(255,255,255,.75)}
+
+/* ============================================================================
+   警示視窗本體 —— 寬 300pt（下拉面板是 380pt，刻意不一樣）
+   ============================================================================ */
+.al-card .al-win{position:relative;width:300px;border-radius:12px;overflow:hidden;color:var(--t1);
+  font-variant-numeric:tabular-nums;background:var(--win);
+  backdrop-filter:blur(40px) saturate(180%);-webkit-backdrop-filter:blur(40px) saturate(180%);
+  border:.5px solid var(--wedge);box-shadow:var(--sh)}
+/* 3pt 琥珀導軌，貫穿整個視窗高度。面板裡的琥珀導軌只有一張小卡那麼長 —— 這是刻意的放大。 */
+.al-card .al-win::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber);z-index:2}
+
+/* ---- 表頭（30pt）---- */
+.al-card .al-head{height:30px;padding:0 7px 0 13px;display:flex;align-items:center;gap:7px}
+.al-card .al-mk{color:var(--amber);flex:none}
+.al-card .al-brea{animation:al-breath 1.5s ease-in-out 4 both}   /* Breath: 1.5s 週期 × 4 個 = 一次爆發 */
+@keyframes al-breath{0%{opacity:1}50%{opacity:.45}100%{opacity:1}}
+.al-card .al-htitle{font-size:11.5px;font-weight:660;letter-spacing:.01em;color:var(--amber-t);white-space:nowrap}
+.al-card .al-count{height:15px;min-width:15px;padding:0 4px;border-radius:4px;display:flex;align-items:center;justify-content:center;
+  font-size:9.5px;font-weight:700;color:var(--amber-t);background:rgba(255,158,10,.17);border:.5px solid var(--wedge);flex:none}
+.al-card .al-brand{margin-left:auto;font-size:8.5px;font-weight:660;letter-spacing:.11em;color:var(--t3);white-space:nowrap}
+.al-card .al-x{width:20px;height:20px;border-radius:5px;display:flex;align-items:center;justify-content:center;
+  color:var(--t2);background:var(--chip);border:.5px solid var(--hair);flex:none;cursor:pointer}
+.al-card .al-x:hover{color:var(--t1);background:rgba(255,255,255,.13)}
+
+.al-card .al-rule{height:.5px;background:var(--whair)}
+
+/* ---- 內容（每一列 = 一個 session，構造照抄 SessionRow：7pt 圓角、9pt 內距）---- */
+.al-card .al-body{padding:8px 10px 8px 13px;display:flex;flex-direction:column;gap:6px}
+.al-card .al-sess{display:flex;align-items:center;gap:9px;padding:8px 9px;border-radius:7px;
+  background:var(--ins);border:.5px solid var(--cedge)}
+.al-card .al-txt{flex:1 1 auto;min-width:0}
+.al-card .al-l1{height:17px;display:flex;align-items:baseline;gap:6px}
+.al-card .al-proj{font-size:13px;font-weight:660;letter-spacing:-.2px;color:var(--t1);white-space:nowrap;
+  overflow:hidden;text-overflow:ellipsis}
+.al-card .al-since{margin-left:auto;display:flex;align-items:baseline;gap:4px;flex:none}
+.al-card .al-since i{font-style:normal;font-size:9.5px;color:var(--t3)}
+.al-card .al-since b{font-family:var(--mono);font-size:12px;font-weight:660;color:var(--amber-t);letter-spacing:-.2px}
+.al-card .al-l2{height:15px;margin-top:3px;display:flex;align-items:center;gap:6px;min-width:0}
+.al-card .al-what{font-size:11.5px;color:rgba(255,255,255,.86);white-space:nowrap;flex:none}
+.al-card .al-light .al-what{color:rgba(0,0,0,.80)}
+.al-card .al-tool{height:15px;padding:0 5px;border-radius:4px;display:flex;align-items:center;background:var(--chip);
+  border:.5px solid var(--hair);font-family:var(--mono);font-size:9.5px;color:var(--t2);
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.al-card .al-l3{height:13px;margin-top:3px;display:flex;align-items:center;gap:5px;
+  font-size:10px;color:var(--amber-t);opacity:.9;white-space:nowrap}
+.al-card .al-projs{height:15px;margin-top:3px;display:flex;align-items:center;gap:4px;min-width:0;overflow:hidden}
+.al-card .al-pchip{height:15px;padding:0 5px;border-radius:4px;display:flex;align-items:center;flex:none;
+  font-family:var(--mono);font-size:9.5px;color:var(--t1);background:var(--chip);border:.5px solid var(--hair)}
+.al-card .al-pmore{font-size:9.5px;color:var(--t3);flex:none}
+
+/* ---- 唯一的動作 ---- */
+.al-card .al-jump{flex:none;height:26px;padding:0 9px 0 10px;border-radius:6px;display:flex;align-items:center;gap:4px;
+  background:var(--amber);color:var(--onamber);font-size:11.5px;font-weight:700;letter-spacing:.01em;cursor:pointer;
+  box-shadow:0 1px 2px rgba(0,0,0,.28)}
+.al-card .al-jump:hover{filter:brightness(1.08)}
+
+/* ---- 頁尾（24pt）：說出中斷的契約 + 有字的關閉 ---- */
+.al-card .al-foot{height:24px;padding:0 8px 0 13px;display:flex;align-items:center;gap:8px}
+.al-card .al-note{font-size:9.5px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-card .al-later{margin-left:auto;height:18px;padding:0 8px;border-radius:5px;display:flex;align-items:center;flex:none;
+  font-size:10.5px;color:var(--t2);background:var(--chip);border:.5px solid var(--hair);cursor:pointer}
+.al-card .al-later:hover{color:var(--t1)}
+
+/* ============================================================================
+   桌面舞台（1:1，用來判斷「在螢幕上佔多少存在感」）
+   ============================================================================ */
+.al-card .al-desk{position:relative;overflow:hidden;border-radius:10px;flex:none;
+  box-shadow:0 24px 60px rgba(0,0,0,.5),0 0 0 .5px rgba(255,255,255,.10)}
+.al-card .al-desk--dark{background:
+  radial-gradient(120% 88% at 16% -12%,#43318a 0%,rgba(67,49,138,0) 60%),
+  radial-gradient(88% 66% at 92% 2%,#8a2f60 0%,rgba(138,47,96,0) 56%),
+  radial-gradient(130% 96% at 58% 118%,#10496b 0%,rgba(16,73,107,0) 62%),
+  linear-gradient(158deg,#1c1830 0%,#0a0c14 100%)}
+.al-card .al-desk--light{background:
+  radial-gradient(115% 78% at 8% -8%,#ffd9a8 0%,rgba(255,217,168,0) 60%),
+  radial-gradient(88% 64% at 94% 6%,#bfdcff 0%,rgba(191,220,255,0) 58%),
+  radial-gradient(125% 92% at 52% 116%,#ffe1ea 0%,rgba(255,225,234,0) 62%),
+  linear-gradient(158deg,#f8f4ec 0%,#e0e9f4 100%)}
+
+/* 選單列 26pt */
+.al-card .al-mbar{position:absolute;left:0;right:0;top:0;height:26px;display:flex;align-items:center;gap:13px;
+  padding:0 9px 0 12px;z-index:3;font-size:11.5px;white-space:nowrap;
+  backdrop-filter:blur(26px) saturate(180%);-webkit-backdrop-filter:blur(26px) saturate(180%)}
+.al-card .al-desk--dark .al-mbar{background:rgba(16,16,20,.46);color:rgba(255,255,255,.92);border-bottom:.5px solid rgba(255,255,255,.10)}
+.al-card .al-desk--light .al-mbar{background:rgba(255,255,255,.58);color:rgba(0,0,0,.84);border-bottom:.5px solid rgba(0,0,0,.09)}
+.al-card .al-mbar b{font-weight:660}
+.al-card .al-mbar span{opacity:.8}
+.al-card .al-tray{margin-left:auto;display:flex;align-items:center;gap:11px}
+.al-card .al-tray svg{opacity:.85}
+.al-card .al-mbi{display:flex;align-items:center;color:#FF9E0A;opacity:1}
+.al-card .al-desk--light .al-mbi{color:#E08A00}
+.al-card .al-clock{font-variant-numeric:tabular-nums;opacity:.92}
+
+/* 使用者「正在做的別的事」 */
+.al-card .al-app{position:absolute;border-radius:10px;overflow:hidden;
+  background:rgba(20,21,26,.93);border:.5px solid rgba(255,255,255,.10);box-shadow:0 26px 58px rgba(0,0,0,.52)}
+.al-card .al-desk--light .al-app{background:rgba(252,252,253,.95);border-color:rgba(0,0,0,.10)}
+.al-card .al-tbar{height:26px;display:flex;align-items:center;gap:6px;padding:0 10px;
+  background:rgba(255,255,255,.05);border-bottom:.5px solid rgba(255,255,255,.08)}
+.al-card .al-desk--light .al-tbar{background:rgba(0,0,0,.035);border-bottom-color:rgba(0,0,0,.08)}
+.al-card .al-tl{width:9px;height:9px;border-radius:50%;flex:none}
+.al-card .al-ttl{margin-left:6px;font-family:var(--mono);font-size:9.5px;color:rgba(255,255,255,.42)}
+.al-card .al-desk--light .al-ttl{color:rgba(0,0,0,.42)}
+.al-card .al-term{padding:9px 11px;font-family:var(--mono);font-size:9.5px;line-height:15px;color:rgba(255,255,255,.34)}
+.al-card .al-desk--light .al-term{color:rgba(0,0,0,.36)}
+.al-card .al-term u{text-decoration:none;color:rgba(255,255,255,.60)}
+.al-card .al-desk--light .al-term u{color:rgba(0,0,0,.60)}
+.al-card .al-term s{text-decoration:none;color:rgba(120,200,255,.55)}
+.al-card .al-cur{display:inline-block;width:5px;height:10px;background:rgba(255,255,255,.45);vertical-align:-1px}
+
+/* 警示視窗在桌面上的位置：右上角、選單列下方 8pt、沒有箭頭 */
+.al-card .al-slot{position:absolute;top:34px;right:12px;z-index:4}
+
+/* ---------- 尺規 ---------- */
+.al-card .al-ruler{position:relative;width:52px;flex:none;color:rgba(255,255,255,.34);font-size:9px}
+.al-card .al-ruler i{position:absolute;left:0;width:9px;height:.5px;background:rgba(255,255,255,.28)}
+.al-card .al-ruler u{position:absolute;left:13px;text-decoration:none;transform:translateY(-4px);white-space:nowrap}
+.al-card .al-ruler b{position:absolute;left:4px;top:0;bottom:0;width:.5px;background:rgba(255,255,255,.16)}
+
+/* ---------- 一秒測試 ---------- */
+.al-card .al-blur{filter:blur(2.6px)}
+.al-card .al-plate{padding:18px;border-radius:14px;background:#15161d;border:.5px solid rgba(255,255,255,.08)}
+.al-card .al-lab{font-size:9px;font-weight:660;letter-spacing:.12em;color:rgba(255,255,255,.38);margin-bottom:9px}
+
+/* ============================================================================
+   既有下拉面板的示意圖（只在對照區出現）
+   —— 這裡是全檔案唯一會看到藍/綠/紅額度色階的地方，因為那是面板的語彙，不是警示視窗的。
+   ============================================================================ */
+.al-card .al-pop{width:380px;border-radius:12px;overflow:hidden;color:rgba(255,255,255,.95);
+  background:rgba(32,32,36,.86);border:.5px solid rgba(255,255,255,.13);
+  box-shadow:0 20px 46px rgba(0,0,0,.55);font-variant-numeric:tabular-nums}
+.al-card .al-parrow{width:22px;height:9px;margin:0 0 -1px auto;margin-right:38px;background:rgba(32,32,36,.86);
+  clip-path:polygon(50% 0,100% 100%,0 100%)}
+.al-card .al-phead{height:40px;padding:0 14px;display:flex;align-items:center;gap:10px}
+.al-card .al-pname{font-size:13px;font-weight:660}
+.al-card .al-pstat{min-width:46px;padding:3px 0;display:flex;flex-direction:column;align-items:center;gap:1px;border-radius:5px}
+.al-card .al-pstat u{text-decoration:none;font-size:15px;font-weight:660}
+.al-card .al-pstat i{font-style:normal;font-size:8.5px;font-weight:500;letter-spacing:.06em;color:rgba(255,255,255,.40)}
+.al-card .al-pstat--am{background:rgba(255,158,10,.16)}
+.al-card .al-pstat--am u,.al-card .al-pstat--am i{color:#FFB23E}
+.al-card .al-prule{height:.5px;background:rgba(255,255,255,.12)}
+.al-card .al-pq{padding:11px 14px}
+.al-card .al-plabel{font-size:9.5px;font-weight:660;letter-spacing:.07em;color:rgba(255,255,255,.60)}
+.al-card .al-pcells{display:flex;margin-top:9px}
+.al-card .al-pcell{flex:1 1 0;padding:0 9px;min-width:0}
+.al-card .al-pcell+.al-pcell{border-left:.5px solid rgba(255,255,255,.12)}
+.al-card .al-pcell em{display:block;font-size:9.5px;color:rgba(255,255,255,.60);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.al-card .al-pnum{font-size:22px;font-weight:500;letter-spacing:-.6px;margin-top:4px}
+.al-card .al-pnum i{font-style:normal;font-size:10px;font-weight:500;color:rgba(255,255,255,.60);margin-left:1px}
+.al-card .al-pbar{height:3px;border-radius:2px;background:rgba(255,255,255,.16);margin:4px 0;overflow:hidden}
+.al-card .al-pbar i{display:block;height:100%;border-radius:2px}
+.al-card .al-pfoot2{font-size:9px;color:rgba(255,255,255,.40)}
+.al-card .al-pblk{margin:9px 12px;padding:9px;border-radius:7px;position:relative;overflow:hidden;
+  background:rgba(255,158,10,.12);border:.5px solid rgba(255,158,10,.35)}
+.al-card .al-pblk::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#FF9E0A}
+.al-card .al-pblk div{padding-left:8px}
+.al-card .al-psrow{margin:0 12px 8px;padding:9px;border-radius:7px;background:rgba(255,255,255,.08)}
+.al-card .al-pfoot{height:26px;padding:0 14px;display:flex;align-items:center;gap:12px;font-size:10px;color:rgba(255,255,255,.40)}
+
+/* ---------- 筆記 ---------- */
+.al-card .al-notes{margin-top:26px;padding:20px 22px;border-radius:14px;background:#14151c;
+  border:.5px solid rgba(255,255,255,.09);color:rgba(255,255,255,.62);font-size:12px;line-height:1.72}
+.al-card .al-notes h3{font-size:9.5px;font-weight:660;letter-spacing:.13em;color:rgba(255,255,255,.42);margin:0 0 9px}
+.al-card .al-notes h3+ul{margin-bottom:22px}
+.al-card .al-notes ul{list-style:none;display:flex;flex-direction:column;gap:7px}
+.al-card .al-notes li{padding-left:15px;position:relative}
+.al-card .al-notes li::before{content:"";position:absolute;left:3px;top:8px;width:4px;height:4px;border-radius:1px;background:rgba(255,158,10,.6)}
+.al-card .al-notes li.al-no::before{background:rgba(255,255,255,.18)}
+.al-card .al-notes b{color:rgba(255,255,255,.93);font-weight:640}
+.al-card .al-notes code{font-family:var(--mono);font-size:11px;color:#FFB23E}
+.al-card .al-weak{margin-top:4px;padding:14px 16px;border-radius:10px;background:rgba(255,158,10,.07);
+  border:.5px solid rgba(255,158,10,.22);color:rgba(255,255,255,.66);font-size:12px;line-height:1.75}
+.al-card .al-weak b{color:#FFB23E}
+</style>
+
+<div class="al-page">
+
+<!-- ═══════════════ 標題 ═══════════════ -->
+<header>
+  <div class="al-kick">QUOTAMONSTER · T1 警示視窗 · 方向「卡片」</div>
+  <h1>同一個 app 在說話 —— 但這一次，是它來找你</h1>
+  <p class="al-lede">這個視窗沿用下拉面板的構造：<b>12pt 外圓角、7pt 內卡、9pt 內距、同一套 8.5–15pt 字級、同一批字串</b>（「等你回覆」「在問你問題」），所以你不必學第二套語彙。
+  但它把面板的材質關係<b>整個倒過來</b> —— 面板是中性底色裡放一張琥珀卡，警示視窗是琥珀底色裡放中性卡。
+  再加上<b>沒有指向選單列的箭頭</b>、<b>比面板窄 80pt</b>、以及<b>面板裡從不存在的實心按鈕</b>，它不會被誤讀成「下拉面板自己打開了」。</p>
+  <div class="al-specs">
+    <span class="al-spec">300 × 142pt<em>一個在等</em></span>
+    <span class="al-spec">300 × 201pt<em>兩個在等</em></span>
+    <span class="al-spec">300 × 142pt<em>三個以上 · 合併成一則</em></span>
+    <span class="al-spec">右上角<em>選單列下方 8pt · 右緣內縮 12pt · 無箭頭</em></span>
+    <span class="al-spec">琥珀 #FF9E0A<em>= GlyphRenderer.alert，與選單列同一個色值</em></span>
+  </div>
+</header>
+
+<!-- ═══════════════ 一、桌面上的樣子 ═══════════════ -->
+<h2>一 · 一個 SESSION 在等你（深色，1:1，桌面實景）</h2>
+<div class="al-row">
+  <div class="al-desk al-desk--dark" style="width:700px;height:376px">
+
+    <!-- 選單列 -->
+    <div class="al-mbar">
+      <svg width="12" height="13" viewBox="0 0 13 14" aria-hidden="true"><path d="M6.5 3.3c1.6-2.1 3.6-2.5 4.4-2.4.2 1.4-.5 3-1.6 3.8 1.5.7 2.4 2 2.4 3.6 0 2.5-2 5.3-3.4 5.3-.7 0-1.1-.4-1.8-.4s-1.1.4-1.8.4C3.3 13.6 1 10.5 1 7.9c0-2.3 1.7-3.8 3.4-3.8.9 0 1.5.4 2.1.4z" fill="currentColor" opacity=".88"/></svg>
+      <b>Terminal</b><span>Shell</span><span>編輯</span><span>顯示方式</span><span>視窗</span>
+      <div class="al-tray">
+        <!-- 選單列標記：警示狀態 = 琥珀外圈 + 三個會呼吸的 chevron（閉合外圈 = 只有一個在等） -->
+        <span class="al-mbi"><svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+          </g></svg></span>
+        <svg width="15" height="12" viewBox="0 0 15 12" aria-hidden="true"><path d="M1 4.3a9.5 9.5 0 0 1 13 0M3.4 6.9a6 6 0 0 1 8.2 0" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><circle cx="7.5" cy="9.8" r="1.2" fill="currentColor"/></svg>
+        <svg width="24" height="12" viewBox="0 0 24 12" aria-hidden="true"><rect x=".6" y="1.6" width="19" height="8.8" rx="2.6" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2.2" y="3.2" width="13" height="5.6" rx="1.4" fill="currentColor"/><path d="M21.4 4.4v3.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        <span class="al-clock">週五 14:06</span>
+      </div>
+    </div>
+
+    <!-- 使用者正在做的別的事 -->
+    <div class="al-app" style="left:30px;top:56px;width:436px;height:292px">
+      <div class="al-tbar">
+        <span class="al-tl" style="background:#FF5F57"></span><span class="al-tl" style="background:#FEBC2E"></span><span class="al-tl" style="background:#28C840"></span>
+        <span class="al-ttl">claude — ~/Antigravity/F1 — 92×26</span>
+      </div>
+      <div class="al-term">
+        <div><s>&gt;</s> <u>把排位賽的圈速圖改成用同一組色階</u></div>
+        <div>&nbsp;</div>
+        <div>● 讀 src/charts/LapChart.tsx …</div>
+        <div>&nbsp;&nbsp;讀了 214 行</div>
+        <div>● 讀 src/theme/palette.ts …</div>
+        <div>&nbsp;&nbsp;讀了 63 行</div>
+        <div>● 改 src/charts/LapChart.tsx</div>
+        <div>&nbsp;&nbsp;<s>+18</s> −11</div>
+        <div>● 跑 npm run build …</div>
+        <div>&nbsp;&nbsp;vite v7.1.4 building for production…</div>
+        <div>&nbsp;&nbsp;transforming (214/391)<span class="al-cur"></span></div>
+      </div>
+    </div>
+
+    <!-- ── 警示視窗 ── -->
+    <div class="al-slot al-dark">
+      <div class="al-win">
+        <div class="al-head">
+          <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+            <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+            </g></svg>
+          <span class="al-htitle">等你回覆</span>
+          <span class="al-brand">QUOTAMONSTER</span>
+          <span class="al-x" title="關閉"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-body">
+          <div class="al-sess">
+            <div class="al-txt">
+              <div class="al-l1">
+                <span class="al-proj">usage</span>
+                <span class="al-since"><i>已等</i><b>2m 14s</b></span>
+              </div>
+              <div class="al-l2">
+                <span class="al-what">等你批准工具</span>
+                <span class="al-tool">Bash · git push</span>
+              </div>
+              <div class="al-l3">
+                <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/><rect x="6.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/></svg>
+                3 個 agent 跟著停住
+              </div>
+            </div>
+            <span class="al-jump">跳過去
+              <svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </span>
+          </div>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-foot">
+          <span class="al-note">5 分鐘後再提醒一次，之後就安靜</span>
+          <span class="al-later">稍後</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="al-ruler" style="height:376px">
+    <b style="top:34px;bottom:204px"></b>
+    <i style="top:34px"></i><u style="top:34px">0</u>
+    <i style="top:105px"></i><u style="top:105px">71pt</u>
+    <i style="top:176px"></i><u style="top:176px">142pt</u>
+    <u style="top:204px;left:0;color:rgba(255,255,255,.26);width:52px;line-height:1.5">視窗總高<br>142pt</u>
+  </div>
+</div>
+<p class="al-cap">視窗<b>不覆蓋</b>使用者正在看的終端機，也不置中搶畫面 —— 它出現在你視線邊緣本來就會掃到的地方（選單列標記的正下方區域），
+高度只有 142pt —— 面板實裝約 620pt 高，這個視窗<b>不到它的四分之一</b>。眼睛先看到的是琥珀色塊與呼吸中的三個 chevron，那正是此刻選單列上正在閃的同一個標記；
+接著才讀到 <code>usage</code>、<code>已等 2m 14s</code>。決定要不要動只需要這三件事。</p>
+
+<!-- ═══════════════ 二、兩個 / 三個以上 ═══════════════ -->
+<h2>二 · 兩個在等（左）／ 三個以上，合併成一則（右）</h2>
+<div class="al-row">
+
+  <!-- (b) 兩個 -->
+  <div class="al-desk al-desk--dark" style="width:430px;height:300px">
+    <div class="al-mbar">
+      <b>Xcode</b><span>編輯</span><span>導覽</span>
+      <div class="al-tray">
+        <!-- 兩個在等 → 外圈斷成 2 段（GlyphGeometry.alertSegments） -->
+        <span class="al-mbi"><svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="19.24 3.53" stroke-dashoffset="-1.77"/>
+          <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+          </g></svg></span>
+        <span class="al-clock">14:09</span>
+      </div>
+    </div>
+    <div class="al-app" style="left:-90px;top:52px;width:330px;height:260px">
+      <div class="al-tbar"><span class="al-tl" style="background:#FF5F57"></span><span class="al-tl" style="background:#FEBC2E"></span><span class="al-tl" style="background:#28C840"></span></div>
+      <div class="al-term"><div>&nbsp;</div><div>&nbsp;&nbsp;struct BorrowRow: View {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;let item: Item</div><div>&nbsp;&nbsp;&nbsp;&nbsp;var body: some View {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;HStack(spacing: 8) {</div><div>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Text(item.name)</div></div>
+    </div>
+
+    <div class="al-slot al-dark">
+      <div class="al-win">
+        <div class="al-head">
+          <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+            <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="19.24 3.53" stroke-dashoffset="-1.77"/>
+            <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+            </g></svg>
+          <span class="al-htitle">等你回覆</span><span class="al-count">2</span>
+          <span class="al-brand">QUOTAMONSTER</span>
+          <span class="al-x"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-body">
+          <div class="al-sess">
+            <div class="al-txt">
+              <div class="al-l1"><span class="al-proj">F1</span><span class="al-since"><i>已等</i><b>5m 02s</b></span></div>
+              <div class="al-l2"><span class="al-what">在問你問題</span><span class="al-tool">要一起改掉舊的色階嗎</span></div>
+              <div class="al-l3">
+                <svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/><rect x="6.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/></svg>
+                1 個 agent 跟著停住
+              </div>
+            </div>
+            <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+          <div class="al-sess">
+            <div class="al-txt">
+              <div class="al-l1"><span class="al-proj">PEO</span><span class="al-since"><i>已等</i><b>48s</b></span></div>
+              <div class="al-l2"><span class="al-what">等你批准工具</span><span class="al-tool">Write · train.py</span></div>
+            </div>
+            <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-foot">
+          <span class="al-note">兩個都是 5 分鐘提醒一次</span>
+          <span class="al-later">全部稍後</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- (c) 三個以上 → 合併 -->
+  <div class="al-desk al-desk--dark" style="width:430px;height:300px">
+    <div class="al-mbar">
+      <b>Safari</b><span>檔案</span><span>編輯</span>
+      <div class="al-tray">
+        <!-- 四個在等 → 外圈斷成 4 段 -->
+        <span class="al-mbi"><svg width="16" height="16" viewBox="0 0 22 22" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="7.85 3.53" stroke-dashoffset="3.93"/>
+          <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+          </g></svg></span>
+        <span class="al-clock">14:21</span>
+      </div>
+    </div>
+    <div class="al-app" style="left:-80px;top:52px;width:320px;height:250px">
+      <div class="al-tbar"><span class="al-tl" style="background:#FF5F57"></span><span class="al-tl" style="background:#FEBC2E"></span><span class="al-tl" style="background:#28C840"></span></div>
+      <div class="al-term"><div>&nbsp;</div><div>&nbsp;&nbsp;docs / plans / 2026-09-18-…</div><div>&nbsp;&nbsp;通知政策 · 去重與遲滯</div><div>&nbsp;&nbsp;合併視窗 4 秒：同類事件 ≥3</div><div>&nbsp;&nbsp;則合成一則摘要</div></div>
+    </div>
+
+    <div class="al-slot al-dark">
+      <div class="al-win">
+        <div class="al-head">
+          <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+            <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-dasharray="7.85 3.53" stroke-dashoffset="3.93"/>
+            <g class="al-brea" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+            </g></svg>
+          <span class="al-htitle">等你回覆</span><span class="al-count">4</span>
+          <span class="al-brand">QUOTAMONSTER</span>
+          <span class="al-x"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-body">
+          <div class="al-sess">
+            <div class="al-txt">
+              <div class="al-l1"><span class="al-proj">4 個 session 等你</span><span class="al-since"><i>最久</i><b>11m 03s</b></span></div>
+              <div class="al-projs">
+                <span class="al-pchip">usage</span><span class="al-pchip">F1</span><span class="al-pchip">PEO</span><span class="al-pchip">zen-dial</span>
+              </div>
+              <div class="al-l3" style="color:var(--t2);opacity:1">3 個在問你問題 · 1 個等你批准工具</div>
+            </div>
+            <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-foot">
+          <span class="al-note">先帶你到等最久的 usage · 其餘留在面板</span>
+          <span class="al-later">稍後</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="al-cap">三個以上走的是設計文件的合併規則（<code>合併視窗 4 秒：同類事件 ≥3 則合成一則摘要</code>）：<b>一列，不是五列</b>。
+摘要照樣把三件必要的事講完 —— 是哪些專案（四個 mono chip，超過就 <code>+N</code>）、在等什麼（分類計數）、等了多久（最久的那一個）。
+視窗高度回到 142pt，和「一個在等」完全相同：<b>不管十個 session 卡住，這個視窗都不會長到 201pt 以上。</b>
+選單列外圈的段數（1 → 閉合、2 → 兩段、4 → 四段、上限 6）與視窗表頭的數字是同一份資料，所以圖示與視窗永遠說同一句話。</p>
+
+<!-- ═══════════════ 三、一秒測試 + 與下拉面板的區別 ═══════════════ -->
+<h2>三 · 一秒測試：它會不會被當成「下拉面板自己打開了」</h2>
+<div class="al-plate">
+  <div class="al-row" style="gap:26px">
+    <div>
+      <div class="al-lab">警示視窗 · 300 × 142PT</div>
+      <div class="al-dark">
+        <div class="al-win">
+          <div class="al-head">
+            <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+              <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+              </g></svg>
+            <span class="al-htitle">等你回覆</span>
+            <span class="al-brand">QUOTAMONSTER</span>
+            <span class="al-x"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          </div>
+          <div class="al-rule"></div>
+          <div class="al-body">
+            <div class="al-sess">
+              <div class="al-txt">
+                <div class="al-l1"><span class="al-proj">usage</span><span class="al-since"><i>已等</i><b>2m 14s</b></span></div>
+                <div class="al-l2"><span class="al-what">等你批准工具</span><span class="al-tool">Bash · git push</span></div>
+                <div class="al-l3"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/><rect x="6.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/></svg>3 個 agent 跟著停住</div>
+              </div>
+              <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+          </div>
+          <div class="al-rule"></div>
+          <div class="al-foot"><span class="al-note">5 分鐘後再提醒一次，之後就安靜</span><span class="al-later">稍後</span></div>
+        </div>
+      </div>
+      <div class="al-lab" style="margin:16px 0 9px">模糊 2.6PX（視線邊緣）</div>
+      <div class="al-dark al-blur">
+        <div class="al-win">
+          <div class="al-head">
+            <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+              <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+              <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+              </g></svg>
+            <span class="al-htitle">等你回覆</span>
+            <span class="al-brand">QUOTAMONSTER</span>
+            <span class="al-x"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+          </div>
+          <div class="al-rule"></div>
+          <div class="al-body">
+            <div class="al-sess">
+              <div class="al-txt">
+                <div class="al-l1"><span class="al-proj">usage</span><span class="al-since"><i>已等</i><b>2m 14s</b></span></div>
+                <div class="al-l2"><span class="al-what">等你批准工具</span><span class="al-tool">Bash · git push</span></div>
+                <div class="al-l3"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/><rect x="6.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/></svg>3 個 agent 跟著停住</div>
+              </div>
+              <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            </div>
+          </div>
+          <div class="al-rule"></div>
+          <div class="al-foot"><span class="al-note">5 分鐘後再提醒一次，之後就安靜</span><span class="al-later">稍後</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 對照：既有下拉面板（示意） -->
+    <div>
+      <div class="al-lab">既有下拉面板 · 380PT 寬（示意圖，高度截短）</div>
+      <div class="al-parrow"></div>
+      <div class="al-pop">
+        <div class="al-phead">
+          <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" style="color:rgba(255,255,255,.6)"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 10.5v-3M7.5 10.5v-5M10.5 10.5v-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+          <span class="al-pname">QuotaMonster</span>
+          <span style="flex:1"></span>
+          <span class="al-pstat"><u>5</u><i>SESSIONS</i></span>
+          <span class="al-pstat"><u>7</u><i>AGENTS</i></span>
+          <span class="al-pstat al-pstat--am"><u>1</u><i>BLOCKED</i></span>
+        </div>
+        <div class="al-prule"></div>
+        <div class="al-pq">
+          <div class="al-plabel">額度 QUOTA</div>
+          <div class="al-pcells">
+            <div class="al-pcell"><em>5 小時視窗</em><div class="al-pnum">28<i>%</i></div><div class="al-pbar"><i style="width:28%;background:#4DA6FF"></i></div><div class="al-pfoot2">剩 3h 12m</div></div>
+            <div class="al-pcell"><em>7 天 · 全模型</em><div class="al-pnum">61<i>%</i></div><div class="al-pbar"><i style="width:61%;background:#3FD968"></i></div><div class="al-pfoot2">週六 下午1:59 · 日均 8.4%</div></div>
+            <div class="al-pcell"><em>7 天 · OPUS</em><div class="al-pnum">88<i>%</i></div><div class="al-pbar"><i style="width:88%;background:#FF6159"></i></div><div class="al-pfoot2">42 分鐘前</div></div>
+          </div>
+        </div>
+        <div class="al-prule"></div>
+        <div class="al-pblk">
+          <div style="display:flex;align-items:center;gap:6px">
+            <span style="font-size:12px;font-weight:660">usage</span>
+            <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6)">~/Antigravity/usage</span>
+            <span style="margin-left:auto;font-size:10px;font-weight:500;color:#FFB23E">等你回覆</span>
+          </div>
+          <div style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6);margin-top:2px">PERMISSION · 等待你批准一個工具呼叫</div>
+          <div style="font-size:10px;color:rgba(255,178,62,.9);margin-top:2px">3 個 agent 跟著停住</div>
+        </div>
+        <div style="padding:2px 14px 6px;display:flex"><span class="al-plabel">工作階段 SESSIONS</span><span style="margin-left:auto;font-size:9.5px;color:rgba(255,255,255,.4)">1 等待 · 3 執行 · 1 閒置</span></div>
+        <div class="al-psrow">
+          <div style="display:flex;align-items:center;gap:7px"><span style="width:6px;height:6px;border-radius:50%;background:#4DA6FF"></span>
+            <span style="font-size:12px;font-weight:500">F1</span>
+            <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6)">~/Antigravity/F1</span>
+            <span style="margin-left:auto;font-size:8.5px;font-weight:660;color:#4DA6FF">BUSY</span>
+            <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)">14m</span></div>
+          <div style="display:flex;align-items:center;gap:6px;margin-top:5px">
+            <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.4)">ctx</span>
+            <span style="flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.16);overflow:hidden"><i style="display:block;width:46%;height:100%;background:#3FD968"></i></span>
+            <span style="font-family:var(--mono);font-size:9.5px;color:rgba(255,255,255,.6)">46%</span>
+            <span style="font-family:var(--mono);font-size:9px;color:rgba(255,255,255,.4)">1M</span></div>
+        </div>
+        <div class="al-psrow">
+          <div style="display:flex;align-items:center;gap:7px"><span style="width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.4)"></span>
+            <span style="font-size:12px;font-weight:500">PEO</span>
+            <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.6)">~/PEO</span>
+            <span style="margin-left:auto;font-size:8.5px;font-weight:660;color:rgba(255,255,255,.4)">IDLE</span>
+            <span style="font-family:var(--mono);font-size:10px;color:rgba(255,255,255,.4)">2h</span></div>
+        </div>
+        <div class="al-prule"></div>
+        <div class="al-pfoot"><span>更新於 剛剛</span></div>
+      </div>
+      <div class="al-lab" style="margin:16px 0 9px">模糊 2.6PX</div>
+      <div class="al-blur">
+        <div class="al-pop" style="height:150px;overflow:hidden">
+          <div class="al-phead">
+            <svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true" style="color:rgba(255,255,255,.6)"><rect x="1.5" y="2.5" width="13" height="11" rx="2" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M4.5 10.5v-3M7.5 10.5v-5M10.5 10.5v-2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+            <span class="al-pname">QuotaMonster</span><span style="flex:1"></span>
+            <span class="al-pstat"><u>5</u><i>SESSIONS</i></span><span class="al-pstat"><u>7</u><i>AGENTS</i></span>
+            <span class="al-pstat al-pstat--am"><u>1</u><i>BLOCKED</i></span>
+          </div>
+          <div class="al-prule"></div>
+          <div class="al-pq">
+            <div class="al-plabel">額度 QUOTA</div>
+            <div class="al-pcells">
+              <div class="al-pcell"><em>5 小時視窗</em><div class="al-pnum">28<i>%</i></div><div class="al-pbar"><i style="width:28%;background:#4DA6FF"></i></div><div class="al-pfoot2">剩 3h 12m</div></div>
+              <div class="al-pcell"><em>7 天 · 全模型</em><div class="al-pnum">61<i>%</i></div><div class="al-pbar"><i style="width:61%;background:#3FD968"></i></div><div class="al-pfoot2">週六 下午1:59</div></div>
+              <div class="al-pcell"><em>7 天 · OPUS</em><div class="al-pnum">88<i>%</i></div><div class="al-pbar"><i style="width:88%;background:#FF6159"></i></div><div class="al-pfoot2">42 分鐘前</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="al-cap">模糊到看不見任何字以後，兩者只剩三個特徵可比：<b>寬度</b>（300 對 380）、<b>色塊分布</b>（整片琥珀 對 上方一排冷色數字＋中段一條琥珀）、<b>有沒有指向選單列的箭頭</b>。
+下拉面板在模糊狀態下是「三個大數字＋三條彩色細線」的橫向節奏；警示視窗是「一塊琥珀＋右側一顆實心方塊」。
+兩者共用圓角、行律、字級，所以近看是同一個 app；遠看完全分得開 —— 這正是這個方向要買的東西。</p>
+
+<!-- ═══════════════ 四、淺色變體 ═══════════════ -->
+<h2>四 · 淺色變體（次要 —— 深色才是要看的那一個）</h2>
+<div class="al-row" style="align-items:flex-end">
+  <div class="al-desk al-desk--light" style="width:392px;height:214px">
+    <div class="al-mbar">
+      <b>Notes</b><span>編輯</span>
+      <div class="al-tray">
+        <span class="al-mbi"><svg width="15" height="15" viewBox="0 0 22 22" aria-hidden="true">
+          <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+          </g></svg></span>
+        <span class="al-clock">14:06</span>
+      </div>
+    </div>
+    <div class="al-slot al-light" style="top:31px;right:10px;transform:scale(.82);transform-origin:top right">
+      <div class="al-win">
+        <div class="al-head">
+          <svg class="al-mk" width="17" height="17" viewBox="0 0 22 22" aria-hidden="true">
+            <circle cx="11" cy="11" r="7.25" fill="none" stroke="currentColor" stroke-width="1.5"/>
+            <g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.6 7.8 10 11 7.6 14.2"/><path d="M10.2 7.8 12.6 11 10.2 14.2"/><path d="M12.8 7.8 15.2 11 12.8 14.2"/>
+            </g></svg>
+          <span class="al-htitle">等你回覆</span>
+          <span class="al-brand">QUOTAMONSTER</span>
+          <span class="al-x"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.4 1.4 8.6 8.6M8.6 1.4 1.4 8.6" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-body">
+          <div class="al-sess">
+            <div class="al-txt">
+              <div class="al-l1"><span class="al-proj">usage</span><span class="al-since"><i>已等</i><b>2m 14s</b></span></div>
+              <div class="al-l2"><span class="al-what">等你批准工具</span><span class="al-tool">Bash · git push</span></div>
+              <div class="al-l3"><svg width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><rect x="1.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/><rect x="6.3" y="1.3" width="2.4" height="7.4" rx=".8" fill="currentColor"/></svg>3 個 agent 跟著停住</div>
+            </div>
+            <span class="al-jump">跳過去<svg width="6" height="9" viewBox="0 0 6 10" aria-hidden="true"><path d="M1.2 1.2 4.6 5 1.2 8.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          </div>
+        </div>
+        <div class="al-rule"></div>
+        <div class="al-foot"><span class="al-note">5 分鐘後再提醒一次</span><span class="al-later">稍後</span></div>
+      </div>
+    </div>
+  </div>
+  <p class="al-cap" style="flex:1 1 260px;min-width:260px;margin:0">淺色下琥珀必須壓深（<code>#E08A00</code>，文字 <code>#8F5300</code>）才不會糊成一片米黃 —— 這是與 <code>QuotaPalette</code> 相同的做法：
+  同一個語意在深淺兩邊給兩組色值，不是同一組硬套。<b>此圖縮至 82% 呈現，實際仍是 300 × 142pt。</b></p>
+</div>
+
+<!-- ═══════════════ 筆記 ═══════════════ -->
+<div class="al-notes">
+  <h3>選了什麼，為什麼</h3>
+  <ul>
+    <li><b>300 × 142pt</b>（一個在等）／ <b>300 × 201pt</b>（兩個）／ <b>300 × 142pt</b>（三個以上合併）。比下拉面板窄 80pt，高度不到面板（約 620pt）的四分之一。<b>201pt 是硬天花板</b> —— 再多的等待只會走合併，不會把視窗撐高。</li>
+    <li><b>材質關係倒過來</b>：下拉面板是中性材質裡一張琥珀卡；警示視窗是琥珀材質裡的中性卡。同樣兩種材質、對調位置 —— 這是「同一個 app，但不是同一個東西」最省字的講法。</li>
+    <li><b>沒有 popover 箭頭，右緣內縮 12pt、選單列下方留 8pt 的空隙。</b>下拉面板一定有箭頭且貼齊圖示；把箭頭拿掉、讓它浮著，就不會有「面板自己打開了」的錯覺。</li>
+    <li><b>它戴著選單列此刻正在戴的同一個標記</b>：琥珀外圈 + 三個向右 chevron，外圈段數 = 在等的 session 數（1 閉合 / 2 兩段 / 4 四段，上限 6，照 <code>GlyphGeometry.alertSegments</code>）。眼睛從閃動的圖示移到視窗，落點是同一個形狀。</li>
+    <li><b>chevron 依 <code>Breath</code> 契約呼吸</b>：1.5 秒一個週期、不透明度 1.0 → 0.45 → 1.0、一次爆發四個週期後停在全亮。視窗不會永遠在動。</li>
+    <li><b>一個實心按鈕。</b>面板裡沒有任何實心按鈕，所以這顆琥珀方塊本身就是「這則是要你動手的」訊號。有幾個等待目標就有幾顆（每顆都是同一個動作「跳過去」，只是目標不同），合併那則只有一顆，指向等最久的那一個，並在頁尾說清楚它會帶你去哪。</li>
+    <li><b>兩個關閉入口</b>：表頭右上 20×20 的 ✕（反射動作）與頁尾有字的「稍後」。兩個都在固定位置，不必找。</li>
+    <li><b>頁尾說出中斷的契約</b>（「5 分鐘後再提醒一次，之後就安靜」）—— 取自設計文件的去重與遲滯規則。使用者知道忽略它的代價，才可能真的放心忽略它。</li>
+    <li><b>字級、圓角、行律全部沿用</b>：13pt 專案名、11.5pt 等待原因、10pt 後果、9.5pt 註腳、8.5pt 字距標籤、12pt 等待時間（等寬數字）、外 12pt / 內 7pt 圓角、9pt 內距、3pt 琥珀導軌。<b>都落在面板的 8.5–15pt 區間內。</b></li>
+    <li><b>等待時間用等寬琥珀數字</b>，並附一個 9.5pt 的「已等 / 最久」前綴 —— 這是視窗裡唯一的數字，所以不需要再標單位以外的東西。</li>
+  </ul>
+
+  <h3>刻意拒絕了什麼</h3>
+  <ul>
+    <li class="al-no"><b>藍／綠／紅額度色階。</b>這個視窗一次都不用。它講的是時間，不是預算；把額度色帶進來會稀釋掉 app 裡唯一有時限的訊號。（本頁只有「既有下拉面板對照圖」出現那三個顏色，因為那是面板的語彙。）</li>
+    <li class="al-no"><b>紅色與驚嘆號。</b>紅在這個 app 裡已經是「額度快用完」。有人在等你不是錯誤，是待辦。</li>
+    <li class="al-no"><b>指向選單列的箭頭</b>—— 就是它會讓人以為下拉面板自己打開了。</li>
+    <li class="al-no"><b>五列堆疊。</b>≥3 一律合併成一列摘要（設計文件的合併視窗 4 秒規則）。十個 agent 完成會產生十則橫幅的那種做法是攻擊，不是通知。</li>
+    <li class="al-no"><b>第二顆按鈕（「看全部」「靜音」「忽略此 session」）。</b>一個動作就是一個動作；要看全部就點選單列圖示，那是面板的工作。</li>
+    <li class="al-no"><b>自動倒數消失條。</b>session 不會因為倒數歸零就不再卡住。視窗只在狀態解除或你關掉時消失，中間 5 分鐘再推一次，就這樣。</li>
+    <li class="al-no"><b>完整 cwd 路徑。</b>只給最後一段（<code>usage</code>、<code>F1</code>）—— 一秒內能讀完的是名字，不是路徑。完整路徑留在面板。</li>
+    <li class="al-no"><b>仿造系統通知橫幅的外觀</b>（左側 app 圖示、標題／內文兩行、圓角膠囊）。那是 <code>UNUserNotificationCenter</code> 的長相，而 Stage 0 已經證實這條路拿不到授權；長得像它卻沒有它的行為（進不了通知中心、不會在鎖定畫面出現）是在騙人。這個視窗長得像 QuotaMonster 自己，因為它就是 QuotaMonster 自己畫的。</li>
+    <li class="al-no"><b>emoji。</b>暫停符號、chevron、✕ 全是 inline SVG，對應 app 裡的 SF Symbols。</li>
+  </ul>
+
+  <h3>這個方向的弱點（誠實記錄）</h3>
+  <div class="al-weak">
+    <b>「和面板一致」既是這個方向的賭注，也是它的風險。</b>圓角、行律、字級全部相同，代表兩者的<b>輪廓</b>本來就像；它靠的是顏色（整片琥珀）、寬度（窄 80pt）與缺席的箭頭來區分，而這三個線索在<b>淺色桌面</b>上最弱 —— 淺色琥珀壓深之後與淺色面板材質的明度差距沒有深色那麼大。
+    第二，<b>兩個等待時它會長到 201pt 並出現兩顆按鈕</b>，那一刻它確實開始像個小面板而不是一則訊息；如果實測發現「兩個」比「一個」常見，這個方向的重心就得重新考慮。
+    第三，它承襲 NSPanel 的能力邊界：<b>進不了通知中心，鎖定畫面看不到，你不在螢幕前就等於沒發生</b>（設計文件因此要求同時發一則 osascript 通知）。
+    最後，琥珀底色會讓內層的中性卡對比略降，<code>ctx</code> 之類的次要資訊在這裡不可能塞得下 —— 但那本來就是面板的工作。
+  </div>
+</div>
+
+</div>
+</div>
+
+</body></html>

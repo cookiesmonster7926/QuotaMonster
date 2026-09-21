@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T1 警示窗 · QUESTION</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   QuotaMonster — T1 alert window, direction "QUESTION"
+   Everything scoped to .qa. Standalone: no network, no CDN, inline SVG.
+   1 CSS px == 1 pt. Every window on this page renders at real size.
+   ═══════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0d11}
+.qa{background:#0b0d11;color:#E4E8EE;padding:36px 24px 90px;
+  font:13px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans CJK TC",sans-serif;
+  -webkit-font-smoothing:antialiased}
+.qa .wrap{max-width:1180px;margin:0 auto}
+.qa h1{font-size:21px;font-weight:650;letter-spacing:-.018em;margin-bottom:6px}
+.qa .lede{color:#9AA3B0;font-size:13.5px;max-width:74ch}
+.qa .lede b{color:#D7DCE4;font-weight:600}
+.qa h2{font-size:10.5px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#69727F;
+  margin:48px 0 4px;border-top:1px solid #1B1F27;padding-top:17px}
+.qa .h2n{font-size:13px;color:#8F98A5;margin-bottom:18px;max-width:80ch}
+.qa .h2n code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:#9FC9E8}
+.qa .cap{font:500 10.5px/1.55 ui-monospace,"SF Mono",Menlo,monospace;color:#68707D;letter-spacing:.015em;margin-top:10px}
+.qa .cap b{color:#C3CAD4;font-weight:600}
+.qa .cap i{font-style:normal;color:#FF9E0A}
+
+/* ───────── desktop stage ───────── */
+.qa .stage{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px #1E222A}
+.qa .stage__wall{position:absolute;inset:0;
+  background:
+    radial-gradient(120% 90% at 78% 120%,rgba(120,72,140,.42) 0%,rgba(120,72,140,0) 62%),
+    radial-gradient(90% 70% at 12% 0%,rgba(30,74,110,.55) 0%,rgba(30,74,110,0) 70%),
+    linear-gradient(155deg,#12182a 0%,#161d30 30%,#1d2138 55%,#2a2340 78%,#37283f 100%)}
+.qa .stage__wall::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 14%)}
+.qa .stage--light .stage__wall{
+  background:
+    radial-gradient(110% 80% at 85% 110%,rgba(255,222,180,.85) 0%,rgba(255,222,180,0) 64%),
+    linear-gradient(150deg,#c8d4e2 0%,#d9dee6 34%,#e6e0da 64%,#f0e4d6 100%)}
+.qa .stage--light .stage__wall::after{background:linear-gradient(180deg,rgba(255,255,255,.40) 0%,rgba(255,255,255,0) 14%)}
+
+/* menu bar */
+.qa .mb{position:relative;height:25px;display:flex;align-items:center;gap:15px;padding:0 9px 0 13px;
+  font-size:12.5px;line-height:1;white-space:nowrap}
+.qa .mb--dark{background:rgba(16,16,20,.62);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(255,255,255,.90);
+  box-shadow:inset 0 -.5px 0 rgba(255,255,255,.13)}
+.qa .mb--light{background:rgba(250,250,252,.72);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(0,0,0,.84);
+  box-shadow:inset 0 -.5px 0 rgba(0,0,0,.14)}
+.qa .mb b{font-weight:600}
+.qa .mb__sp{flex:1;min-width:0}
+.qa .mb__r{display:flex;align-items:center;gap:11px;flex:none}
+.qa .mb__clock{font-variant-numeric:tabular-nums;font-size:12.5px;opacity:.92}
+.qa .mb__ico{opacity:.78;display:flex}
+.qa .mb__slot{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:none}
+.qa .mb__slot.is-open{background:rgba(255,255,255,.17)}
+
+/* terminal the user is busy in */
+.qa .term{position:absolute;border-radius:9px;overflow:hidden;background:rgba(13,14,18,.95);
+  box-shadow:0 26px 64px rgba(0,0,0,.52),0 0 0 .5px rgba(255,255,255,.10)}
+.qa .term__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 11px;overflow:hidden;
+  background:rgba(40,42,49,.92);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.4)}
+.qa .term__bar span{width:10px;height:10px;border-radius:50%;flex:none}
+.qa .term__t{margin-left:8px;font:500 10.5px/1 -apple-system,sans-serif;color:rgba(255,255,255,.44);
+  letter-spacing:.01em;white-space:nowrap;flex:none}
+.qa .term__b{padding:11px 13px;font:11px/1.62 ui-monospace,"SF Mono",Menlo,monospace;color:#5F6875;
+  white-space:pre;overflow:hidden}
+.qa .term__b .g{color:#4E7D5E}.qa .term__b .b{color:#4E6E8E}.qa .term__b .w{color:#8892A0}
+.qa .term__b .a{color:#8A6A2E}
+
+/* ═════════ THE ALERT WINDOW ═════════ */
+.qa .wa{position:relative;width:320px;padding-top:7px}
+.qa .wa--dark{
+  --amber:#FF9E0A;                       /* = GlyphRenderer.alert srgb(1.00,0.62,0.04) */
+  --asoft:rgba(255,158,10,.14);--aline:rgba(255,158,10,.40);--aedge:rgba(255,158,10,.30);
+  --aink:#2B1A00;
+  --mat:rgba(29,29,34,.92);
+  --fg:rgba(255,255,255,.96);--fg2:rgba(255,255,255,.62);--fg3:rgba(255,255,255,.42);
+  --fg4:rgba(255,255,255,.24);--rule:rgba(255,255,255,.11);--chip:rgba(255,255,255,.07);
+  --hov:rgba(255,255,255,.055);
+  --sh:0 20px 46px rgba(0,0,0,.58),0 3px 12px rgba(0,0,0,.44)}
+.qa .wa--light{
+  --amber:#A15C06;                       /* same hue, darkened — 4.5:1 on the light material */
+  --asoft:rgba(161,92,6,.11);--aline:rgba(161,92,6,.42);--aedge:rgba(161,92,6,.34);
+  --aink:#FFFFFF;
+  --mat:rgba(247,247,250,.93);
+  --fg:rgba(0,0,0,.90);--fg2:rgba(0,0,0,.58);--fg3:rgba(0,0,0,.40);
+  --fg4:rgba(0,0,0,.20);--rule:rgba(0,0,0,.11);--chip:rgba(0,0,0,.055);
+  --hov:rgba(0,0,0,.05);
+  --sh:0 20px 44px rgba(42,32,20,.26),0 3px 12px rgba(42,32,20,.18)}
+
+/* the 8pt spur that points back at the menu-bar icon — the cheapest attribution there is */
+.qa .wa__notch{position:absolute;top:0;right:34px;width:18px;height:8px;background:var(--mat);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);backdrop-filter:blur(32px) saturate(180%);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.qa .w{position:relative;width:320px;border-radius:13px;overflow:hidden;background:var(--mat);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);backdrop-filter:blur(32px) saturate(180%);
+  box-shadow:var(--sh),inset 0 0 0 .5px var(--aedge)}
+.qa .w__rail{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.qa .w__in{padding:11px 14px 11px 16px}
+
+/* row 0 — glyph · count · age */
+.qa .r0{height:16px;display:flex;align-items:center;gap:8px}
+.qa .r0__g{width:16px;height:16px;flex:none;display:block;color:var(--amber)}
+.qa .r0__n{font-size:9.5px;font-weight:600;letter-spacing:.07em;color:var(--fg3);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa .r0__n b{color:var(--amber);font-weight:700;font-variant-numeric:tabular-nums}
+.qa .r0__sp{flex:1;min-width:4px}
+.qa .r0__age{flex:none;font-size:9.5px;color:var(--fg3);letter-spacing:.04em;white-space:nowrap}
+.qa .r0__age b{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;font-weight:500;
+  color:var(--amber);font-variant-numeric:tabular-nums;margin-left:3px;letter-spacing:0}
+
+/* row 1 — THE QUESTION. the biggest thing on the window, always. */
+.qa .hero{margin-top:6px;height:25px;font-size:19px;line-height:25px;font-weight:600;
+  letter-spacing:-.014em;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa .hero code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:16.5px;font-weight:500;
+  letter-spacing:-.01em}
+
+/* row 2 — where, and what class of wait */
+.qa .r2{margin-top:3px;height:15px;display:flex;align-items:center;gap:8px}
+.qa .path{flex:1;min-width:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;
+  color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa .path i{font-style:normal;color:var(--fg4)}
+/* 標籤沒有框。有框的東西在這個窗口裡一律可以點 —— 見 .go / .go2 / .no。 */
+.qa .chip{flex:none;font-size:10px;font-weight:500;line-height:14px;height:15px;padding:0 6px;
+  border-radius:4px;color:var(--amber);background:rgba(255,158,10,.17);
+  white-space:nowrap;display:flex;align-items:center}
+.qa .wa--light .chip{background:rgba(161,92,6,.13)}
+
+/* the degraded tail: case B gives the 2nd question in full, case C only names the rest */
+.qa .tail{margin-top:10px;padding-top:10px;border-top:.5px solid var(--rule)}
+.qa .sub2{height:20px;display:flex;align-items:center;gap:8px}
+.qa .sub2__q{flex:1;min-width:0;font-size:15.5px;line-height:20px;font-weight:500;color:var(--fg);
+  letter-spacing:-.01em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qa .sub2__q code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:13.5px}
+.qa .sub2__age{flex:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;
+  color:var(--fg3);font-variant-numeric:tabular-nums}
+.qa .sub3{margin-top:3px;height:20px;display:flex;align-items:center;gap:8px}
+.qa .rest{height:16px;display:flex;align-items:center;gap:0;font-size:10.5px;color:var(--fg3);
+  white-space:nowrap;overflow:hidden}
+.qa .rest__k{flex:none;color:var(--fg3);margin-right:2px}
+.qa .rest a{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;color:var(--fg2);
+  text-decoration:none;padding:1px 5px;border-radius:4px;margin:0 1px}
+.qa .rest a em{font-style:normal;color:var(--fg4);font-variant-numeric:tabular-nums;margin-left:3px}
+.qa .rest a:hover{background:var(--hov);color:var(--fg)}
+.qa .rest__d{color:var(--fg4);margin:0 1px}
+
+/* row 3 — one action, plus a dismiss you do not have to hunt for */
+.qa .acts{margin-top:11px;height:25px;display:flex;align-items:center;gap:8px}
+.qa .go{flex:none;height:25px;display:inline-flex;align-items:center;gap:6px;padding:0 13px;
+  border:0;border-radius:6px;background:var(--amber);color:var(--aink);cursor:pointer;
+  font-family:inherit;font-size:12.5px;font-weight:600;letter-spacing:-.005em;line-height:1}
+.qa .go:hover{filter:brightness(1.08)}
+.qa .go:active{filter:brightness(.94)}
+.qa .go svg{display:block;flex:none}
+.qa .go__t{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;font-weight:600;
+  opacity:.72;letter-spacing:-.01em}
+.qa .go2{flex:none;height:20px;display:inline-flex;align-items:center;gap:5px;padding:0 8px;
+  border:0;border-radius:5px;background:transparent;box-shadow:inset 0 0 0 1px var(--aline);
+  color:var(--amber);cursor:pointer;font-family:inherit;font-size:11px;font-weight:600;line-height:1}
+.qa .go2:hover{background:rgba(255,158,10,.20)}
+.qa .wa--light .go2:hover{background:rgba(161,92,6,.14)}
+.qa .sp{flex:1;min-width:4px}
+.qa .no{flex:none;height:25px;display:inline-flex;align-items:center;gap:6px;padding:0 11px;
+  border:0;border-radius:6px;background:transparent;color:var(--fg3);cursor:pointer;
+  font-family:inherit;font-size:11.5px;font-weight:500;line-height:1}
+.qa .no:hover{background:var(--hov);color:var(--fg2)}
+.qa kbd{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10px;font-weight:600;
+  opacity:.62;line-height:1}
+
+/* the chevrons breathe — the same thing the menu-bar glyph does, and the only motion here */
+@keyframes qaBreath{0%,100%{opacity:1}50%{opacity:.34}}
+.qa .brk{animation:qaBreath 2.1s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.qa .brk{animation:none;opacity:.85}}
+
+/* ───────── case row ───────── */
+.qa .cases{display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start}
+.qa .case{width:360px;flex:none}
+.qa .case__st{position:relative;border-radius:12px;overflow:hidden;padding-bottom:30px;
+  box-shadow:0 0 0 1px #1E222A}
+.qa .case__st .wa{position:absolute;right:25px;top:25px}
+.qa .case__st .mb{padding-right:11px}
+.qa .case__h{font-size:12.5px;font-weight:600;color:#C6CDD7;margin-bottom:9px}
+.qa .case__h b{color:#FF9E0A;font-weight:600}
+.qa .case__h em{font-style:normal;color:#68707D;font-weight:400;margin-left:6px;
+  font:500 10.5px ui-monospace,Menlo,monospace}
+
+/* ───────── anatomy ───────── */
+.qa .anat{display:flex;gap:40px;flex-wrap:wrap;align-items:flex-start}
+.qa .anat__pane{position:relative;padding:22px 26px;border-radius:12px;background:#12151b;
+  box-shadow:0 0 0 1px #1E222A}
+.qa .hit{position:absolute;border:1px dashed rgba(255,158,10,.55);border-radius:7px;
+  pointer-events:none}
+.qa .hit::after{content:attr(data-l);position:absolute;left:0;top:100%;margin-top:3px;
+  font:500 9.5px ui-monospace,Menlo,monospace;color:#B07425;white-space:nowrap}
+.qa table{border-collapse:collapse;font-size:11.5px;min-width:330px}
+.qa th{text-align:left;font:600 9.5px/1.4 ui-monospace,Menlo,monospace;letter-spacing:.1em;
+  text-transform:uppercase;color:#68707D;border-bottom:1px solid #1E222A;padding:0 14px 6px 0}
+.qa td{padding:5px 14px 5px 0;border-bottom:1px solid #171B22;color:#98A0AC;
+  font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;vertical-align:top}
+.qa td.t{font-family:inherit;font-size:12px;color:#B6BDC8}
+.qa td b{color:#E0E5EC;font-weight:600}
+
+/* ───────── notes ───────── */
+.qa .notes{display:flex;gap:44px;flex-wrap:wrap;align-items:flex-start}
+.qa .notes>div{flex:1;min-width:330px;max-width:560px}
+.qa .notes h3{font:600 12px/1.4 -apple-system,sans-serif;color:#DCE1E9;margin:0 0 10px}
+.qa ol,.qa ul{margin:0;padding-left:19px}
+.qa li{margin:0 0 9px;color:#98A0AC;font-size:12.5px;line-height:1.62}
+.qa li b{color:#D3D9E2;font-weight:600}
+.qa li code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;color:#9FC9E8}
+.qa li .am{color:#FF9E0A}
+.qa .warn{margin-top:22px;padding:13px 15px;border-radius:9px;background:rgba(255,158,10,.07);
+  box-shadow:inset 0 0 0 .5px rgba(255,158,10,.30);font-size:12.5px;line-height:1.62;color:#C3B497}
+.qa .warn b{color:#FFB944;font-weight:600}
+</style>
+</head>
+
+<body class="qa">
+<div class="wrap">
+
+<h1>T1 警示窗 · <span style="color:#FF9E0A">QUESTION</span></h1>
+<p class="lede">最大的那一行不是 app 名稱，也不是「有 session 在等你」這種轉述，而是<b>那個 session 真正問出口的句子</b>。
+賭的是：最快的一次閱讀，是使用者根本不需要先解碼一則通知，就已經知道對方要什麼。<br>
+本頁所有窗口皆為 <b>1 : 1 實際尺寸</b>（1 CSS px = 1 pt）。深色為主，淺色只附一份。</p>
+
+<!-- ══════════════ 1. presence on screen ══════════════ -->
+<h2>1 · 它在螢幕上長這樣</h2>
+<p class="h2n">使用者正在別的地方忙。窗口浮在選單列下方 8pt，尖角指回那顆已經變成琥珀色的圖示。
+判斷標準只有一個：眼角餘光掃過去，一秒之內知不知道要做什麼。</p>
+
+<div class="stage" style="height:436px">
+  <div class="stage__wall"></div>
+
+  <div class="mb mb--dark">
+    <b>Terminal</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2.6 4.4 5.4H2.4v5.2h2L8 13.4V2.6Z" fill="currentColor"/><path d="M10.6 5.9a3 3 0 0 1 0 4.2M12.6 4a5.6 5.6 0 0 1 0 8" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.4" y="5.6" width="10.6" height="5.2" rx="1.6" stroke="currentColor" stroke-width="1.1"/><rect x="2.8" y="7" width="6" height="2.4" rx=".7" fill="currentColor"/><path d="M13.4 7.6v1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <!-- QuotaMonster, in its T1 alert state: closed ring (1 blocked) + three breathing chevrons -->
+      <span class="mb__slot">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+          <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+          <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/>
+          </g>
+        </svg>
+      </span>
+      <span class="mb__clock">週五 14:06</span>
+    </span>
+  </div>
+
+  <div class="term" style="left:52px;top:78px;width:556px;height:334px">
+    <div class="term__bar"><span style="background:#FF5F57"></span><span style="background:#FEBC2E"></span><span style="background:#28C840"></span><span class="term__t">usage — claude — 108×32</span></div>
+    <div class="term__b"><span class="b">●</span> <span class="w">Read</span>(Sources/QuotaMonsterApp/Panel/SessionRow.swift)
+  <span class="g">⎿</span>  Read 162 lines
+
+<span class="b">●</span> <span class="w">Edit</span>(Sources/QuotaMonsterApp/Panel/SessionRow.swift)
+  <span class="g">⎿</span>  Updated with 4 additions and 2 removals
+
+<span class="b">●</span> <span class="w">Bash</span>(swift build 2>&amp;1 | tail -20)
+  <span class="g">⎿</span>  Compiling QuotaMonsterApp SessionRow.swift
+     Build complete! (6.41s)
+
+<span class="b">●</span> 版面改好了，SessionRow 的 context 那一行
+  現在不會再被路徑擠掉。
+
+  blockedBanner 也適用同一條規則。
+  <span class="a">要我繼續嗎？</span>
+
+<span class="a">&gt;</span> <span style="opacity:.45">▌</span></div>
+  </div>
+
+  <!-- ─── the alert window, case (a): exactly one session waiting ─── -->
+  <div class="wa wa--dark" style="position:absolute;right:51px;top:25px" data-measure="mA">
+    <span class="wa__notch"></span>
+    <div class="w">
+      <span class="w__rail"></span>
+      <div class="w__in">
+        <div class="r0">
+          <svg class="r0__g" viewBox="0 0 22 22" fill="none">
+            <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+            <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/>
+            </g>
+          </svg>
+          <span class="r0__n"></span>
+          <span class="r0__sp"></span>
+          <span class="r0__age">等了<b>2m 14s</b></span>
+        </div>
+        <div class="hero">要我繼續嗎？</div>
+        <div class="r2">
+          <span class="path"><i>~/Antigravity/</i>usage</span>
+          <span class="chip">在問你問題</span>
+        </div>
+        <div class="acts">
+          <button class="go">跳過去
+            <svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span class="go__t">⏎</span>
+          </button>
+          <span class="sp"></span>
+          <button class="no">稍後 <kbd>⎋</kbd></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap">選單列圖示與窗口左上角是<b>同一顆圖示</b>：r=7.25 的環 + 三個 chevron，取自 <b>GlyphGeometry / GlyphRenderer.drawAlert</b>，同樣的 <i>#FF9E0A</i>，同樣的呼吸節奏。窗口尺寸 <b><span id="mA">320 × 123 pt</span></b>。<br>（畫面裡唯一另一個黃色是終端機的紅綠燈 —— 那是 macOS 的視窗鈕，不是這個 app 的語彙。QuotaMonster 自己的琥珀只出現在警示窗與選單列圖示上。）</p>
+
+<!-- ══════════════ 2. the three cases ══════════════ -->
+<h2>2 · 一個 / 兩個 / 三個以上</h2>
+<p class="h2n">同一套骨架，後段降級：<b style="color:#C6CDD7">問題永遠是 19pt 的英雄行，而且永遠只有一行</b>。
+1 個 → 問題獨佔整個窗口；2 個 → 主問題全文，次問題以 15.5pt 全文附在下面；
+≥3 → 設計文件要求合成一則摘要，所以只留最久的那一個問題，其餘只列名字與秒數，一行。
+環上的段數 = 等待數（<code>alertSegments</code>：1 不切、2 切兩段、4 切四段），所以選單列與窗口在同一瞬間說同一個數字。</p>
+
+<div class="cases">
+
+  <!-- (a) one -->
+  <div class="case">
+    <div class="case__h">(a) 一個在等 <em>320 × <span id="hA">123</span> pt</em></div>
+    <div class="case__st" style="height:176px">
+      <div class="stage__wall"></div>
+      <div class="mb mb--dark"><b>Finder</b><span class="mb__sp"></span><span class="mb__r">
+        <span class="mb__slot"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+          <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+          <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+        <span class="mb__clock">14:06</span></span></div>
+      <div class="wa wa--dark" data-measure="mA2">
+        <span class="wa__notch"></span>
+        <div class="w"><span class="w__rail"></span><div class="w__in">
+          <div class="r0">
+            <svg class="r0__g" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+              <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+            <span class="r0__n"></span><span class="r0__sp"></span>
+            <span class="r0__age">等了<b>2m 14s</b></span>
+          </div>
+          <div class="hero">要我繼續嗎？</div>
+          <div class="r2"><span class="path"><i>~/Antigravity/</i>usage</span><span class="chip">在問你問題</span></div>
+          <div class="acts">
+            <button class="go">跳過去<svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="go__t">⏎</span></button>
+            <span class="sp"></span><button class="no">稍後 <kbd>⎋</kbd></button>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="cap">計數欄位是空的 —— 只有一個的時候，數字不值得一個字。</p>
+  </div>
+
+  <!-- (b) two -->
+  <div class="case">
+    <div class="case__h">(b) 兩個在等 <em>320 × <span id="hB">187</span> pt</em></div>
+    <div class="case__st" style="height:240px">
+      <div class="stage__wall"></div>
+      <div class="mb mb--dark"><b>Finder</b><span class="mb__sp"></span><span class="mb__r">
+        <span class="mb__slot"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+          <path d="M3.964 9.250A7.25 7.25 0 0 1 18.036 9.250" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18.036 12.750A7.25 7.25 0 0 1 3.964 12.750" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+        <span class="mb__clock">14:06</span></span></div>
+      <div class="wa wa--dark" data-measure="mB">
+        <span class="wa__notch"></span>
+        <div class="w"><span class="w__rail"></span><div class="w__in">
+          <div class="r0">
+            <svg class="r0__g" viewBox="0 0 22 22" fill="none">
+              <path d="M3.964 9.250A7.25 7.25 0 0 1 18.036 9.250" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M18.036 12.750A7.25 7.25 0 0 1 3.964 12.750" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+            <span class="r0__n"><b>2</b> 個在等你</span><span class="r0__sp"></span>
+            <span class="r0__age">最久<b>6m 30s</b></span>
+          </div>
+          <div class="hero">要我繼續嗎？</div>
+          <div class="r2"><span class="path"><i>~/Antigravity/</i>usage</span><span class="chip">在問你問題</span></div>
+
+          <div class="tail">
+            <div class="sub2">
+              <span class="sub2__q">可以執行 <code>rm -rf .build</code> 嗎？</span>
+              <span class="sub2__age">41s</span>
+            </div>
+            <div class="sub3">
+              <span class="path"><i>~/</i>PULSE</span>
+              <span class="chip">等你批准工具</span>
+              <button class="go2">跳過去<svg width="7" height="9" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            </div>
+          </div>
+
+          <div class="acts">
+            <button class="go">跳過去 · usage<svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="go__t">⏎</span></button>
+            <span class="sp"></span><button class="no">全部稍後 <kbd>⎋</kbd></button>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="cap">兩個都問得出口，所以兩個都給全文。<b>填滿的那顆按鈕給等最久的</b>（先進先出），另一個是安靜的外框 chip —— 一樣是「跳過去」，只是換目標。</p>
+  </div>
+
+  <!-- (c) three or more -->
+  <div class="case">
+    <div class="case__h">(c) <b>4</b> 個在等 · 已合併 <em>320 × <span id="hC">160</span> pt</em></div>
+    <div class="case__st" style="height:212px">
+      <div class="stage__wall"></div>
+      <div class="mb mb--dark"><b>Finder</b><span class="mb__sp"></span><span class="mb__r">
+        <span class="mb__slot"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+          <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none">
+            <path d="M7.263 4.788A7.25 7.25 0 0 1 14.737 4.788"/><path d="M4.788 14.737A7.25 7.25 0 0 1 4.788 7.263"/>
+            <path d="M14.737 17.212A7.25 7.25 0 0 1 7.263 17.212"/><path d="M17.212 7.263A7.25 7.25 0 0 1 17.212 14.737"/></g>
+          <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+        <span class="mb__clock">14:06</span></span></div>
+      <div class="wa wa--dark" data-measure="mC">
+        <span class="wa__notch"></span>
+        <div class="w"><span class="w__rail"></span><div class="w__in">
+          <div class="r0">
+            <svg class="r0__g" viewBox="0 0 22 22" fill="none">
+              <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none">
+                <path d="M7.263 4.788A7.25 7.25 0 0 1 14.737 4.788"/><path d="M4.788 14.737A7.25 7.25 0 0 1 4.788 7.263"/>
+                <path d="M14.737 17.212A7.25 7.25 0 0 1 7.263 17.212"/><path d="M17.212 7.263A7.25 7.25 0 0 1 17.212 14.737"/></g>
+              <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+            <span class="r0__n"><b>4</b> 個在等你 · 已合併</span><span class="r0__sp"></span>
+            <span class="r0__age">最久<b>8m 02s</b></span>
+          </div>
+          <div class="hero">要我改 blockedBanner 嗎？</div>
+          <div class="r2"><span class="path"><i>~/Antigravity/</i>usage</span><span class="chip">在問你問題</span></div>
+
+          <div class="tail">
+            <div class="rest">
+              <span class="rest__k">另外 3 個</span><span class="rest__d">·</span>
+              <a href="#">F1<em>2m</em></a><span class="rest__d">·</span>
+              <a href="#">PULSE<em>1m</em></a><span class="rest__d">·</span>
+              <a href="#">zen-dial<em>40s</em></a>
+            </div>
+          </div>
+
+          <div class="acts">
+            <button class="go">跳過去 · usage<svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="go__t">⏎</span></button>
+            <span class="sp"></span><button class="no">全部稍後 <kbd>⎋</kbd></button>
+          </div>
+        </div></div>
+      </div>
+    </div>
+    <p class="cap">一則摘要，不是五列。但摘要仍然<b>帶著一個具體的問題</b> —— 合併不該把使用者手上唯一能立刻做的事收走。其餘三個只留名字與等待秒數，每個名字自己也是跳轉目標。</p>
+  </div>
+
+</div>
+
+<!-- ══════════════ 3. light ══════════════ -->
+<h2>3 · 淺色（次要）</h2>
+<p class="h2n">使用者的選單列與面板是深色的，深色才是要判斷的那一版。淺色只驗一件事：同一個琥珀在白底上還讀得出來 ——
+色相不動，明度壓到 <code>#A15C06</code>，填滿的按鈕改成白字。</p>
+
+<div class="case" style="width:392px">
+  <div class="case__st stage--light" style="height:176px">
+    <div class="stage__wall"></div>
+    <div class="mb mb--light"><b>Finder</b><span class="mb__sp"></span><span class="mb__r">
+      <span class="mb__slot"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#A15C06">
+        <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+        <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+      <span class="mb__clock">14:06</span></span></div>
+    <div class="wa wa--light">
+      <span class="wa__notch"></span>
+      <div class="w"><span class="w__rail"></span><div class="w__in">
+        <div class="r0">
+          <svg class="r0__g" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+            <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+          <span class="r0__n"></span><span class="r0__sp"></span>
+          <span class="r0__age">等了<b>2m 14s</b></span>
+        </div>
+        <div class="hero">要我繼續嗎？</div>
+        <div class="r2"><span class="path"><i>~/Antigravity/</i>usage</span><span class="chip">在問你問題</span></div>
+        <div class="acts">
+          <button class="go">跳過去<svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="go__t">⏎</span></button>
+          <span class="sp"></span><button class="no">稍後 <kbd>⎋</kbd></button>
+        </div>
+      </div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ 4. anatomy ══════════════ -->
+<h2>4 · 尺寸與命中區</h2>
+<p class="h2n">虛線是實際的點擊範圍。兩個都不需要用找的：主要動作 25pt 高、「稍後」也是 25pt 高而且有字。</p>
+
+<div class="anat">
+  <div class="anat__pane">
+    <div class="wa wa--dark" style="position:relative;padding-top:0">
+      <div class="w"><span class="w__rail"></span><div class="w__in">
+        <div class="r0">
+          <svg class="r0__g" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+            <g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+          <span class="r0__n"></span><span class="r0__sp"></span>
+          <span class="r0__age">等了<b>2m 14s</b></span>
+        </div>
+        <div class="hero">要我繼續嗎？</div>
+        <div class="r2"><span class="path"><i>~/Antigravity/</i>usage</span><span class="chip">在問你問題</span></div>
+        <div class="acts">
+          <button class="go">跳過去<svg width="8" height="11" viewBox="0 0 8 11" fill="none"><path d="M1.4 1.4 5.6 5.5 1.4 9.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="go__t">⏎</span></button>
+          <span class="sp"></span><button class="no">稍後 <kbd>⎋</kbd></button>
+        </div>
+      </div></div>
+      <span class="hit" id="hitGo" data-l="跳過去" style="left:14px;bottom:9px;width:90px;height:29px"></span>
+      <span class="hit" id="hitNo" data-l="稍後" style="right:12px;bottom:9px;width:57px;height:29px"></span>
+    </div>
+  </div>
+
+  <table>
+    <tr><th>元素</th><th>級數</th><th>顏色</th></tr>
+    <tr><td class="t">問題（英雄行）</td><td>19 / 600 / −.014em</td><td>fg .96</td></tr>
+    <tr><td class="t">次問題（(b) 專用）</td><td>15.5 / 500</td><td>fg .96</td></tr>
+    <tr><td class="t">計數標籤</td><td>9.5 / 600 / .07em</td><td>fg .42 · 數字琥珀</td></tr>
+    <tr><td class="t">等待時間</td><td>12 mono tabular</td><td><span style="color:#FF9E0A">#FF9E0A</span></td></tr>
+    <tr><td class="t">cwd 路徑</td><td>10.5 mono</td><td>fg .62 / 前綴 .24</td></tr>
+    <tr><td class="t">等待類別 chip</td><td>10 / 500</td><td>琥珀 on .17 琥珀 · <b>無框</b></td></tr>
+    <tr><td class="t">跳過去</td><td>12.5 / 600</td><td>#2B1A00 on #FF9E0A</td></tr>
+    <tr><td class="t">稍後</td><td>11.5 / 500</td><td>fg .42</td></tr>
+    <tr><td class="t"><b>窗口</b></td><td><b>320 × 123 / 187 / 160</b></td><td>r=13 · 左緣 3pt 琥珀</td></tr>
+  </table>
+</div>
+<p class="cap">面板是 <b>380pt</b> 寬；警示窗刻意窄 <b>60pt</b>，在視野裡不會被誤認成面板。字級全部落在既有面板的 8.5–22pt 之內，只有 19pt 的英雄行是這個 app 裡唯一為「一行字」保留的級數。</p>
+
+<!-- ══════════════ 5. notes ══════════════ -->
+<h2>5 · 選了什麼 · 拒絕了什麼</h2>
+
+<div class="notes">
+  <div>
+    <h3>選擇</h3>
+    <ol>
+      <li><b>主角是問題本身。</b>19pt 那一行是 session 真正問出口的句子（<span style="color:#D3D9E2">要我繼續嗎？</span> / <span style="color:#D3D9E2">可以執行 <code>rm -rf .build</code> 嗎？</span>），不是「usage 正在等待輸入」這種第三人稱轉述。專案名退到第二行，app 名稱一個字都沒有。</li>
+      <li><b>身分不靠名字，靠三件事。</b>(a) 窗口對齊在選單列圖示正下方，帶一個 8pt 尖角指回去；(b) 左上角那顆圖示<span class="am">就是選單列上那顆本人</span> —— 同一份 <code>GlyphGeometry</code>（r=7.25 環 + x=7.6/10.2/12.8 的三個 chevron）、同一個 <code>#FF9E0A</code>、同一個只有警示狀態才有的呼吸；(c) 第二行是使用者自己的 cwd，一個冒充的視窗不會知道 <code>~/Antigravity/usage</code>。</li>
+      <li><b>環上的段數 = 等待數。</b>1 不切、2 切兩段、4 切四段，直接沿用 <code>alertSegments(blocked:)</code>。選單列與窗口在同一瞬間說同一個數字，這是「這兩個是同一個東西」最便宜的證據。</li>
+      <li><b>琥珀只有一個意思。</b><code>#FF9E0A</code> 取自 <code>GlyphRenderer.alert</code> (1.00, 0.62, 0.04)。額度色階（藍 → 綠 → 紅）在這個窗口裡<span class="am">一次也沒出現</span> —— 這裡跟額度無關。琥珀只落在四個地方：左緣 3pt、圖示、等待秒數、主按鈕。</li>
+      <li><b>等待時間是唯一跳色的文字。</b>「等了 <span class="am">2m 14s</span>」——「等了」不跳，數字跳，mono tabular，讀秒時不會抖。</li>
+      <li><b>三種情況同一套骨架，只是後段降級。</b>窗口能給幾句全文就給幾句，給不完的只列名字：1 → 問題獨佔；2 → 兩句全文；≥3 → 一句全文 + 其餘一行。英雄行永遠只有一個。</li>
+      <li><b>≥3 的摘要仍然帶著一個具體的問題。</b>只寫「4 個在等你」的摘要，把使用者手上唯一能立刻做的事收走了，於是他還是得打開面板 —— 那就等於什麼都沒通知。</li>
+      <li><b>一個動作，會把目標寫進標籤。</b>≥2 時主按鈕是「跳過去 · usage」，目標是等最久的那一個（先進先出）。其他 session 的名字是同一個動作換目標，做成安靜的 chip，不是第二種動作。</li>
+      <li><b>有框的一律可以點，沒框的一律是標籤。</b>「在問你問題」是純色塊沒有框，「跳過去」有框或填滿 —— 兩個都是琥珀、都在同一行時，靠這條規則分開，不靠猜。</li>
+      <li><b>「稍後」是有字的按鈕，25pt 高。</b>⏎ / ⎋ 兩個鍵盤提示直接印在按鈕上，手不用離開鍵盤。</li>
+      <li><b>12 秒後自己淡出，狀態留在選單列圖示上。</b>窗口是打擾，圖示是狀態 —— 一個永遠不走的打擾會在三天內被忽略。設計文件的「5 分鐘後恰好再推一次」由圖示與第二次浮窗負責。</li>
+    </ol>
+  </div>
+
+  <div>
+    <h3>刻意拒絕</h3>
+    <ul>
+      <li><b>app 名稱 / wordmark。</b>「QuotaMonster」六個字在一秒的閱讀裡是純成本 —— 使用者要的不是知道誰在說話，是知道要做什麼。代價見下方。</li>
+      <li><b>角落的 ✕。</b>10–12pt 的命中區要用找的，而「找」正是這個窗口不能發生的事。</li>
+      <li><b>任何額度資訊。</b>進度條、百分比、重置時間全部不放。這個窗口與額度無關，放了就等於把藍/綠/紅帶進一個琥珀專屬的地方。</li>
+      <li><b>五列堆疊。</b>設計文件明寫 ≥3 同類事件合成一則。五列會讓窗口高過 300pt，變成一個沒有捲軸的小面板。</li>
+      <li><b>第二個面板。</b>沒有額度、沒有 agent 樹、沒有 session 清單。要那些的人會去點選單列。</li>
+      <li><b>emoji。</b>圖示全部是 inline SVG，對應 SF Symbols 的筆重（1.5pt stroke、round cap）。</li>
+      <li><b>滑入 / 彈跳動畫。</b>唯一的動作是三個 chevron 的呼吸，與選單列圖示同步（2.1s）。<code>prefers-reduced-motion</code> 下停住。</li>
+      <li><b>淺色優先。</b>淺色只附一份、只附 (a)，用來驗琥珀在白底上的明度，不是用來做判斷的那一版。</li>
+      <li><b>把等待類別當標題。</b>「在問你問題」是分類，不是內容。它該是 10pt 的 chip，不是 19pt 的標題 —— 那正是「先解碼一則通知」的形狀。</li>
+    </ul>
+
+    <div class="warn">
+      <b>這個方向的代價，誠實記一筆：</b>把 app 身分拿掉之後，<b>第一次</b>看到這個窗口的人仍然需要一次學習 ——
+      他得把「尖角指著的那顆圖示」跟這個窗口連起來。第二次以後就免費了，第一次不是。
+      如果實測發現第一次的猶豫太貴，最小的補救是在「稍後」左邊加一行 8.5pt / 24% 的 <code>QUOTAMONSTER</code>：
+      它在第一次的閱讀裡低於門檻，但在「這是什麼？」的那一眼裡找得到。<b>不要把它加回第一行。</b>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* 量測真實尺寸寫回頁面 —— 標在紙上的數字必須是渲染出來的數字，不是我算的。 */
+(function(){
+  function px(el){return Math.round(el.getBoundingClientRect().height);}
+  var m={mA:'mA',mB:'mB',mC:'mC'};
+  document.querySelectorAll('[data-measure]').forEach(function(el){
+    var w=el.querySelector('.w');
+    var t=document.getElementById(el.dataset.measure);
+    if(t)t.textContent=Math.round(w.getBoundingClientRect().width)+' × '+px(w)+' pt';
+  });
+  function box(sel,id){
+    var e=document.querySelector(sel),h=document.getElementById(id);
+    if(!e||!h)return;
+    var r=e.getBoundingClientRect();
+    h.setAttribute('data-l',h.getAttribute('data-l').split(' · ')[0]+' · '+
+      Math.round(r.width)+' × '+Math.round(r.height)+'pt');
+    h.style.width=Math.round(r.width)+4+'px';
+  }
+  box('.anat__pane .go','hitGo');box('.anat__pane .no','hitNo');
+  var pairs=[['mA2','hA'],['mB','hB'],['mC','hC']];
+  pairs.forEach(function(p){
+    var src=document.querySelector('[data-measure="'+p[0]+'"]');
+    var out=document.getElementById(p[1]);
+    if(src&&out)out.textContent=px(src.querySelector('.w'));
+  });
+})();
+</script>
+</body>
+</html>

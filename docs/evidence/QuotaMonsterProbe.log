@@ -1,0 +1,17 @@
+[  0.042s] === QuotaMonster Stage 0 probe ===
+[  0.042s] pid            32190
+[  0.042s] macOS          Version 27.0 (Build 26A428)
+[  0.042s] bundlePath     /Applications/QuotaMonster.app
+[  0.042s] bundleID       com.cookiesmonster.QuotaMonster
+[  0.042s] activationPol  1 (0 regular, 1 accessory, 2 prohibited)
+[  0.042s] barThickness   22.0
+[  1.105s] WIDTH  button.frame   {{0, 0}, {60, 22}}
+[  1.105s] WIDTH  window.origin.y 923.0
+[  1.105s] WIDTH  isVisible       true
+[  1.106s] WIDTH  ✅ placed on screen at 60pt
+[  2.171s] NOTIF  NSApp.isActive = false — requesting now
+[  2.181s] NOTIF  settings BEFORE  authorization=1 (0 notDetermined, 1 denied, 2 authorized, 3 provisional)
+[  2.181s] NOTIF  ❌ requestAuthorization ERROR — Notifications are not allowed for this application
+[  2.181s] NOTIF     UNErrorDomain code=1
+[  2.186s] NOTIF  settings AFTER   authorization=1 alertSetting=2 soundSetting=2
+[  2.187s] NOTIF  ❌ NOT GRANTED — the alerting design must change (see Stage 5)

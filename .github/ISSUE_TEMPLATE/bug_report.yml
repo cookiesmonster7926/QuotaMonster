@@ -1,0 +1,188 @@
+name: 回報 bug
+description: 圖示、面板、通知、完成訊號或額度數字不對
+title: "[bug] "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ⚠️ **安全性問題請不要用這張表。**
+        走 Security → Report a vulnerability（私密回報），細節見 `.github/SECURITY.md`。
+
+        ⚠️ **貼診斷輸出之前先看一眼。** `--dump` 會印出你的家目錄路徑、專案名、
+        session 名稱與 subagent 的任務描述。該遮的先遮掉 —— 用 `<你的專案>` 這種
+        替代字串就好，不要整段刪掉（少了結構反而難判讀）。
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: 發生了什麼
+      description: 你看到的畫面／行為。截圖很有用（選單列的圖示請放大截）。
+      placeholder: |
+        選單列的生物一直是琥珀色，但三個 session 都沒有在等我。
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: 你本來預期看到什麼
+      description: 請寫成一句可以被證實或推翻的話。
+      placeholder: |
+        沒有 session 在等輸入時，圖示應該是額度色階（藍／綠／紅）而不是琥珀。
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: 怎麼重現
+      description: 做了什麼、等多久、當時有幾個 session 在跑。不確定能不能重現就直接說「只遇過一次」。
+      placeholder: |
+        1. 開兩個 Claude Code session，其中一個跑到需要批准 Bash
+        2. 批准它
+        3. 等 30 秒 —— 圖示仍然是琥珀色
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 問題出在哪一塊
+      description: 決定下面要附哪一支診斷的輸出。不確定就選最後一項。
+      options:
+        - "選單列圖示（顏色、形狀、呼吸動畫）"
+        - "面板（額度數字、session 列、展望）"
+        - "通知（浮窗、音效、通知中心）"
+        - "完成訊號（丁香紫的勾）"
+        - "額度數字不對、或明顯太舊"
+        - "statusline tee（安裝、還原、狀態列消失或變空白）"
+        - "偏好設定視窗"
+        - "開機自動啟動"
+        - "建置或測試（swift build / scripts/test.sh）"
+        - "其他、或我不確定"
+    validations:
+      required: true
+
+  - type: input
+    id: macos
+    attributes:
+      label: macOS 版本
+      description: "`sw_vers` 的 ProductVersion 與 BuildVersion。"
+      placeholder: "27.0 (26A428)"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: arch
+    attributes:
+      label: 晶片
+      description: "`uname -m` → `arm64` 是 Apple Silicon，`x86_64` 是 Intel。⚠️ 目前只出 arm64，沒有 universal binary。"
+      options:
+        - "Apple Silicon（uname -m 回 arm64）"
+        - "Intel（uname -m 回 x86_64）"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: QuotaMonster 版本
+      description: |
+        app 沒有「關於」視窗，版本號只寫在 bundle 裡：
+        `plutil -extract CFBundleShortVersionString raw ~/Applications/QuotaMonster.app/Contents/Info.plist`
+        自己 build 的話也請附上 commit（`git rev-parse --short HEAD`）。
+      placeholder: "0.1.0（自己 build，commit abc1234）"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: install-source
+    attributes:
+      label: 這個 .app 哪來的
+      options:
+        - "自己 clone 之後跑 scripts/make_app.sh"
+        - "別人給的 .app 或 DMG"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: tee
+    attributes:
+      label: statusline tee 裝了嗎
+      description: "不確定的話：`grep -c quotamonster-tee ~/.claude/settings.json`，回 0 就是沒裝。"
+      options:
+        - "裝了"
+        - "沒裝"
+        - "不確定"
+    validations:
+      required: true
+
+  - type: textarea
+    id: dump
+    attributes:
+      label: "`--dump` 的輸出"
+      description: |
+        這是這個 app 的主診斷 —— 它回答「資料層看到的真實世界」：
+        兩個額度來源怎麼挑、有哪些 session、agent 樹長什麼樣、展望為什麼不畫。
+
+        ```bash
+        ~/Applications/QuotaMonster.app/Contents/MacOS/QuotaMonsterApp --dump
+        ```
+
+        ⚠️ 它**不能**證明任何 UI 的事。UI 的問題請另外附下面那一格。
+        ⚠️ 貼之前先遮掉家目錄路徑、專案名與 session 名稱。
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: area-diagnostic
+    attributes:
+      label: 對應你那一塊的診斷輸出
+      description: |
+        照上面選的區塊挑一支跑。**所有渲染類的指令都要加 `--dark`** ——
+        這個專案已經兩次因為看淺色渲染而得到相反的結論。
+        圖示的配色要看 **2x**（Retina 的選單列把 22pt 畫成 44 個裝置像素）。
+
+        以下指令前面都省略了
+        `~/Applications/QuotaMonster.app/Contents/MacOS/QuotaMonsterApp`：
+
+        | 你選的區塊 | 跑這個 | 它**不能**證明什麼 |
+        |---|---|---|
+        | 選單列圖示 | `--render ./glyph-out --dark`（附 `@2x` 那幾張 PNG） | 它在真的選單列上會不會被別的項目擠掉 |
+        | 面板 | `--render-panel ./panel.png --dark`（另外會產生 `panel-rows.png`） | `Menu` 之類離屏會壞掉的元件 |
+        | 通知 · 版面不對 | `--render-alert ./alert.png --dark` | 它會不會真的出現在螢幕上 |
+        | 通知 · 根本沒出現 | `--demo-alert`（貼它印出的 isVisible / level / frame） | 有沒有事件走到它 |
+        | 通知 · 該響沒響／不該響卻響 | `--trace-alerts 120`（在問題會發生的那兩分鐘跑） | 浮窗畫得對不對 |
+        | 完成訊號 | `--trace-finishes 180` | ⚠️ 它是**影子引擎**：自己剛開機，所以此刻**已經**完成的都會被判成「不是我們見證的」 |
+        | 額度數字 | `--dump` 就夠了（上面那格） | — |
+        | 偏好設定視窗 | `--render-prefs ./prefs.png --dark` | 它在真的視窗裡拿不拿得到鍵盤焦點 |
+        | 開機自動啟動 | `--probe-login`（不加 `--register` 就不會動手） | 下次登入到底會不會起來 —— 那要真的登出才知道 |
+        | statusline tee | `bash scripts/install_statusline_tee.sh`（**不加 `--apply`**，它只會印 diff） | — |
+        | 建置或測試 | `bash scripts/test.sh` 的失敗段落，或 `rm -rf .build && swift build -c release` 的錯誤 | — |
+
+        PNG 請直接拖進這一格。
+      render: text
+    validations:
+      required: false
+
+  - type: textarea
+    id: extra
+    attributes:
+      label: 其他線索
+      description: 什麼時候開始的、哪一次更新之後、有沒有同時發生別的事（改過 settings.json、換過狀態列腳本、螢幕睡著、多螢幕、外接非 Retina 螢幕…）。
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: before-submit
+    attributes:
+      label: 送出前
+      options:
+        - label: 我已經把家目錄路徑、專案名、session 名稱等個人痕跡從上面的輸出裡遮掉了
+          required: true
+        - label: 這不是安全性問題（安全性問題走 Security → Report a vulnerability）
+          required: true
+        - label: 我看過 `docs/quotamonster.md` 第二節「寫下來的拒絕」，確認這不是刻意不做的行為
+          required: false

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>完成訊號 · 四個方向</title>
+<style>
+  :root{
+    --bg:#0B0C0E; --card:#141619; --line:#23262B;
+    --fg:#E8EAED; --fg2:#A8AFB9; --fg3:#6E7680;
+    --amber:#FF9E0A; --green:#30D158; --lilac:#E08CFF; --blue:#3B82F6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--fg);
+       font:14px/1.6 -apple-system,"PingFang TC","Helvetica Neue",sans-serif;
+       padding:44px 40px 80px}
+  h1{font-size:26px;font-weight:650;letter-spacing:-.02em;margin:0 0 10px}
+  .lede{color:var(--fg2);font-size:14.5px;max-width:82ch;margin:0 0 4px}
+  .lede b{color:var(--fg)}
+  code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12.5px;color:#9FC9E8}
+
+  h2{font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;
+     color:var(--fg3);margin:44px 0 14px;padding-bottom:9px;border-bottom:1px solid var(--line)}
+
+  .ask{background:#15181C;border:1px solid var(--line);border-radius:11px;
+       padding:18px 22px;margin:26px 0 0;max-width:92ch}
+  .ask h3{margin:0 0 12px;font-size:13.5px;font-weight:650;color:var(--fg)}
+  .ask ol{margin:0;padding-left:20px;color:var(--fg2);font-size:13.5px}
+  .ask li{margin-bottom:9px}
+  .ask li b{color:var(--fg)}
+
+  table{border-collapse:collapse;font-size:13px;margin-top:12px;width:100%;max-width:92ch}
+  th{text-align:left;color:var(--fg3);font-weight:600;font-size:11px;letter-spacing:.08em;
+     text-transform:uppercase;padding:0 14px 8px 0;border-bottom:1px solid var(--line)}
+  td{padding:9px 14px 9px 0;border-bottom:1px solid #1A1D21;color:var(--fg2);vertical-align:top}
+  td b{color:var(--fg);font-weight:600}
+  td.m{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;color:var(--fg)}
+  .est{color:#C9A227}
+
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px;margin-top:8px}
+  .cell{background:var(--card);border:1px solid var(--line);border-radius:13px;overflow:hidden}
+  .cell__hd{padding:15px 18px 13px;border-bottom:1px solid var(--line)}
+  .cell__n{font-size:15px;font-weight:650;margin-bottom:3px}
+  .cell__n .k{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--fg3);
+              font-weight:500;margin-left:8px}
+  .cell__one{color:var(--fg2);font-size:12.5px;line-height:1.5}
+  .cell iframe{width:100%;height:560px;border:0;background:#000;display:block}
+  .cell__ft{padding:13px 18px 16px;font-size:12px;color:var(--fg3);line-height:1.6}
+  .cell__ft b{color:var(--fg2)}
+  .tag{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.04em;
+       padding:2px 7px;border-radius:4px;margin-right:6px;vertical-align:1px}
+  .t-a{background:rgba(255,158,10,.14);color:var(--amber)}
+  .t-g{background:rgba(48,209,88,.14);color:var(--green)}
+  .t-l{background:rgba(224,140,255,.14);color:var(--lilac)}
+  .t-n{background:rgba(168,175,185,.12);color:var(--fg2)}
+  .weak{margin-top:9px;padding-top:9px;border-top:1px dashed #262A2F;color:#C3B497}
+  a.full{display:inline-block;margin-top:10px;font-size:12px;color:var(--blue);text-decoration:none}
+  a.full:hover{text-decoration:underline}
+  .note{margin-top:34px;padding:16px 20px;border-radius:10px;font-size:13px;line-height:1.7;
+        background:rgba(255,158,10,.06);box-shadow:inset 0 0 0 .5px rgba(255,158,10,.28);
+        color:#D9C9A8;max-width:92ch}
+  .note b{color:var(--amber)}
+</style>
+</head>
+<body>
+
+<h1>完成訊號 · 四個方向</h1>
+<p class="lede">
+  「現在通知跟選單列樣式可以知道<b style="color:var(--amber)">需要輸入</b>很好。但如果可以知道
+  session <b style="color:var(--green)">工作完成了</b>那就更好了。」
+</p>
+<p class="lede">
+  四個方向<b>不是互斥的</b> —— 面板列是被動通道、選單列餘光是餘光通道、摘要是「回來了」通道。
+  可以只挑一個，也可以疊。
+</p>
+
+<div class="ask">
+  <h3>看的時候問自己這三件事</h3>
+  <ol>
+    <li><b>它會不會在我已經看著的時候講話？</b> 實測 87 輪裡 61% 在兩分鐘內結束 ——
+      對那些發通知，會很快把你訓練成忽略選單列，而那正好會傷到唯一真正有時效的琥珀色訊號。</li>
+    <li><b>它跟「有人在等你」分得開嗎？</b> 琥珀已經被 T1 佔死，藍/綠/紅被額度色階佔死。
+      每個方向都得自己回答「那還剩什麼」，而它們給的答案不一樣。</li>
+    <li><b>「剛完成」什麼時候停止為真？</b> 一個永遠不褪的標記，十分鐘後就是一句謊。</li>
+  </ol>
+</div>
+
+<h2>一天會響幾次 —— 規則組算的</h2>
+<table>
+  <tr><th>閘</th><th>濾掉</th><th>剩下</th><th>來源</th></tr>
+  <tr><td>起點（87 輪）</td><td>—</td><td class="m">87.0</td><td>—</td></tr>
+  <tr><td><b>跑不到 3 分鐘</b></td><td>66%</td><td class="m">29.6</td><td>實測 · 本機 324 輪</td></tr>
+  <tr><td>90 秒內你又打字了</td><td>25%</td><td class="m">22.2</td><td>實測</td></tr>
+  <tr><td>你按了 Esc 中斷</td><td>2%</td><td class="m">21.7</td><td>實測 · 297 個結尾裡 6 個</td></tr>
+  <tr><td>你人不在（HID &gt; 300s）</td><td>40%</td><td class="m">13.0</td><td class="est">估計</td></tr>
+  <tr><td>那個 app 就在最前面</td><td>42%</td><td class="m">7.6</td><td class="est">估計</td></tr>
+  <tr><td>同一批合併</td><td>15%</td><td class="m"><b>6.4</b></td><td class="est">估計</td></tr>
+</table>
+<p class="lede" style="margin-top:14px">
+  → <b>典型 1.6 則／天，最忙 3.7 則／天</b>，92.6% 的完成被刻意吞掉。<br>
+  誠實的上限：如果那兩個<span class="est">估計</span>的閘完全無效，就是
+  <b>5.4 則／天、最糟 12.5 則／天</b> —— 那太多了。所以主動訊號要先量過再開。
+</p>
+
+<div class="note">
+  <b>順帶抓到一個既有的噪音源。</b> 現在的 T2（扇出排空）<b>完全沒有任何閘</b> ——
+  無條件播音效，沒有在場判斷、沒有預算。而 workflow 佔本機扇出流量的一半，
+  T2 會在 session 進 idle 前 5–60 秒就對同一件事響一次。
+  實測抓到過一次：<code>02:28:23 T2 · 看得到浮窗嗎 false（鎖定 true 螢幕睡 true 閒置 866s）</code>
+  —— 對著一台鎖上的機器播音效。這個不管挑哪個方向都要修。
+</div>
+
+<h2>四個方向</h2>
+<div class="grid">
+
+  <div class="cell">
+    <div class="cell__hd">
+      <div class="cell__n">完成回執 · 列抬起來<span class="k">row-badge.html</span></div>
+      <div class="cell__one">四個狀態走<b>四個不同的感知通道</b>，不是四個顏色：等你＝色相、
+        執行中＝動態、剛完成＝<b>明度</b>（整列抬起）、閒置＝缺席。</div>
+    </div>
+    <iframe src="row-badge.html" loading="lazy"></iframe>
+    <div class="cell__ft">
+      <span class="tag t-g">明度</span><span class="tag t-n">0pt</span>
+      <b>怎麼跟琥珀分開：</b>琥珀主張色相，抬起主張高度 —— 感知上不可能互相冒充。<br>
+      <b>衰減：</b>0–90 秒滿格，之後沉回去，10 分鐘完全消失。
+      <div class="weak"><b>弱點（它自己講的）：</b>抬起是四個裡最禁不起材質的一個 ——
+        面板是 <code>.regularMaterial</code>，亮桌布會把「比鄰居亮一階」吃掉一半。
+        而且它只在你打開面板時存在。</div>
+      <a class="full" href="row-badge.html">單獨開 →</a>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__hd">
+      <div class="cell__n">餘光 · 生物染上丁香紫<span class="k">glyph-signal.html</span></div>
+      <div class="cell__one">色相環上唯一沒有鄰居的空地：丁香紫 284°，距琥珀 112°、
+        距最近的額度藍 67°。畫在<b>生物核心</b>，琥珀畫在<b>外圈</b> —— 像素不重疊。</div>
+    </div>
+    <iframe src="glyph-signal.html" loading="lazy"></iframe>
+    <div class="cell__ft">
+      <span class="tag t-l">色相</span><span class="tag t-n">0pt</span>
+      <b>怎麼跟琥珀分開：</b>像素不重疊、色相差 112°、節奏相反（眨一次 vs 重複呼吸），
+      而且有人被擋住時完成訊號整批丟掉 —— 結構上不可能同時出現。<br>
+      <b>衰減：</b>滿色 180 秒 → 退色到 600 秒 → 乾淨消失。
+      <div class="weak"><b>弱點：</b>它說不出幾個、也說不出哪一個 ——
+        1 個完成與 5 個完成是同一批像素。真正的內容在面板與 tooltip。
+        生物只有 4.10pt 寬，真正把視線帶上去的是那一聲 Purr。</div>
+      <a class="full" href="glyph-signal.html">單獨開 →</a>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__hd">
+      <div class="cell__n">只在面板裡 · 兩個鐘<span class="k">quiet-panel.html</span></div>
+      <div class="cell__one">完成永遠不浮窗、不出聲、不進通知中心。用「兩個不同步的鐘」
+        同時做到不打擾、又不會在你看到之前先消失。</div>
+    </div>
+    <iframe src="quiet-panel.html" loading="lazy"></iframe>
+    <div class="cell__ft">
+      <span class="tag t-g">形狀</span><span class="tag t-n">0pt</span>
+      <b>怎麼跟琥珀分開：</b>三個向右的 chevron vs 一個勾 ——
+      沿用 repo 已經寫下的規則「警示不是靠顏色區分，是完全不同的形狀」。<br>
+      <b>衰減：</b>上緣那條線 10 分鐘內排空，90 秒時「剛完成」換成「N 分前完成」。
+      <div class="weak"><b>弱點：</b>整個方向壓在一個沒被量過的假設上：
+        「你本來就會為了看額度打開面板」。<br>
+        <b>而且它撞到一個既有的顏色：</b>完成綠 <code>#30D158</code> 與
+        <code>SessionRow.contextColour</code> 在 ctx&lt;70% 時的綠是同一個色值。</div>
+      <a class="full" href="quiet-panel.html">單獨開 →</a>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__hd">
+      <div class="cell__n">回來時的摘要<span class="k">digest.html</span></div>
+      <div class="cell__one">在場時一次都不出聲，累積起來；等你<b>回到鍵盤前</b>那一刻，
+        用一扇沒有任何色相、8 秒後自己收起的收據式浮窗一次講完。</div>
+    </div>
+    <iframe src="digest.html" loading="lazy"></iframe>
+    <div class="cell__ft">
+      <span class="tag t-n">無色相</span><span class="tag t-n">0pt</span>
+      <b>怎麼跟琥珀分開：</b>這個 app 裡每個色相都已被指派，
+      所以「完成」唯一還沒被佔走的顏色就是<b>沒有顏色</b>。純墨水四階。<br>
+      <b>衰減：</b>窗活 8 秒（T1 是 12 秒，因為 T1 有一個必須被回答的問題）。
+      <div class="weak"><b>弱點（它自己講得最重）：</b>如果你不離開座位，
+        這個設計一整天不會說任何話。那每天 3.2 件在你在場時完成的事，它一件都不主動講。
+        「克制」還是「一個不會觸發的功能」，mockup 判不了。</div>
+      <a class="full" href="digest.html">單獨開 →</a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

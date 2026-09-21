@@ -1,0 +1,118 @@
+# QuotaMonster CI
+#
+# 這個檔案裡的每一條宣稱都標了它是哪一種：
+#   〔實測〕 = 在開發機上真的跑過、看到輸出
+#   〔代理量測〕 = 量的是別的東西，用來推論 CI 上的行為
+#   〔文件說〕 = 來自文件／既有認知，作者**沒有**在 CI 上驗證過
+#   〔推論〕 = 純推理，沒有任何量測支撐
+# ⚠️ 寫這個檔案的人**跑不了 GitHub Actions**，所以底下沒有任何一條是「CI 上實測」。
+# 第一次 push 之後請回來把該升級的標籤升級、該刪的刪。
+#
+# ── 為什麼是 macos-15（而不是 macos-latest）──────────────────────────
+# 〔文件說〕GitHub 的 macOS runner 從 macos-14 起才是 Apple Silicon；本專案只出
+#   arm64，所以 x86_64 的舊映像不列入考慮。macos-15 是目前確定 GA 的 arm64 映像。
+# 〔推論〕釘死版本而不用 macos-latest：latest 會在 GitHub 換映像時悄悄跟著跳，
+#   工具鏈換了卻沒有任何一個 commit 記錄這件事 —— 那正是這個 repo 最討厭的失敗
+#   形狀（東西變了、沒人知道）。要升級就開一個 PR 改這一行。
+# 〔實測 2026-09-21〕「需要 Swift 6.3」這件事**不成立**：Package.swift 是
+#   swift-tools-version 6.0，整包在 Swift 6.2.3（/Applications/Xcode.app）與
+#   6.3.3（CommandLineTools）底下都建得起來，521 個測試兩邊都全過。
+#   所以這裡不挑特定 Xcode，也不做 xcode-select 切換；真正需要釘版本時再說。
+#
+# ── 這裡曾經有一個沒人驗過的假設 ─────────────────────────────────────
+# scripts/test.sh 靠 `xcode-select -p` 去補 swift-testing 的 -F 與 rpath。
+# 〔實測 2026-09-21〕那兩條路徑（$DEV/Library/Developer/Frameworks 與
+#   $DEV/Library/Developer/usr/lib）只在 CommandLineTools 底下存在；
+#   在完整 Xcode（/Applications/Xcode.app/Contents/Developer）底下**兩條都不存在**，
+#   舊版腳本會讓 ld 印 `search path ... not found`。
+#   已經改在 scripts/test.sh 裡（路徑存在才加），**不是**在這個檔案裡繞過去 ——
+#   同一件事只寫一份。底下「工具鏈指紋」那一步會把 runner 上的實況印出來，
+#   第一次跑完就能把這裡的〔文件說〕換成〔實測〕。
+#
+# ── 已知會紅的地方（請不要用 CI 步驟蓋掉它）─────────────────────────
+# 〔實測 2026-09-21〕在一份**沒有原始 mtime** 的樹上（`git archive HEAD | tar -x`，
+#   與 fresh clone 同樣不帶 mtime）跑整包測試，會固定失敗 2 個：
+#     AgentTreeBuilder「沒有 parentAgentId 的深度 1 agent 是根」
+#     AgentTreeBuilder「比 session 啟動時間還舊的 agent 要排除」
+#   原因：Tests/.../Fixtures/agents/.../subagents/agent-stale.jsonl 的「舊」是寫在
+#   檔案 mtime 上的（scripts/capture_fixtures.py 用 os.utime 設的），而 git 不存 mtime。
+#   〔實測〕只把那一個檔案的 mtime 調回 2026-09-13 23:36:40，兩個測試就都過，
+#   整包 521 個全過。
+# 〔代理量測〕上面那份樹是 CI checkout 的代理；〔推論〕actions/checkout 同樣不會
+#   帶回 mtime，所以第一次 CI 應該就會看到這 2 個紅字。
+#   修法應該在**測試那一側**（Fixture 已經有現成的作法：statuslineDirectory 會把
+#   fixture 複製到暫時目錄再自己 setAttributes 訂年齡，而且註解就寫著
+#   「不可以倚賴 SwiftPM 複製資源時碰巧保留的 mtime」），不是在這裡加一步 touch。
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: build + test (arm64)
+    runs-on: macos-15
+    # 〔實測 2026-09-21，開發機 M 系列〕從零開始的 release build 約 60 秒、
+    # 整包測試約 1 分鐘以內。30 分鐘是給 runner 慢很多時的餘裕，不是估計值。
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # 這一步不驗證任何東西，它只是把「這次到底是在什麼工具鏈上跑的」留成紀錄。
+      # 上面所有〔文件說〕的東西，答案都在這一步的輸出裡。
+      - name: 工具鏈指紋
+        run: |
+          set -x
+          sw_vers
+          uname -m
+          xcode-select -p
+          swift --version
+          xcodebuild -version || true
+          ls -d /Applications/Xcode*.app || true
+          # scripts/test.sh 關心的就是這兩條路徑在不在：
+          DEV="$(xcode-select -p)"
+          ls -d "$DEV/Library/Developer/Frameworks" || echo "（不存在 —— 完整 Xcode 的情況）"
+          ls -d "$DEV/Library/Developer/usr/lib"    || echo "（不存在 —— 完整 Xcode 的情況）"
+
+      # shell 測試不需要編譯，秒級就有結果，所以放在最前面。
+      # 〔實測 2026-09-21，開發機 bash 3.2.57〕兩支都全過（67 項 / 51 項），
+      # 而且都跑在自己的暫時目錄上，不碰真的 ~/.claude。
+      # 〔實測〕scripts/ 底下沒有第三支 test_*.sh；新增了要記得加進來。
+      - name: statusline tee（wrapper 逐 byte 相同）
+        if: ${{ !cancelled() }}
+        run: bash scripts/test_statusline_tee.sh
+
+      # 〔文件說〕安裝腳本與它的測試需要 python3；GitHub macOS 映像預設有。
+      # 〔實測 2026-09-21，開發機 Python 3.13.7〕本機有就過。
+      - name: statusline tee 安裝腳本（只動一個字串、可還原）
+        if: ${{ !cancelled() }}
+        run: bash scripts/test_install_statusline_tee.sh
+
+      # ⚠️ 一律走 scripts/test.sh，不可以直接 swift test（見 docs/quotamonster.md 規矩 27）。
+      - name: swift test（經 scripts/test.sh）
+        if: ${{ !cancelled() }}
+        run: bash scripts/test.sh
+
+      # 〔實測 2026-09-21〕debug 過不代表 release 過：release 是另一套最佳化與
+      # 另一組 warning。兩種工具鏈下的 release build 都在開發機上跑過，都 Build complete。
+      - name: release build
+        if: ${{ !cancelled() }}
+        run: swift build -c release
+
+      # 這個 repo 沒有任何外部套件相依（Package.swift 沒有 dependencies），
+      # 所以沒有放 SwiftPM cache —— 沒有東西好快取，加了只是多一個會壞的東西。
+      #
+      # 也刻意沒有跑 scripts/make_app.sh：它會裝進 ~/Applications，
+      # 而且簽章要用開發者的憑證。打包／簽章屬於 release 流程，不屬於這支 CI。

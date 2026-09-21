@@ -1,0 +1,559 @@
+<div class="sk-faithful">
+<style>
+.sk-faithful{--bg:#0c1015;--pan:#12171e;--ln:#1e2732;--tx:#dfe6ef;--dim:#8794a4;--acc:#6fd3ff;
+--fg:#f2f4f8;--g7:#3ddc84;--cr:#4aa3ff;--al:#ff4d3d;--wn:#ffb020;--ink:#fff;
+background:var(--bg);color:var(--tx);padding:34px 26px 48px;
+font:14px/1.6 ui-sans-serif,-apple-system,"SF Pro Text",Inter,system-ui,sans-serif;
+-webkit-font-smoothing:antialiased;border-radius:14px}
+.sk-faithful *{box-sizing:border-box}
+.sk-faithful h1{font:600 25px/1.2 ui-sans-serif,system-ui;margin:0 0 6px;letter-spacing:-.02em}
+.sk-faithful h2{font:600 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.16em;
+text-transform:uppercase;color:var(--acc);margin:0 0 4px}
+.sk-faithful h3{font:600 13px/1.4 ui-sans-serif,system-ui;margin:0 0 3px;color:var(--tx)}
+.sk-faithful p{margin:0 0 10px;color:var(--dim);max-width:78ch}
+.sk-faithful .sec{border-top:1px solid var(--ln);padding-top:20px;margin-top:34px}
+.sk-faithful .lead{color:var(--tx)}
+.sk-faithful code,.sk-faithful .num{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.88em}
+.sk-faithful .num{color:var(--acc)}
+.sk-faithful .cap{font:500 10px/1.35 ui-monospace,Menlo,monospace;letter-spacing:.06em;color:var(--dim);
+text-transform:uppercase}
+
+/* THE MARK */
+.sk-faithful .mk{width:22px;height:22px;display:block;flex:none}
+.sk-faithful .mk.x4{width:88px;height:88px}
+.sk-faithful .mk.x8{width:176px;height:176px}
+.sk-faithful .tko,.sk-faithful .ao{fill:none;stroke:var(--fg);stroke-width:1.5;stroke-linecap:round}
+.sk-faithful .tki,.sk-faithful .ai{fill:none;stroke:var(--g7);stroke-width:1.5;stroke-linecap:round}
+.sk-faithful .tko,.sk-faithful .tki{opacity:.2}
+.sk-faithful .ai{opacity:.86}
+.sk-faithful .ao,.sk-faithful .ai{stroke-dasharray:100;stroke-dashoffset:0}
+.sk-faithful .so{stroke:var(--fg);stroke-width:1;opacity:.82;fill:none}
+.sk-faithful .si{stroke:var(--g7);stroke-width:1;opacity:.82;fill:none}
+.sk-faithful .cp{fill:var(--cr)}
+.sk-faithful .crS,.sk-faithful .crL,.sk-faithful .crZ{transform-box:view-box;transform-origin:11px 13.65px}
+.sk-faithful .crL,.sk-faithful .crZ{opacity:0}
+.sk-faithful .d{fill:var(--cr);transform-box:view-box;transform-origin:0 0;opacity:0;
+transform:translate(11px,19px) scale(1.25)}
+.sk-faithful .ovf{fill:var(--cr);opacity:0}
+.sk-faithful .zz{opacity:0}
+.sk-faithful .zz circle{fill:var(--cr);opacity:.8}
+.sk-faithful .al{opacity:0}
+.sk-faithful .rg{fill:none;stroke:var(--al);stroke-width:1.5}
+.sk-faithful .cv path{fill:none;stroke:var(--al);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+
+/* quota: pathLength=100, dashoffset = percent consumed */
+.sk-faithful .q100 .ao{stroke-dashoffset:0}
+.sk-faithful .q72 .ao{stroke-dashoffset:28}
+.sk-faithful .q45 .ao{stroke-dashoffset:55}
+.sk-faithful .q08 .ao{stroke-dashoffset:92}
+.sk-faithful .q00 .ao{opacity:0}
+.sk-faithful .w82 .ai{stroke-dashoffset:18}
+.sk-faithful .w62 .ai{stroke-dashoffset:38}
+
+/* agent-dot ladder */
+.sk-faithful .n1 .d1{opacity:1;transform:translate(11px,19px) scale(1.25)}
+.sk-faithful .n2 .d1{opacity:1;transform:translate(9px,19px) scale(1.25)}
+.sk-faithful .n2 .d2{opacity:1;transform:translate(13px,19px) scale(1.25)}
+.sk-faithful .n3 .d1{opacity:1;transform:translate(7px,19px) scale(1.25)}
+.sk-faithful .n3 .d2{opacity:1;transform:translate(11px,19px) scale(1.25)}
+.sk-faithful .n3 .d3{opacity:1;transform:translate(15px,19px) scale(1.25)}
+.sk-faithful .n4 .d1{opacity:1;transform:translate(5px,19px) scale(1.25)}
+.sk-faithful .n4 .d2{opacity:1;transform:translate(9px,19px) scale(1.25)}
+.sk-faithful .n4 .d3{opacity:1;transform:translate(13px,19px) scale(1.25)}
+.sk-faithful .n4 .d4{opacity:1;transform:translate(17px,19px) scale(1.25)}
+.sk-faithful .n5 .d1{opacity:1;transform:translate(3px,19px) scale(1.25)}
+.sk-faithful .n5 .d2{opacity:1;transform:translate(7px,19px) scale(1.25)}
+.sk-faithful .n5 .d3{opacity:1;transform:translate(11px,19px) scale(1.25)}
+.sk-faithful .n5 .d4{opacity:1;transform:translate(15px,19px) scale(1.25)}
+.sk-faithful .n5 .d5{opacity:1;transform:translate(19px,19px) scale(1.25)}
+.sk-faithful .n6 .d1{opacity:1;transform:translate(2.875px,19px) scale(1.125)}
+.sk-faithful .n6 .d2{opacity:1;transform:translate(6.125px,19px) scale(1.125)}
+.sk-faithful .n6 .d3{opacity:1;transform:translate(9.375px,19px) scale(1.125)}
+.sk-faithful .n6 .d4{opacity:1;transform:translate(12.625px,19px) scale(1.125)}
+.sk-faithful .n6 .d5{opacity:1;transform:translate(15.875px,19px) scale(1.125)}
+.sk-faithful .n6 .d6{opacity:1;transform:translate(19.125px,19px) scale(1.125)}
+.sk-faithful .n7 .d1{opacity:1;transform:translate(2.75px,19px) scale(.875)}
+.sk-faithful .n7 .d2{opacity:1;transform:translate(5.5px,19px) scale(.875)}
+.sk-faithful .n7 .d3{opacity:1;transform:translate(8.25px,19px) scale(.875)}
+.sk-faithful .n7 .d4{opacity:1;transform:translate(11px,19px) scale(.875)}
+.sk-faithful .n7 .d5{opacity:1;transform:translate(13.75px,19px) scale(.875)}
+.sk-faithful .n7 .d6{opacity:1;transform:translate(16.5px,19px) scale(.875)}
+.sk-faithful .n7 .d7{opacity:1;transform:translate(19.25px,19px) scale(.875)}
+.sk-faithful .nX .d1{opacity:1;transform:translate(2.75px,19px) scale(1)}
+.sk-faithful .nX .d2{opacity:1;transform:translate(5.5px,19px) scale(1)}
+.sk-faithful .nX .d3{opacity:1;transform:translate(8.25px,19px) scale(1)}
+.sk-faithful .nX .d4{opacity:1;transform:translate(11px,19px) scale(1)}
+.sk-faithful .nX .d5{opacity:1;transform:translate(13.75px,19px) scale(1)}
+.sk-faithful .nX .ovf{opacity:1}
+
+/* states */
+.sk-faithful .s-run .crS{opacity:0}
+.sk-faithful .s-run .crL{opacity:1;animation:skf-breathe var(--bs,.8s) ease-in-out infinite}
+.sk-faithful .s-sleep .crS,.sk-faithful .s-sleep .crL{opacity:0}
+.sk-faithful .s-sleep .crZ{opacity:1;animation:skf-snore 3.6s ease-in-out infinite}
+.sk-faithful .s-sleep .zz{opacity:1;animation:skf-bub 3.6s ease-in-out infinite}
+.sk-faithful .s-sleep .cp{fill:color-mix(in srgb,var(--cr) 68%,transparent)}
+.sk-faithful .s-warn .ao{stroke:var(--wn);animation:skf-warn 1.5s ease-in-out infinite}
+.sk-faithful .s-warn .so{stroke:var(--wn)}
+.sk-faithful .s-stale{opacity:.55}
+.sk-faithful .s-stale .ao,.sk-faithful .s-stale .ai{opacity:0}
+.sk-faithful .s-stale .tko,.sk-faithful .s-stale .tki{opacity:.6}
+.sk-faithful .s-stale .cp{fill:var(--dim)}
+.sk-faithful .s-stale .d{fill:var(--dim)}
+.sk-faithful .s-input .nm{animation:skf-altN 4s steps(1,end) infinite}
+.sk-faithful .s-input .al{animation:skf-altA 4s steps(1,end) infinite}
+.sk-faithful .s-input .cv{animation:skf-push 1.15s ease-in-out infinite}
+.sk-faithful .s-input.blk2 .nm{animation-duration:2.6s}
+.sk-faithful .s-input.blk2 .al{animation-duration:2.6s}
+.sk-faithful .s-input.blk2 .cv{animation-duration:.58s}
+.sk-faithful .s-input.blk2 .rg{stroke-width:2}
+.sk-faithful .blk1 .d4{fill:var(--al);transform:translate(17px,19px) scale(.88,1.24)}
+.sk-faithful .blk2 .d3{fill:var(--al);transform:translate(13px,19px) scale(.88,1.24)}
+.sk-faithful .blk2 .d4{fill:var(--al);transform:translate(17px,19px) scale(.88,1.24)}
+
+/* monochrome / template-image rendering */
+.sk-faithful .mono .tko,.sk-faithful .mono .ao,.sk-faithful .mono .so,
+.sk-faithful .mono .tki,.sk-faithful .mono .ai,.sk-faithful .mono .si{stroke:var(--ink)}
+.sk-faithful .mono .cp,.sk-faithful .mono .d,.sk-faithful .mono .ovf,
+.sk-faithful .mono .zz circle{fill:var(--ink)}
+.sk-faithful .mono .rg,.sk-faithful .mono .cv path{stroke:var(--ink)}
+.sk-faithful .flat .ai,.sk-faithful .flat .so,.sk-faithful .flat .si,
+.sk-faithful .flat .zz circle{opacity:1}
+.sk-faithful .flat .tko,.sk-faithful .flat .tki{opacity:0}
+
+@keyframes skf-breathe{0%,100%{transform:scale(1,1)}48%{transform:scale(.978,1.072)}}
+@keyframes skf-snore{0%,100%{transform:scale(1,.62)}50%{transform:scale(1.02,.665)}}
+@keyframes skf-bub{0%,100%{opacity:.25}55%{opacity:1}}
+@keyframes skf-warn{0%,100%{opacity:1}50%{opacity:.42}}
+@keyframes skf-push{0%,100%{transform:translateX(0)}50%{transform:translateX(.7px)}}
+@keyframes skf-altN{0%,42%{opacity:0}45%,97%{opacity:1}98%,100%{opacity:0}}
+@keyframes skf-altA{0%,42%{opacity:1}45%,97%{opacity:0}98%,100%{opacity:1}}
+
+/* CONSTRUCTION */
+.sk-faithful .cons{background:#080b10;border:1px solid var(--ln);border-radius:10px;padding:8px;overflow-x:auto}
+.sk-faithful .cons svg{display:block;width:100%;min-width:640px;max-width:880px;margin:0 auto}
+.sk-faithful .g{fill:none;stroke:#3d6b8f;stroke-width:.06}
+.sk-faithful .gs{fill:none;stroke:#2a4a63;stroke-width:.05;stroke-dasharray:.35 .3}
+.sk-faithful .box{fill:none;stroke:#59718a;stroke-width:.09;stroke-dasharray:.55 .45}
+.sk-faithful .lead2{stroke:#4b6f8c;stroke-width:.06;fill:none}
+.sk-faithful .dim{stroke:#e2a33c;stroke-width:.08;fill:none}
+.sk-faithful .lb{font:400 1.05px ui-monospace,Menlo,monospace;fill:#9fb6c9}
+.sk-faithful .lbk{fill:#e9f2fa;font-weight:600}
+.sk-faithful .lbo{fill:#e2a33c}
+.sk-faithful .lbg{fill:#3ddc84}
+.sk-faithful .lbb{fill:#4aa3ff}
+
+/* MENU BAR */
+.sk-faithful .bars{display:flex;flex-direction:column;gap:16px}
+.sk-faithful .wall{border-radius:10px;overflow:hidden;border:1px solid var(--ln);position:relative;height:118px}
+.sk-faithful .wall.wd{background:
+radial-gradient(120% 150% at 12% 0%,#3b2a63 0%,#18203c 45%,#0a0e1c 100%),
+linear-gradient(115deg,#1d2a4d,#0e1424)}
+.sk-faithful .wall.wl{background:
+radial-gradient(120% 150% at 88% 0%,#ffd9a8 0%,#f2a978 42%,#c97b6b 100%),
+linear-gradient(115deg,#ffe6c4,#e08e7a)}
+.sk-faithful .bar{height:33px;display:flex;align-items:center;gap:0;padding:0 10px;
+backdrop-filter:blur(26px) saturate(1.5);-webkit-backdrop-filter:blur(26px) saturate(1.5)}
+.sk-faithful .bar.bd{background:rgba(22,24,30,.55);border-bottom:1px solid rgba(255,255,255,.09);
+--fg:#f2f4f8;--g7:#41e08a;--cr:#5aaeff;--al:#ff5747;--wn:#ffb428;--ink:#fff;color:#fff}
+.sk-faithful .bar.bl{background:rgba(250,250,252,.66);border-bottom:1px solid rgba(0,0,0,.1);
+--fg:#16181c;--g7:#128046;--cr:#0a5fc4;--al:#c2170c;--wn:#8f5400;--ink:#000;color:#16181c}
+.sk-faithful .bar .spacer{flex:1}
+.sk-faithful .bar .slot{display:flex;align-items:center;padding:0 7px;height:22px}
+.sk-faithful .bar .slot.me{padding:0 8px;border-radius:5px;background:rgba(128,160,200,.14)}
+.sk-faithful .bar .clock{font:400 12.5px/1 ui-sans-serif,-apple-system,system-ui;padding-left:3px;
+letter-spacing:.01em;opacity:.95}
+.sk-faithful .sysg{display:block;flex:none}
+.sk-faithful .barnote{position:absolute;left:0;right:0;bottom:0;padding:8px 12px;
+font:400 11px/1.5 ui-monospace,Menlo,monospace;color:rgba(255,255,255,.72);
+background:linear-gradient(transparent,rgba(0,0,0,.45))}
+.sk-faithful .wl .barnote{color:rgba(30,16,10,.8);background:linear-gradient(transparent,rgba(255,255,255,.5))}
+
+/* GALLERY */
+.sk-faithful .gal{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(184px,1fr))}
+.sk-faithful .tile{background:var(--pan);border:1px solid var(--ln);border-radius:9px;padding:11px}
+.sk-faithful .trow{display:flex;align-items:center;gap:13px;margin-bottom:9px}
+.sk-faithful .chip{background:#0a0e13;border:1px solid #202a36;border-radius:6px;
+display:flex;align-items:center;justify-content:center;flex:none}
+.sk-faithful .chip.c1{width:34px;height:33px}
+.sk-faithful .chip.c4{width:100px;height:100px}
+.sk-faithful .tname{font:600 12px/1.3 ui-sans-serif,system-ui;color:var(--tx);margin-bottom:2px}
+.sk-faithful .tdesc{font:400 10.5px/1.45 ui-monospace,Menlo,monospace;color:var(--dim)}
+
+/* SCENARIO */
+.sk-faithful .scw{background:var(--pan);border:1px solid var(--ln);border-radius:10px;padding:16px}
+.sk-faithful .scrow{display:flex;align-items:center;gap:22px;flex-wrap:wrap;margin-bottom:14px}
+.sk-faithful .scbar{height:33px;border-radius:7px;display:flex;align-items:center;padding:0 9px;
+background:rgba(22,24,30,.6);border:1px solid rgba(255,255,255,.08)}
+.sk-faithful .tl{position:relative;height:30px;border-radius:5px;background:#0a0e13;
+border:1px solid #202a36;overflow:hidden;margin-top:6px}
+.sk-faithful .tl i{position:absolute;top:0;bottom:0;font:500 9px/30px ui-monospace,Menlo,monospace;
+color:#a9bccd;text-align:center;font-style:normal;border-right:1px solid #1b2530;overflow:hidden;
+white-space:nowrap}
+.sk-faithful .tl u{position:absolute;top:0;bottom:0;width:2px;background:var(--acc);
+box-shadow:0 0 8px var(--acc);animation:skf-play 18s linear infinite;text-decoration:none}
+@keyframes skf-play{from{left:0}to{left:calc(100% - 2px)}}
+
+.sk-faithful .sc .ao{animation:skf-drain 18s linear infinite,skf-aov 18s steps(1,end) infinite}
+.sk-faithful .sc .nm{animation:skf-nmv 18s steps(1,end) infinite}
+.sk-faithful .sc .al{animation:skf-alv 18s steps(1,end) infinite}
+.sk-faithful .sc .cv{animation:skf-push .62s ease-in-out infinite}
+.sk-faithful .sc .dtg{transform-box:view-box;transform-origin:0 0;animation:skf-dtg 18s ease-in-out infinite}
+.sk-faithful .sc .crS{animation:skf-crs 18s steps(1,end) infinite}
+.sk-faithful .sc .crL{animation:skf-breathe .62s ease-in-out infinite,skf-crl 18s steps(1,end) infinite}
+.sk-faithful .sc .crZ{animation:skf-snore 3.6s ease-in-out infinite,skf-crz 18s steps(1,end) infinite}
+.sk-faithful .sc .zz{animation:skf-bub 3.6s ease-in-out infinite,skf-zzv 18s steps(1,end) infinite}
+.sk-faithful .sc .d1{animation:skf-p1 18s ease-out infinite}
+.sk-faithful .sc .d2{animation:skf-p2 18s ease-out infinite}
+.sk-faithful .sc .d3{animation:skf-p3 18s ease-out infinite}
+.sk-faithful .sc .d4{animation:skf-p4 18s ease-out infinite}
+.sk-faithful .sc .d5{animation:skf-p5 18s ease-out infinite}
+
+@keyframes skf-drain{0%,72.2%{stroke-dashoffset:28;stroke:var(--fg)}
+82%{stroke:var(--wn)}86.6%{stroke-dashoffset:100;stroke:var(--wn)}
+97%{stroke-dashoffset:100;stroke:var(--wn)}99%,100%{stroke-dashoffset:28;stroke:var(--fg)}}
+@keyframes skf-aov{0%,86.4%{opacity:1}86.7%,98.6%{opacity:0}99%,100%{opacity:1}}
+@keyframes skf-nmv{0%,47.2%{opacity:1}48.4%,52.8%{opacity:0}54%,56.1%{opacity:1}
+57.3%,61.6%{opacity:0}62.8%,100%{opacity:1}}
+@keyframes skf-alv{0%,47.2%{opacity:0}48.4%,52.8%{opacity:1}54%,56.1%{opacity:0}
+57.3%,61.6%{opacity:1}62.8%,100%{opacity:0}}
+@keyframes skf-dtg{0%,14.4%{transform:translateX(8px)}16.6%{transform:translateX(6px)}
+18.8%{transform:translateX(4px)}21.1%{transform:translateX(2px)}
+23.3%,41.1%{transform:translateX(0)}43%,100%{transform:translateX(2px)}}
+@keyframes skf-crs{0%,12.2%{opacity:1}13%,98.4%{opacity:0}99%,100%{opacity:1}}
+@keyframes skf-crl{0%,12.2%{opacity:0}13%,86.6%{opacity:1}87.4%,100%{opacity:0}}
+@keyframes skf-crz{0%,87.4%{opacity:0}88.2%,97.4%{opacity:1}98.2%,100%{opacity:0}}
+@keyframes skf-zzv{0%,89%{opacity:0}90%,97%{opacity:1}97.8%,100%{opacity:0}}
+@keyframes skf-p1{0%,13.9%{opacity:0;transform:translate(3px,19px) scale(.2)}
+15.8%,84.4%{opacity:1;transform:translate(3px,19px) scale(1.25)}
+86.7%,100%{opacity:0;transform:translate(3px,19px) scale(.2)}}
+@keyframes skf-p2{0%,16.1%{opacity:0;transform:translate(7px,19px) scale(.2)}
+18%,84.4%{opacity:1;transform:translate(7px,19px) scale(1.25)}
+86.7%,100%{opacity:0;transform:translate(7px,19px) scale(.2)}}
+@keyframes skf-p3{0%,18.3%{opacity:0;transform:translate(11px,19px) scale(.2)}
+20.2%,84.4%{opacity:1;transform:translate(11px,19px) scale(1.25)}
+86.7%,100%{opacity:0;transform:translate(11px,19px) scale(.2)}}
+@keyframes skf-p4{0%,20.6%{opacity:0;fill:var(--cr);transform:translate(15px,19px) scale(.2)}
+22.5%,47%{opacity:1;fill:var(--cr);transform:translate(15px,19px) scale(1.25)}
+48.4%,62%{opacity:1;fill:var(--al);transform:translate(15px,19px) scale(.88,1.24)}
+63.4%,84.4%{opacity:1;fill:var(--cr);transform:translate(15px,19px) scale(1.25)}
+86.7%,100%{opacity:0;fill:var(--cr);transform:translate(15px,19px) scale(.2)}}
+@keyframes skf-p5{0%,22.8%{opacity:0;transform:translate(19px,19px) scale(.2)}
+24.7%,41.1%{opacity:1;transform:translate(19px,19px) scale(1.25)}
+43%,100%{opacity:0;transform:translate(19px,19px) scale(.2)}}
+
+/* TABLES */
+.sk-faithful table{border-collapse:collapse;width:100%;font:400 12px/1.5 ui-monospace,Menlo,monospace}
+.sk-faithful th{text-align:left;font-weight:600;color:var(--acc);padding:6px 10px 6px 0;
+border-bottom:1px solid var(--ln);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase}
+.sk-faithful td{padding:6px 10px 6px 0;border-bottom:1px solid #161d26;color:var(--dim);vertical-align:top}
+.sk-faithful td:first-child{color:var(--tx)}
+.sk-faithful .ok{color:#3ddc84}.sk-faithful .no{color:#ff6a5a}.sk-faithful .mid{color:#ffb020}
+.sk-faithful ul{margin:0 0 10px;padding-left:18px;color:var(--dim)}
+.sk-faithful li{margin-bottom:5px}
+.sk-faithful .grid2{display:grid;gap:18px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+@media (prefers-reduced-motion:reduce){.sk-faithful *{animation:none!important}}
+</style>
+
+<h1>The drawing, undiluted</h1>
+<p class="lead">Two bottom-open remaining-quota arcs, a 50&#37; tick on each at top dead centre, a creature in
+the middle that only moves while agents run, agent dots in the bottom gap. Built at
+<span class="num">22&#215;22pt</span>, <span class="num">1pt = 1px</span>, nothing removed from the
+sketch. The bill for that arrives in the rasterisation note at the bottom.</p>
+
+<div class="sec">
+<h2>1 · Construction &#183; 10&#215;</h2>
+<p>All coordinates in points, origin at the top-left of the 22&#215;22 box. Ring centre
+<span class="num">(11.00, 10.75)</span>. Every stroke edge lands on a 0.50pt boundary, so every edge is a
+whole device pixel at 2&#215;.</p>
+<div class="cons">
+<svg viewBox="-33 -5.5 92 34" aria-label="Construction drawing of the mark with dimensions">
+  <circle class="gs" cx="11" cy="10.75" r="9"/>
+  <circle class="g"  cx="11" cy="10.75" r="8.25"/>
+  <circle class="gs" cx="11" cy="10.75" r="7.5"/>
+  <circle class="gs" cx="11" cy="10.75" r="6.5"/>
+  <circle class="gs" cx="11" cy="10.75" r="5.5"/>
+  <circle class="g"  cx="11" cy="10.75" r="4.75"/>
+  <circle class="gs" cx="11" cy="10.75" r="4"/>
+  <circle class="gs" cx="11" cy="10.75" r="3"/>
+  <circle class="gs" cx="11" cy="10.75" r="2"/>
+  <rect class="box" x="0" y="0" width="22" height="22"/>
+  <rect class="gs" x="1.75" y="1.75" width="18.5" height="18.5"/>
+  <path class="gs" d="M11 -3.6V24.4M-1.5 10.75H23.5"/>
+  <path class="gs" d="M-0.5 19H22.5"/>
+  <path class="lead2" d="M11 1.75H-1.5L-3 1M11 2.5H-1.5L-3 2.4M11 3.25H-1.5L-3 3.8M11 4.25H-1.5L-3 5.2M11 5.25H-1.5L-3 6.6M11 6.75H-1.5L-3 8M11 7.75H-1.5L-3 9.4M11 8.95H-1.5L-3 10.8"/>
+  <path class="dim" d="M4.26 16.41L2.88 17.56M17.74 16.41L19.12 17.56"/>
+  <text class="lb lbo" x="1.2" y="17.95" text-anchor="end">220&#176;</text>
+  <text class="lb lbo" x="20.8" y="17.95">&#8722;40&#176;</text>
+  <path class="dim" d="M3 21.4H7M3 20.95V21.85M7 20.95V21.85"/>
+  <text class="lb lbo" x="5" y="23.3" text-anchor="middle">pitch 4.00</text>
+  <text class="lb lbo" x="15" y="23.3" text-anchor="middle">gap 100&#176; opens here</text>
+  <g>
+    <path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/>
+    <path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/>
+    <path class="ao" pathLength="100" style="stroke-dashoffset:28" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/>
+    <path class="ai" pathLength="100" style="stroke-dashoffset:18" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/>
+    <path class="so" d="M11 3.25V4.25"/>
+    <path class="si" d="M11 6.75V7.75"/>
+    <path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/>
+    <circle class="cp" cx="3" cy="19" r="1.25"/><circle class="cp" cx="7" cy="19" r="1.25"/>
+    <circle class="cp" cx="11" cy="19" r="1.25"/><circle class="cp" cx="15" cy="19" r="1.25"/>
+    <circle class="cp" cx="19" cy="19" r="1.25"/>
+  </g>
+  <text class="lb lbk" x="-3.4" y="-4" text-anchor="end">OUTER &#183; 5-hour window &#183; R 8.25 &#183; stroke 1.50</text>
+  <text class="lb lbg" x="-3.4" y="-2.5" text-anchor="end">INNER &#183; 7-day window &#183; R 4.75 &#183; stroke 1.50</text>
+  <text class="lb" x="-3.4" y="1.3" text-anchor="end">y 1.75 &#8212; ink top &#183; margin 1.75</text>
+  <text class="lb" x="-3.4" y="2.7" text-anchor="end">y 2.50 &#8212; outer arc centreline</text>
+  <text class="lb" x="-3.4" y="4.1" text-anchor="end">y 3.25 &#8212; outer inner edge / spur root</text>
+  <text class="lb" x="-3.4" y="5.5" text-anchor="end">y 4.25 &#8212; outer spur tip &#183; spur 1.00 &#215; 1.00</text>
+  <text class="lb lbo" x="-3.4" y="6.9" text-anchor="end">y 5.25 &#8212; inner outer edge &#183; counter 1.00</text>
+  <text class="lb lbg" x="-3.4" y="8.3" text-anchor="end">y 6.75 &#8212; inner inner edge / spur root</text>
+  <text class="lb lbg" x="-3.4" y="9.7" text-anchor="end">y 7.75 &#8212; inner spur tip &#183; spur 1.00 &#215; 1.00</text>
+  <text class="lb lbo" x="-3.4" y="11.1" text-anchor="end">y 8.95 &#8212; creature crown &#183; counter 1.20</text>
+  <text class="lb lbk" x="25" y="-4">SWEEP</text>
+  <text class="lb" x="25" y="-2.5">start 220&#176; &#183; end &#8722;40&#176; &#183; 260&#176; drawn &#183; 100&#176; gap</text>
+  <text class="lb" x="25" y="-1">midpoint = 90&#176; = top dead centre = the 50&#37; spur</text>
+  <text class="lb" x="25" y="0.5">depletes from the lower-right end backwards</text>
+  <text class="lb lbb" x="25" y="2.9">CREATURE</text>
+  <text class="lb" x="25" y="4.4">bbox 5.60 &#215; 4.70 &#183; centre (11.00, 11.30)</text>
+  <text class="lb" x="25" y="5.9">ear notch 1.40 deep &#183; zero eyes, awake or asleep</text>
+  <text class="lb" x="25" y="7.4">min radial clearance to inner arc 1.02</text>
+  <text class="lb lbb" x="25" y="9.8">AGENT DOTS</text>
+  <text class="lb" x="25" y="11.3">row centreline y 19.00 &#183; ink bottom y 20.25</text>
+  <text class="lb" x="25" y="12.8">&#8960;2.50 &#183; pitch 4.00 &#183; counter 1.50 &#183; n &#8804; 5</text>
+  <text class="lb" x="25" y="14.3">n=6 &#8960;2.25/3.25 &#183; n=7 &#8960;1.75/2.75 &#183; 8+ overflow</text>
+  <text class="lb" x="25" y="15.8">row half-width capped at 9.25</text>
+  <text class="lb" x="25" y="17.3">clearance dot &#8594; arc end cap 1.39</text>
+  <text class="lb lbo" x="25" y="19.7">BOX</text>
+  <text class="lb" x="25" y="21.2">drawable 22.00 &#215; 22.00 &#183; 1pt = 1px</text>
+  <text class="lb" x="25" y="22.7">ink 18.50 &#215; 18.50 &#183; margin 1.75 all round</text>
+  <text class="lb" x="25" y="24.2">ring alone 18.00 wide &#215; 15.05 tall</text>
+  <text class="lb" x="25" y="25.7">arc end caps (4.68, 16.05) and (17.32, 16.05)</text>
+</svg>
+</div>
+</div>
+
+<div class="sec">
+<h2>2 · Silhouette test &#183; no colour at all</h2>
+<p>Left pair is the true silhouette &#8212; every element at alpha 1.0, which is what a pure black
+template would be. Right pair is what actually ships: alpha grading is the only channel a template
+image keeps, so the 7-day arc sits at 0.86 and the empty track at 0.20 to build hierarchy without colour.</p>
+<div class="grid2">
+  <div class="tile">
+    <div class="cap" style="margin-bottom:8px">Flat silhouette &#183; alpha 1.0 everywhere</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="chip c1" style="background:#fff;border-color:#fff"><svg class="mk mono flat q72 w82 n5 s-run" style="--ink:#000;--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+      <div style="background:#fff;border-radius:8px;padding:6px;display:flex"><svg class="mk x4 mono flat q72 w82 n5 s-run" style="--ink:#000;--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div>
+    <div class="tdesc" style="margin-top:9px">Every element forced to alpha 1.0 &#8212; the hardest
+    version of the test. Both arcs, both spurs, the creature and all five dots stay separate.</div>
+  </div>
+  <div class="tile">
+    <div class="cap" style="margin-bottom:8px">Shipping template &#183; alpha grading only, on a dark bar</div>
+    <div style="display:flex;gap:14px;align-items:center;flex-wrap:wrap">
+      <div class="chip c1"><svg class="mk mono q72 w82 n5 s-run" style="--ink:#fff;--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+      <div style="background:#0a0e13;border-radius:8px;padding:6px;display:flex"><svg class="mk x4 mono q72 w82 n5 s-run" style="--ink:#fff;--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div>
+    <div class="tdesc" style="margin-top:9px">outer arc 1.00 &#183; inner arc 0.86 &#183; empty track 0.20
+    &#183; creature and dots 1.00. Alpha is the only hierarchy channel a template image keeps.</div>
+  </div>
+</div>
+<p style="margin-top:12px">Verdict: the composition survives monochrome. What it loses is the
+<em>identity</em> of the two arcs &#8212; without green and white, 5-hour and 7-day are told apart only by
+radius and by 0.86 vs 1.0 alpha. That is enough to read &#8220;two nested gauges&#8221; but not enough to
+know which is which without learning it once.</p>
+</div>
+
+<div class="sec">
+<h2>3 · In the bar &#183; 33pt strip, real size</h2>
+<p>Real data: 5-hour at 72&#37; remaining, 7-day at 82&#37;, 5 agents running. Battery and wifi drawn here
+so optical weight can be compared against the neighbours it will actually sit next to.</p>
+<div class="bars">
+
+  <div class="wall wd">
+    <div class="bar bd">
+      <div class="spacer"></div>
+      <div class="slot me"><svg class="mk q72 w82 n5 s-run" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+      <div class="slot"><svg class="sysg" width="27" height="13" viewBox="0 0 27 13"><rect x=".6" y="1.4" width="22.8" height="10.2" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity=".38"/><rect x="24.3" y="4.6" width="1.6" height="3.8" rx=".8" fill="currentColor" opacity=".38"/><rect x="2.2" y="3" width="13" height="7" rx="1.6" fill="currentColor"/></svg></div>
+      <div class="slot"><svg class="sysg" width="18" height="13" viewBox="0 0 18 13"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.955 6.467A8.6 8.6 0 0 1 16.045 6.467"/><path d="M4.249 8.073A5.8 5.8 0 0 1 13.751 8.073"/><path d="M6.542 9.679A3 3 0 0 1 11.458 9.679"/></g><circle cx="9" cy="11.2" r="1.1" fill="currentColor"/></svg></div>
+      <div class="slot clock">Tue 2:53&#8239;AM</div>
+    </div>
+    <div class="barnote">Dark bar &#183; the mark is 22pt wide, 18.5pt of ink. Next to a 27pt battery it reads
+    slightly taller and noticeably busier &#8212; the price of five bands in one glyph.</div>
+  </div>
+
+  <div class="wall wl">
+    <div class="bar bl">
+      <div class="spacer"></div>
+      <div class="slot me"><svg class="mk q72 w82 n5 s-run" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+      <div class="slot"><svg class="sysg" width="27" height="13" viewBox="0 0 27 13"><rect x=".6" y="1.4" width="22.8" height="10.2" rx="3" fill="none" stroke="currentColor" stroke-width="1" opacity=".38"/><rect x="24.3" y="4.6" width="1.6" height="3.8" rx=".8" fill="currentColor" opacity=".38"/><rect x="2.2" y="3" width="13" height="7" rx="1.6" fill="currentColor"/></svg></div>
+      <div class="slot"><svg class="sysg" width="18" height="13" viewBox="0 0 18 13"><g fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M1.955 6.467A8.6 8.6 0 0 1 16.045 6.467"/><path d="M4.249 8.073A5.8 5.8 0 0 1 13.751 8.073"/><path d="M6.542 9.679A3 3 0 0 1 11.458 9.679"/></g><circle cx="9" cy="11.2" r="1.1" fill="currentColor"/></svg></div>
+      <div class="slot clock">Tue 2:53&#8239;AM</div>
+    </div>
+    <div class="barnote">Light bar &#183; the blue creature and dots are the only chroma. Strip them and the
+    mark still parses, which is the template-image requirement.</div>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h2>4 · State gallery &#183; real size and 4&#215;</h2>
+<p>Quota is the real data throughout &#8212; 5-hour 72&#37; remaining, 7-day 82&#37; &#8212; except where a tile
+says otherwise. Both 50&#37; spurs sit at top dead centre; both arcs currently run past them, so both
+windows read as &#8220;more than half left&#8221; at a glance.</p>
+<div class="gal">
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n0 s-idle" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n0 s-idle" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Idle &#183; 0 agents</div><div class="tdesc">creature completely still &#183; bottom gap empty</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n1 s-run" style="--bs:1.05s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n1 s-run" style="--bs:1.05s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">1 agent</div><div class="tdesc">&#8960;2.50 &#183; creature breathes at 1.05s</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n3 s-run" style="--bs:.78s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n3 s-run" style="--bs:.78s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">3 agents</div><div class="tdesc">the drawing&#8217;s own case &#183; pitch 4.00</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n5 s-run" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n5 s-run" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Real data &#183; 5 agents</div><div class="tdesc">4 sessions live &#183; 5h 72&#37; &#183; 7d 82&#37; &#183; row at full 18.50 width</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n7 s-run" style="--bs:.45s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n7 s-run" style="--bs:.45s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">7 agents &#183; compressed</div><div class="tdesc">&#8960;1.75, pitch 2.75, counter 1.00 &#183; the last honest count</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 nX s-run" style="--bs:.45s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 nX s-run" style="--bs:.45s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">10+ agents &#183; overflow</div><div class="tdesc">5 dots + a 4.50pt tail &#183; past 7 the count stops being a number</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q08 w82 n4 s-run s-warn" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q08 w82 n4 s-run s-warn" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Near exhaustion &#183; 8&#37; left</div><div class="tdesc">~47 min at 92&#37;/h &#183; outer arc to amber, pulses 1.5s &#183; 50&#37; spur now floats above an empty track</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n4 s-run s-input blk1" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n4 s-run s-input blk1" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Needs input &#183; 1 blocked</div><div class="tdesc">alternates: 1.6s chevron, 2.4s normal &#183; the blocked agent is a standing red capsule 2.20&#215;3.10</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n4 s-run s-input blk2" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n4 s-run s-input blk2" style="--bs:.58s" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Needs input &#183; 2 blocked</div><div class="tdesc">alternation to 2.6s, chevrons to 0.58s, ring 1.50&#8594;2.00 &#183; two red capsules in the row</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q00 w62 n0 s-sleep" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q00 w62 n0 s-sleep" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Exhausted &#183; asleep</div><div class="tdesc">5h empty, 7d still 62&#37; &#183; creature squashes to 5.60&#215;2.91 on the floor, breathes at 3.6s &#183; two bubbles take the empty dot row</div></div>
+
+  <div class="tile"><div class="trow">
+    <div class="chip c1"><svg class="mk q72 w82 n0 s-stale" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 q72 w82 n0 s-stale" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/><circle class="d d6" r="1"/><circle class="d d7" r="1"/><rect class="ovf" x="15.75" y="18" width="4.5" height="2" rx="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    </div><div class="tname">Data stale</div><div class="tdesc">quota arcs drop out entirely, empty tracks stay &#183; &#8220;there is a gauge, there is no reading&#8221;</div></div>
+
+</div>
+</div>
+
+<div class="sec">
+<h2>5 · Live scenario &#183; 18s loop, CSS only</h2>
+<p>Idle &#8594; work starts and the creature wakes &#8594; five agents fan out &#8594; one finishes &#8594; one blocks and
+the chevron morph takes over &#8594; it clears &#8594; the 5-hour window drains to nothing and the creature
+lies down. Real size on the left, 4&#215; and 8&#215; to the right.</p>
+<div class="scw">
+  <div class="scrow">
+    <div class="scbar"><svg class="mk sc q72 w82" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip c4"><svg class="mk x4 sc q72 w82" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div class="chip" style="width:188px;height:188px"><svg class="mk x8 sc q72 w82" viewBox="0 0 22 22"><g class="nm"><path class="tko" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="tki" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="ao" pathLength="100" d="M4.68 16.053A8.25 8.25 0 1 1 17.32 16.053"/><path class="ai" pathLength="100" d="M7.361 13.803A4.75 4.75 0 1 1 14.639 13.803"/><path class="so" d="M11 3.25V4.25"/><path class="si" d="M11 6.75V7.75"/><g class="crS"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crL"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="crZ"><path class="cp" d="M8.2 11.9C8.2 10.3 8.7 8.95 9.75 8.95C10.45 8.95 10.78 9.75 11 10.35C11.22 9.75 11.55 8.95 12.25 8.95C13.3 8.95 13.8 10.3 13.8 11.9C13.8 13.05 12.55 13.65 11 13.65C9.45 13.65 8.2 13.05 8.2 11.9Z"/></g><g class="dtg"><circle class="d d1" r="1"/><circle class="d d2" r="1"/><circle class="d d3" r="1"/><circle class="d d4" r="1"/><circle class="d d5" r="1"/></g><g class="zz"><circle cx="11.8" cy="19.6" r=".65"/><circle cx="14.2" cy="18.4" r=".95"/></g></g><g class="al"><circle class="rg" cx="11" cy="10.75" r="8.25"/><g class="cv"><path d="M5.79 8.35L8.19 10.75L5.79 13.15"/><path d="M9.69 8.35L12.09 10.75L9.69 13.15"/><path d="M13.59 8.35L15.99 10.75L13.59 13.15"/></g></g></svg></div>
+    <div style="flex:1;min-width:250px;align-self:stretch;padding-top:2px">
+      <div class="cap" style="margin-bottom:7px">What you are watching</div>
+      <ul style="font-size:12px;line-height:1.55;margin:0">
+        <li><b>0.0&#8211;2.2</b> idle. The creature does not move at all &#8212; stillness is the signal.</li>
+        <li><b>2.2&#8211;4.2</b> work starts. The creature wakes and starts breathing; dots appear one
+        every 0.4s and the row re-centres as it grows.</li>
+        <li><b>4.2&#8211;7.4</b> five agents. Breathing goes to 0.62s &#8212; rate tracks load.</li>
+        <li><b>7.4</b> one finishes. Its dot shrinks out, the row re-centres on four.</li>
+        <li><b>8.6&#8211;11.4</b> a session blocks. The mark alternates: 1.0s as the closed red ring with
+        three chevrons, 0.6s back to normal so quota and count stay readable. The blocked agent is a
+        standing red capsule in the row.</li>
+        <li><b>11.4&#8211;13.0</b> cleared. Straight back to four blue dots.</li>
+        <li><b>13.0&#8211;15.6</b> the 5-hour window drains to nothing; the outer arc crosses to amber
+        on the way down.</li>
+        <li><b>15.6&#8211;17.4</b> agents stop, the creature lies down and breathes at 3.6s, two bubbles
+        take the empty dot row. The 7-day arc is still there &#8212; only the 5-hour window is gone.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="cap">Timeline &#183; 18.0s</div>
+  <div class="tl">
+    <i style="left:0%;width:12.2%">0.0 idle</i>
+    <i style="left:12.2%;width:11.1%">2.2 wake</i>
+    <i style="left:23.3%;width:17.8%">4.2 five up</i>
+    <i style="left:41.1%;width:6.7%">7.4 one ends</i>
+    <i style="left:47.8%;width:15.5%">8.6 blocked</i>
+    <i style="left:63.3%;width:8.9%">11.4 clear</i>
+    <i style="left:72.2%;width:15.6%">13.0 draining</i>
+    <i style="left:87.8%;width:12.2%">15.8 asleep</i>
+    <u></u>
+  </div>
+</div>
+</div>
+
+<div class="sec">
+<h2>6 · Rasterisation note &#183; the honest bill</h2>
+<p>Floors used: stroke &#8805; 1.0pt; counter &#8805; 2.0pt at 1&#215;, &#8805; 1.0pt at 2&#215;. Every edge in this mark is on a
+0.50pt grid, so at 2&#215; every edge lands on a whole device pixel. At 1&#215; a 1.50pt stroke is
+mathematically incapable of landing both edges on whole pixels &#8212; each arc is one solid row plus one
+half-covered row. That is unavoidable and it is not the problem. The counters are the problem.</p>
+<table>
+<thead><tr><th>Element</th><th>pt</th><th>1&#215;</th><th>2&#215;</th><th>What actually happens</th></tr></thead>
+<tbody>
+<tr><td>Outer arc stroke</td><td>1.50</td><td class="ok">passes</td><td class="ok">3px</td><td>1 solid + 1 half row. Fine.</td></tr>
+<tr><td>Inner arc stroke</td><td>1.50 @ &#945;.86</td><td class="mid">weak</td><td class="ok">3px</td><td>peak alpha ~0.86, reads grey rather than black.</td></tr>
+<tr><td>Empty track</td><td>1.50 @ &#945;.20</td><td class="no">dies</td><td class="ok">3px</td><td>0.20 alpha is below any perceptual threshold at 1&#215;. Retina-only.</td></tr>
+<tr><td>Counter outer&#8596;inner arc</td><td>1.00</td><td class="no">fails</td><td class="ok">2px</td><td><b>The headline failure.</b> At 1&#215; the two arcs fuse into one 4pt band over the top. You see one gauge, not two.</td></tr>
+<tr><td>Outer 50&#37; spur</td><td>1.00 &#215; 1.00</td><td class="no">fails</td><td class="mid">2&#215;2px</td><td>attached to the arc so it needs no counter on that side, but a 1px bump on a 1.5px stroke is invisible at 1&#215;. Retina-only.</td></tr>
+<tr><td>Inner 50&#37; spur</td><td>1.00 &#215; 1.00</td><td class="no">fails</td><td class="mid">2&#215;2px</td><td>same. Retina-only.</td></tr>
+<tr><td>Counter inner arc&#8596;creature</td><td>1.20 min 1.02 radial</td><td class="no">fails</td><td class="ok">2&#8211;2.4px</td><td>at 1&#215; the creature&#8217;s crown touches the inner arc and the two merge into a blob.</td></tr>
+<tr><td>Creature mass</td><td>5.60 &#215; 4.70</td><td class="ok">passes</td><td class="ok">solid</td><td>filled, so it survives &#8212; this is why it is a mass and not a drawing.</td></tr>
+<tr><td>Creature ear notch</td><td>1.40 deep</td><td class="no">dies</td><td class="mid">2.8px</td><td>at 1&#215; the creature is a plain dome. Ears are a Retina luxury.</td></tr>
+<tr><td>Creature eyes</td><td>&#8212;</td><td>&#8212;</td><td>&#8212;</td><td>none, at any size, awake or asleep. Two eyes make a face at every tested spacing.</td></tr>
+<tr><td>Agent dots n&#8804;5</td><td>&#8960;2.50 / gap 1.50</td><td class="mid">partial</td><td class="ok">3px gap</td><td>at 1&#215; the row reads as a dashed bar whose <i>length</i> tracks the count. The count itself is Retina-only.</td></tr>
+<tr><td>Agent dots n=6</td><td>&#8960;2.25 / gap 1.00</td><td class="no">fails</td><td class="ok">2px gap</td><td>1&#215;: one continuous bar.</td></tr>
+<tr><td>Agent dots n=7</td><td>&#8960;1.75 / gap 1.00</td><td class="no">fails</td><td class="mid">2px gap</td><td>1.75pt discs are already at the ink floor; 1&#215; gives a grey smear.</td></tr>
+<tr><td>Overflow tail</td><td>4.50 &#215; 2.00</td><td class="ok">passes</td><td class="ok">solid</td><td>the one part of the compressed row that is legible at 1&#215;.</td></tr>
+<tr><td>Blocked capsule</td><td>2.20 &#215; 3.10</td><td class="ok">passes</td><td class="ok">solid</td><td>taller than wide, so the shape difference survives template monochrome.</td></tr>
+<tr><td>Alert ring</td><td>1.50 (2.00 if 2+)</td><td class="ok">passes</td><td class="ok">3px</td><td>strongest element in the set, as it should be.</td></tr>
+<tr><td>Chevrons &#215;3</td><td>1.50 stroke / 1.25 &#8869; gap</td><td class="no">fails</td><td class="ok">2.5px</td><td>at 1&#215; the three merge into one solid arrowhead. Direction survives; &#8220;three&#8221; does not.</td></tr>
+<tr><td>Sleep bubbles</td><td>&#8960;1.30 and &#8960;1.90</td><td class="no">small dies</td><td class="ok">both</td><td>the 1.30pt bubble is under the ink floor at 1&#215;.</td></tr>
+</tbody>
+</table>
+<div class="grid2" style="margin-top:18px">
+<div>
+<h3>What a non-Retina Mac actually sees</h3>
+<ul>
+<li>One thick gauge band over the top whose swept length is the remaining quota. Two windows become one.</li>
+<li>A dark rounded mass in the middle that grows and shrinks when work is running.</li>
+<li>A dashed bar under it that gets longer with more agents.</li>
+<li>A red circle with a solid arrowhead when something is waiting.</li>
+<li>A low mound with the gauge empty when the quota is gone.</li>
+</ul>
+<p style="margin-top:8px">That is still a working icon. It is just not <em>this</em> icon.</p>
+</div>
+<div>
+<h3>What I refused to trade</h3>
+<ul>
+<li><b>Ink height.</b> 18.50pt in a 22pt box, against the 16pt convention. A bottom-open ring with a dot row under it cannot be 16pt and still hold five bands. The mark reads heavier than Tailscale&#8217;s.</li>
+<li><b>The 1.00pt counter between arcs.</b> Widening it to the 2.00pt 1&#215; floor would have left the creature 2.0pt tall. The creature was not negotiable, so the counter took the hit.</li>
+<li><b>The ticks touch their arcs.</b> A floating tick needs 1.0 + 1.0 + 1.0 = 3.00pt of clear band and there is no 3.00pt band anywhere in this design. Making them spurs off the arc is the only version that fits; it is the single largest deviation from the sketch.</li>
+</ul>
+</div>
+</div>
+</div>
+</div>

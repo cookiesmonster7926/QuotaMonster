@@ -1,0 +1,22 @@
+{
+ "pid": 4243,
+ "sessionId": "11111111-1111-4111-8111-111111111112",
+ "cwd": "/tmp/fixture-project",
+ "startedAt": 1789659400000,
+ "procStart": "Thu Sep 17 15:15:21 2026",
+ "version": "2.1.274",
+ "peerProtocol": 1,
+ "peerFeatures": [
+  "notify_idle"
+ ],
+ "kind": "interactive",
+ "entrypoint": "cli",
+ "pidDomain": "darwin",
+ "messagingSocketPath": "/tmp/cc-socks/4242.sock",
+ "name": "fixture-01",
+ "nameSource": "derived",
+ "nameSince": 1789659400000,
+ "status": "idle",
+ "updatedAt": 1789659999000,
+ "statusUpdatedAt": 1789659999000
+}

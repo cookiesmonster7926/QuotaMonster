@@ -1,0 +1,1182 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>完成訊號 · QUIET PANEL</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════════
+   QuotaMonster — 「session 工作完成了」的顯示方式，方向：QUIET PANEL（只在面板裡）
+   全部選擇器掛在 .fq 底下（沿用 alert-mockups / panel-mockups 的檔案慣例）。
+   Standalone：沒有網路、沒有 CDN，CSS 與 SVG 全部內嵌，沒有 emoji。
+   本頁 1 CSS px == 1 pt。所有面板、圖示、列都是**實際尺寸**。
+   深色是預設也是唯一重要的那一份；淺色只在最後附一小份。
+   ═══════════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0d11}
+.fq{
+  /* ── 語彙表。整頁只有三個有意義的顏色，其他都是墨色的濃淡。 ── */
+  --amber:#FF9E0A;          /* T1「等你輸入」。此方向一個像素都不碰它 */
+  --done:#30D158;           /* 完成綠 = 面板裡 agent pip 已經在用的那個綠 */
+  --done-w:#9BE7B2;         /* 完成綠的文字版（綠底黑字太小，反過來給文字提亮） */
+  --q-blue:#2975F2; --q-grn:#4CD67A; --q-red:#FF615C;   /* 額度色階，與完成無關 */
+
+  --page:#0b0d11; --ink:#E4E8EE; --dim:#9AA3B0; --dim2:#69727F; --dim3:#4B535E;
+  --line:#1B1F27; --line2:#12151b; --card:#12151b;
+  --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+
+  background:var(--page);color:var(--ink);padding:36px 24px 100px;
+  font:13px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans TC","Noto Sans CJK TC",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fq .wrap{max-width:1240px;margin:0 auto}
+
+/* ───────── 版面骨架 ───────── */
+.fq h1{font-size:23px;font-weight:650;letter-spacing:-.02em;margin-bottom:7px}
+.fq h1 span{color:var(--dim2);font-weight:400}
+.fq .lede{color:var(--dim);font-size:13.5px;max-width:82ch}
+.fq .lede b{color:#D7DCE4;font-weight:600}
+.fq .lede em{font-style:normal;color:var(--done-w)}
+.fq .lede i{font-style:normal;color:#FFB13C}
+.fq h2{font-size:10.5px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--dim2);
+  margin:52px 0 5px;border-top:1px solid var(--line);padding-top:18px}
+.fq .h2n{font-size:13px;color:var(--dim);margin-bottom:20px;max-width:88ch}
+.fq .h2n b{color:#D0D6DE;font-weight:600}
+.fq .h2n em{font-style:normal;color:var(--done-w)}
+.fq .h2n i{font-style:normal;color:#FFB13C}
+.fq .h2n code,.fq code{font-family:var(--mono);font-size:11.5px;color:#9FC9E8}
+.fq .cap{font:500 10.5px/1.6 var(--mono);color:var(--dim2);letter-spacing:.012em;margin-top:11px;max-width:104ch}
+.fq .cap b{color:#C3CAD4;font-weight:600}
+.fq .cap em{font-style:normal;color:var(--done-w)}
+.fq .cap i{font-style:normal;color:#FFB13C}
+
+/* ───────── 桌面舞台 ───────── */
+.fq .stage{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px #1E222A}
+.fq .stage__wall{position:absolute;inset:0;
+  background:
+    radial-gradient(120% 90% at 78% 120%,rgba(120,72,140,.42) 0%,rgba(120,72,140,0) 62%),
+    radial-gradient(90% 70% at 12% 0%,rgba(30,74,110,.55) 0%,rgba(30,74,110,0) 70%),
+    linear-gradient(155deg,#12182a 0%,#161d30 30%,#1d2138 55%,#2a2340 78%,#37283f 100%)}
+.fq .stage__wall::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 14%)}
+.fq .stage--light .stage__wall{
+  background:
+    radial-gradient(110% 80% at 85% 110%,rgba(255,222,180,.85) 0%,rgba(255,222,180,0) 64%),
+    linear-gradient(150deg,#c8d4e2 0%,#d9dee6 34%,#e6e0da 64%,#f0e4d6 100%)}
+.fq .stage--light .stage__wall::after{background:linear-gradient(180deg,rgba(255,255,255,.40) 0%,rgba(255,255,255,0) 14%)}
+
+/* macOS 選單列 —— 25pt，與 alert-mockups 同一份 */
+.fq .mb{position:relative;height:25px;display:flex;align-items:center;gap:15px;padding:0 9px 0 13px;
+  font-size:12.5px;line-height:1;white-space:nowrap}
+.fq .mb--dark{background:rgba(16,16,20,.62);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(255,255,255,.90);
+  box-shadow:inset 0 -.5px 0 rgba(255,255,255,.13)}
+.fq .mb--light{background:rgba(250,250,252,.72);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(0,0,0,.84);
+  box-shadow:inset 0 -.5px 0 rgba(0,0,0,.14)}
+.fq .mb b{font-weight:600}
+.fq .mb__sp{flex:1;min-width:0}
+.fq .mb__r{display:flex;align-items:center;gap:11px;flex:none}
+.fq .mb__clock{font-variant-numeric:tabular-nums;font-size:12.5px;opacity:.92}
+.fq .mb__ico{opacity:.78;display:flex}
+.fq .mb__slot{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:none}
+.fq .mb__slot.is-open{background:rgba(255,255,255,.17)}
+
+/* 使用者真正在忙的那個視窗 */
+.fq .term{position:absolute;border-radius:9px;overflow:hidden;background:rgba(13,14,18,.95);
+  box-shadow:0 26px 64px rgba(0,0,0,.52),0 0 0 .5px rgba(255,255,255,.10)}
+.fq .term__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 11px;overflow:hidden;
+  background:rgba(40,42,49,.92);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.4)}
+.fq .term__bar span{width:10px;height:10px;border-radius:50%;flex:none}
+.fq .term__t{margin-left:8px;font:500 10.5px/1 -apple-system,sans-serif;color:rgba(255,255,255,.44);
+  letter-spacing:.01em;white-space:nowrap;flex:none}
+.fq .term__b{padding:11px 13px;font:11px/1.62 var(--mono);color:#5F6875;white-space:pre;overflow:hidden}
+.fq .term__b .g{color:#4E7D5E}.fq .term__b .b{color:#4E6E8E}.fq .term__b .w{color:#8892A0}
+
+/* ═══════════════ 選單列圖示（Parallax，幾何凍結）═══════════════
+   幾何全部逐字來自 GlyphGeometry：
+     外弧 r=7.25 / 1.50pt（5 小時窗口）· 內弧 r=4.15 / 1.40pt（7 天窗口）
+     起 220°，順時針掃過頂端，滿額 260°，底部留 100° 開口
+     agent 軌 −67.65° 起掃 44.7°，在外弧同一半徑上
+     生物：8.95,9.858 起 4.10×3.042 圓角 0.95 的身體 + 兩顆 r=0.95 的冠葉
+   這個方向**沒有動任何一條線**。動的只有不透明度。 */
+.fq .gl{display:block;color:inherit;
+  --trk:.40;      /* 暗軌 */
+  --lit:1;        /* 亮起來的那段弧 */
+  --rail:.32;     /* agent 軌的暗軌 */
+  --cre:1}        /* 生物 */
+.fq .gl .t{opacity:var(--trk)}
+.fq .gl .l{opacity:var(--lit)}
+.fq .gl .r{opacity:var(--rail)}
+.fq .gl .c{opacity:var(--cre)}
+/* 未讀的完成：生物維持滿墨，其餘一律 ×0.72。不是新形狀，不是新顏色。 */
+.fq .gl--done{--trk:.29;--lit:.72;--rail:.23;--cre:1}
+/* 那一次 2.4 秒的慢呼吸（整顆圖示的不透明度，只跑一輪）。 */
+@keyframes fqSigh{0%{opacity:1}42%{opacity:.55}100%{opacity:1}}
+.fq .gl--sigh{animation:fqSigh 2.4s cubic-bezier(.4,0,.35,1) 1 both}
+/* T1 的呼吸：只有三個 chevron 在動，永不停止。 */
+@keyframes fqBreath{0%,100%{opacity:1}50%{opacity:.34}}
+.fq .brk{animation:fqBreath 2.1s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){.fq .brk{animation:none;opacity:.85}.fq .gl--sigh{animation:none}}
+
+/* ═══════════════ 下拉面板（380pt，逐項對照 PanelView.swift）═══════════════ */
+.fq .pop{position:relative;width:380px}
+.fq .pop__arrow{position:absolute;top:-7px;right:33px;width:16px;height:7px;background:var(--pm);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fq .pnl{
+  --pm:rgba(30,30,35,.97);
+  --p1:rgba(255,255,255,.93);--p2:rgba(255,255,255,.56);--p3:rgba(255,255,255,.36);
+  --p4:rgba(255,255,255,.19);
+  --pcard:rgba(255,255,255,.068);--phair:rgba(255,255,255,.115);
+  width:380px;border-radius:11px;overflow:hidden;background:var(--pm);
+  -webkit-backdrop-filter:blur(34px) saturate(180%);backdrop-filter:blur(34px) saturate(180%);
+  box-shadow:0 22px 52px rgba(0,0,0,.60),0 2px 10px rgba(0,0,0,.42),inset 0 0 0 .5px rgba(255,255,255,.10);
+  color:var(--p1)}
+.fq .pnl--light{
+  --pm:rgba(246,246,249,.98);
+  --p1:rgba(0,0,0,.88);--p2:rgba(0,0,0,.56);--p3:rgba(0,0,0,.38);--p4:rgba(0,0,0,.18);
+  --pcard:rgba(0,0,0,.055);--phair:rgba(0,0,0,.11);
+  --done:#188A3C;--done-w:#137032;--amber:#A15C06;
+  box-shadow:0 22px 48px rgba(40,32,22,.28),0 2px 10px rgba(40,32,22,.18),inset 0 0 0 .5px rgba(0,0,0,.10)}
+.fq .pnl .hr{height:.5px;background:var(--phair);opacity:.6}
+
+/* 表頭 */
+.fq .ph{display:flex;align-items:center;gap:10px;padding:11px 14px}
+.fq .ph__logo{width:13px;height:13px;flex:none;color:var(--p2)}
+.fq .ph__n{font-size:13px;font-weight:600;letter-spacing:-.005em}
+.fq .ph__sp{flex:1}
+.fq .st{min-width:46px;padding:3px 4px;border-radius:5px;display:flex;flex-direction:column;
+  align-items:center;gap:1px}
+.fq .st b{font:600 15px/1.05 -apple-system,"SF Pro Rounded",sans-serif;font-variant-numeric:tabular-nums}
+.fq .st span{font-size:8.5px;font-weight:500;letter-spacing:.6px;color:var(--p3)}
+.fq .st--am{background:rgba(255,158,10,.16)}
+.fq .st--am b{color:var(--amber)}
+.fq .pnl--light .st--am{background:rgba(161,92,6,.14)}
+
+/* 額度三欄 */
+.fq .pq{padding:11px 14px}
+.fq .pq__hd{display:flex;align-items:center;margin-bottom:9px}
+.fq .seclab{font-size:9.5px;font-weight:600;letter-spacing:.7px;color:var(--p2)}
+.fq .pq__fresh{margin-left:auto;font-size:10px;color:var(--p3)}
+.fq .pq__row{display:flex;align-items:stretch}
+.fq .pq__c{flex:1;min-width:0;padding:0 9px;display:flex;flex-direction:column;gap:4px}
+.fq .pq__d{width:.5px;background:var(--p4);margin:2px 0;flex:none}
+.fq .pq__l{font-size:9.5px;font-weight:500;color:var(--p2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fq .pq__n{font:500 22px/1 -apple-system,"SF Pro Rounded",sans-serif;font-variant-numeric:tabular-nums;
+  display:flex;align-items:baseline;gap:1px}
+.fq .pq__n i{font:500 10px/1 -apple-system,sans-serif;font-style:normal;color:var(--p2)}
+.fq .pq__bar{height:3px;border-radius:2px;background:var(--p4);overflow:hidden}
+.fq .pq__bar u{display:block;height:100%;border-radius:2px;text-decoration:none}
+.fq .pq__f{font-size:9px;color:var(--p3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 阻塞卡（釘住，永遠可見）—— 這個方向完全沒有碰它 */
+.fq .blk{margin:9px 12px;padding:9px;border-radius:7px;display:flex;gap:8px;
+  background:rgba(255,158,10,.12);box-shadow:inset 0 0 0 .5px rgba(255,158,10,.35)}
+.fq .pnl--light .blk{background:rgba(161,92,6,.11);box-shadow:inset 0 0 0 .5px rgba(161,92,6,.34)}
+.fq .blk__rail{width:3px;border-radius:1.5px;background:var(--amber);flex:none}
+.fq .blk__b{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.fq .blk__l1{display:flex;align-items:center;gap:6px}
+.fq .blk__n{font-size:12px;font-weight:600}
+.fq .blk__p{font:10px var(--mono);color:var(--p2)}
+.fq .blk__w{margin-left:auto;font-size:10px;font-weight:500;color:var(--amber)}
+.fq .blk__k{font:10px var(--mono);color:var(--p2)}
+.fq .blk__s{font-size:10px;color:rgba(255,158,10,.9)}
+.fq .pnl--light .blk__s{color:#A15C06}
+
+/* 清單 */
+.fq .pl__hd{display:flex;align-items:center;padding:10px 14px 6px}
+.fq .pl__cnt{margin-left:auto;font-size:9.5px;color:var(--p3)}
+.fq .pl__body{padding:0 12px 10px;display:flex;flex-direction:column;gap:8px}
+
+/* ══════════ 一列 session ══════════
+   ⚠️ 完成狀態**沒有加任何一行**。它整個塞進既有的 header 那一行，
+      加上一條坐在卡片上緣的 1.5pt 條 —— 那條線佔的是卡片自己的邊，不是高度。
+      使用者先前拒絕過的「額外的卡片」沒有以任何形式回來。 */
+.fq .row{position:relative;padding:9px;border-radius:7px;background:var(--pcard);
+  display:flex;flex-direction:column;gap:5px}
+/* 新鮮的完成：卡片本身帶一層 8.5% 的綠。沒有外框、沒有左側色條 ——
+   那兩樣是阻塞卡的文法，完成刻意比它低一階。 */
+.fq .row--done{background:rgba(48,209,88,.085)}
+.fq .pnl--light .row--done{background:rgba(24,138,60,.085)}
+.fq .row--done.is-cold{background:var(--pcard)}
+.fq .row__hd{height:16px;display:flex;align-items:center;gap:7px}
+/* 狀態指示器的位置固定 10pt 寬 —— 換成勾的時候名字不會左右跳。 */
+.fq .ind{width:10px;height:10px;flex:none;display:flex;align-items:center;justify-content:center}
+.fq .ind i{width:6px;height:6px;border-radius:50%;display:block}
+.fq .ind--busy i{background:var(--q-blue)}
+.fq .ind--idle i{background:var(--p3)}
+.fq .ind--done{color:var(--done)}
+.fq .ind--done svg{display:block}
+.fq .row__n{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;max-width:150px}
+.fq .row__p{font:10px var(--mono);color:var(--p2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1 1 auto}
+.fq .row__r{margin-left:auto;flex:none;display:flex;align-items:center;gap:6px}
+.fq .row__k{font-size:8.5px;font-weight:600;letter-spacing:.5px;color:var(--p3)}
+.fq .row__k--busy{color:var(--q-blue)}
+.fq .row__t{font:10px var(--mono);color:var(--p3);font-variant-numeric:tabular-nums}
+/* 完成專用的兩個字段。刻意比 BUSY/IDLE 大一點 —— 中文在 8.5pt 讀不出來。 */
+.fq .row__done{font-size:10px;font-weight:500;color:var(--done);white-space:nowrap}
+.fq .row__done--cold{color:var(--p2);font-weight:400}
+.fq .row__ran{font:10px var(--mono);color:var(--p2);font-variant-numeric:tabular-nums}
+
+/* 上緣那條會排空的線 = 鮮度。寬度就是剩下的鮮度，從右邊縮回左邊。 */
+.fq .row__drainwrap{position:absolute;left:9px;right:9px;top:0;height:1.5px;overflow:hidden}
+.fq .row__drain{height:100%;border-radius:0 1px 1px 0;background:var(--done)}
+
+/* ctx 壓力細條 */
+.fq .ctx{height:10px;display:flex;align-items:center;gap:6px}
+.fq .ctx__k{font:500 9px var(--mono);color:var(--p3)}
+.fq .ctx__b{flex:1;height:3px;border-radius:2px;background:var(--p4);overflow:hidden}
+.fq .ctx__b u{display:block;height:100%;border-radius:2px;text-decoration:none}
+.fq .ctx__v{font:9.5px var(--mono);color:var(--p2);font-variant-numeric:tabular-nums}
+.fq .ctx__w{font:9px var(--mono);color:var(--p3)}
+
+/* workflow / agent 子行 */
+.fq .sub{height:13px;display:flex;align-items:center;gap:6px}
+.fq .sub__bar{width:1px;align-self:stretch;background:var(--p4);margin-left:2px;flex:none}
+.fq .sub__n{font-size:10.5px;font-weight:500;white-space:nowrap}
+.fq .sub__id{font:9px var(--mono);color:var(--p3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fq .sub__sp{flex:1;min-width:4px}
+.fq .pips{display:flex;gap:2px}
+.fq .pips i{width:5px;height:7px;border-radius:1px;background:var(--q-blue);opacity:.75}
+.fq .pips i.d{background:var(--done);opacity:.75}
+.fq .sub__c{font:9.5px var(--mono);color:var(--p2);font-variant-numeric:tabular-nums}
+.fq .sub__dot{width:4px;height:4px;border-radius:50%;background:var(--q-blue);flex:none}
+.fq .sub__ty{font:9px var(--mono);color:var(--p3)}
+.fq .sub__more{font-size:9.5px;color:var(--p3)}
+
+/* 底部 */
+.fq .pf{display:flex;align-items:center;gap:12px;padding:8px 14px;color:var(--p3);font-size:10px}
+.fq .pf svg{display:block;flex:none}
+.fq .pf__sp{flex:1}
+
+/* 抵達那一下：一次性。不重播，不呼吸。 */
+@keyframes fqWipe{from{width:0}to{width:100%}}
+@keyframes fqPop{from{opacity:0;transform:scale(.72)}to{opacity:1;transform:scale(1)}}
+.fq .is-arrive .row__drain{animation:fqWipe .28s cubic-bezier(.2,.7,.3,1) both}
+.fq .is-arrive .ind--done{animation:fqPop .26s cubic-bezier(.2,.9,.3,1) both}
+@media (prefers-reduced-motion:reduce){
+  .fq .is-arrive .row__drain,.fq .is-arrive .ind--done{animation:none}}
+
+/* ───────── 版面容器 ───────── */
+.fq .grid{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start}
+.fq .col{flex:none}
+.fq .col__h{font-size:12.5px;font-weight:600;color:#C6CDD7;margin-bottom:10px}
+.fq .col__h em{font-style:normal;color:var(--done-w)}
+.fq .col__h i{font-style:normal;color:#FFB13C}
+.fq .col__h u{text-decoration:none;color:var(--dim2);font-weight:400;margin-left:6px;
+  font:500 10.5px var(--mono)}
+.fq .col .cap{max-width:380px}
+
+/* 衰減時間軸 */
+.fq .decay{display:flex;flex-direction:column;gap:0;width:422px}
+.fq .dstep{display:flex;gap:14px;align-items:flex-start;padding:13px 0 14px;border-top:1px solid var(--line)}
+.fq .dstep:first-child{border-top:0;padding-top:3px}
+.fq .dstep__t{width:88px;flex:none;padding-top:2px}
+.fq .dstep__t b{display:block;font:600 12px/1.3 var(--mono);color:#C6CDD7;letter-spacing:-.01em}
+.fq .dstep__t span{display:block;font-size:10px;color:var(--dim2);margin-top:2px;line-height:1.45}
+.fq .dstep__r{width:320px;flex:none}
+.fq .dstep__w{padding:0;border-radius:8px}
+.fq .dstep__n{font-size:11.5px;color:var(--dim);line-height:1.58;margin-top:9px;max-width:56ch}
+.fq .dstep__n b{color:#D0D6DE;font-weight:600}
+.fq .dstep__n em{font-style:normal;color:var(--done-w)}
+
+/* 放大比較 */
+.fq .zoom{display:flex;gap:30px;flex-wrap:wrap;align-items:flex-start}
+.fq .zc{width:232px}
+.fq .zc__box{height:120px;border-radius:12px;background:#15181e;box-shadow:0 0 0 1px var(--line);
+  display:flex;align-items:center;justify-content:center;gap:24px}
+.fq .zc__box--bar{background:rgba(16,16,20,.92)}
+.fq .zc__lb{margin-top:10px;font:500 10.5px/1.55 var(--mono);color:var(--dim2)}
+.fq .zc__lb b{color:#C3CAD4;font-weight:600}
+.fq .zc__lb em{font-style:normal;color:var(--done-w)}
+.fq .zc__lb i{font-style:normal;color:#FFB13C}
+
+/* 表格 */
+.fq table{border-collapse:collapse;width:100%;max-width:1000px;margin-top:6px}
+.fq th,.fq td{text-align:left;padding:8px 12px 8px 0;border-bottom:1px solid var(--line);
+  font-size:12.2px;vertical-align:top;line-height:1.55}
+.fq th{font:600 9.5px/1.4 var(--mono);letter-spacing:.13em;text-transform:uppercase;color:var(--dim2);
+  padding-bottom:7px}
+.fq td b{color:#D7DCE4;font-weight:600}
+.fq td em{font-style:normal;color:var(--done-w)}
+.fq td i{font-style:normal;color:#FFB13C}
+.fq td code{font-family:var(--mono);font-size:11px;color:#9FC9E8}
+.fq .num{font-family:var(--mono);font-size:11.5px;color:#C3CAD4;white-space:nowrap}
+
+/* 結語三欄 */
+.fq .notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:8px;max-width:1240px}
+.fq .note{background:var(--card);border:1px solid var(--line);border-radius:11px;padding:16px 17px 18px;
+  position:relative;overflow:hidden}
+.fq .note::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2.5px}
+.fq .note--y::before{background:var(--done);opacity:.85}
+.fq .note--n::before{background:var(--dim3)}
+.fq .note--w::before{background:#C8602E}
+.fq .note h3{font:600 9.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;
+  color:var(--dim2);margin-bottom:4px}
+.fq .note h4{font:650 14.5px/1.35 inherit;letter-spacing:-.012em;margin-bottom:11px}
+.fq .note--y h4{color:var(--done-w)}
+.fq .note--w h4{color:#E89A6B}
+.fq .note ol{list-style:none;counter-reset:n;display:flex;flex-direction:column;gap:9px}
+.fq .note li{font-size:12.2px;line-height:1.6;color:var(--dim);padding-left:19px;position:relative}
+.fq .note li::before{counter-increment:n;content:counter(n);position:absolute;left:0;top:.15em;
+  font:600 9.5px/1.5 var(--mono);color:var(--dim3)}
+.fq .note b{color:#D7DCE4;font-weight:600}
+.fq .note em{font-style:normal;color:var(--done-w)}
+.fq .note i{font-style:normal;color:#FFB13C}
+.fq .note code{font-family:var(--mono);font-size:11px;color:#9FC9E8}
+
+/* 事實條 */
+.fq .facts{display:flex;flex-wrap:wrap;gap:6px 0;margin:16px 0 0;padding:12px 15px;
+  border:1px dashed var(--line);border-radius:9px;font:11.5px/1.7 var(--mono);color:var(--dim2)}
+.fq .facts span{white-space:nowrap;padding-right:18px}
+.fq .facts b{color:#C3CAD4;font-weight:600}
+.fq .facts em{font-style:normal;color:var(--done-w)}
+.fq .facts i{font-style:normal;color:#FFB13C}
+</style>
+</head>
+<body>
+<div class="fq"><div class="wrap">
+
+<h1>完成訊號 <span>· 方向 QUIET PANEL：只在面板裡，不打斷</span></h1>
+<p class="lede">
+「session 工作完成了」是<b>好消息</b>。這個方向的賭注只有一句：<b>好消息不該打斷你，它只需要在你自己去看的時候在那裡。</b><br>
+完成<b>永遠不浮窗、永遠不出聲、永遠不進通知中心</b>。它只改變下拉面板裡那一列的樣子 ——
+一個 <em>「剛完成 · 跑了 12m 04s」</em>的狀態，隨時間衰減掉。<br>
+量到的數字支持這個取捨：<b>61% 的完成發生在兩分鐘之內</b>，那時你幾乎一定還盯著它。
+對著已經在看的人喊，正是把眼睛訓練成無視<i>琥珀色</i>的那件事。<br>
+本頁所有面板、列、圖示皆為 <b>1 : 1 實際尺寸</b>（1 CSS px = 1 pt）。
+</p>
+
+<div class="facts">
+  <span><b>面板標記</b> ≈ <em>5.4 次／天</em>（G1 見證 × G3 ≥180s × G2 90s 沉澱 × G4 真結尾）</span>
+  <span><b>選單列出聲</b> ≈ <i>1.6 次／天</i>（再過 G5 在場 × G6 不在看）</span>
+  <span><b>浮窗</b> <b>0</b></span>
+  <span><b>音效</b> <b>0</b></span>
+  <span><b>面板高度增加</b> <b>0 pt</b></span>
+  <span><b>新的重複性計時器</b> <b>0</b></span>
+</div>
+
+<!-- ══════════════════ 1 · 它在螢幕上長這樣 ══════════════════ -->
+<h2>1 · 它在螢幕上長這樣</h2>
+<p class="h2n">
+你在別的地方忙了十幾分鐘。<code>usage</code> 那個 session 剛把活做完。
+<b>螢幕上什麼都沒有跳出來。</b>你在某個時刻為了看額度按了選單列圖示 —— 它就在最上面那一列。
+判斷標準只有一個：面板打開的第一秒，你知不知道<b>哪一個</b>跑完了、<b>跑了多久</b>。
+</p>
+
+<div class="stage" style="height:520px">
+  <div class="stage__wall"></div>
+
+  <div class="mb mb--dark">
+    <b>Ghostty</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2.6 4.4 5.4H2.4v5.2h2L8 13.4V2.6Z" fill="currentColor"/><path d="M10.6 5.9a3 3 0 0 1 0 4.2M12.6 4a5.6 5.6 0 0 1 0 8" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.4" y="5.6" width="10.6" height="5.2" rx="1.6" stroke="currentColor" stroke-width="1.1"/><rect x="2.8" y="7" width="6" height="2.4" rx=".7" fill="currentColor"/><path d="M13.4 7.6v1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <!-- QuotaMonster：未讀的完成 = 生物滿墨，其餘 ×0.72。沒有新形狀、沒有新顏色。 -->
+      <span class="mb__slot is-open">
+        <svg class="gl gl--done" viewBox="0 0 22 22" width="22" height="22" fill="none" style="color:#fff">
+          <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+          <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+          <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+          <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+          <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+        </svg>
+      </span>
+      <span class="mb__clock">週五 14:23</span>
+    </span>
+  </div>
+
+  <div class="term" style="left:36px;top:76px;width:520px;height:386px">
+    <div class="term__bar"><span style="background:#FF5F57"></span><span style="background:#FEBC2E"></span><span style="background:#28C840"></span><span class="term__t">PEO — claude — 102×36</span></div>
+    <div class="term__b"><span class="b">●</span> <span class="w">Bash</span>(uv run python scripts/train_rfdetr.py)
+  <span class="g">⎿</span>  epoch 14/40  loss 0.284  mAP50 0.771
+
+<span class="b">●</span> <span class="w">Read</span>(scripts/eval_masks.py)
+  <span class="g">⎿</span>  Read 218 lines
+
+<span class="b">●</span> <span class="w">Task</span>(分析 hole 分佈)
+  <span class="g">⎿</span>  Running 2 agents…
+
+<span class="b">●</span> 訓練還在跑，我先把評估腳本的
+  邊界處理補上。
+
+<span class="b">●</span> <span class="w">Edit</span>(scripts/eval_masks.py)
+  <span class="g">⎿</span>  Updated with 12 additions
+
+<span class="b">●</span> <span class="w">Bash</span>(uv run pytest tests/ -q)
+  <span class="g">⎿</span>  38 passed in 4.12s
+
+<span class="b">●</span> 補好了。要我把 epoch 拉到 60 嗎？
+
+<span style="opacity:.45">▌</span></div>
+  </div>
+
+  <!-- 面板從選單列掛下來 -->
+  <div class="pop" style="position:absolute;right:26px;top:32px">
+    <div class="pnl">
+      <span class="pop__arrow" style="background:rgba(30,30,35,.97)"></span>
+
+      <div class="ph">
+        <svg class="ph__logo" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+          <path d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+          <path d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+          <g fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+        </svg>
+        <span class="ph__n">QuotaMonster</span>
+        <span class="ph__sp"></span>
+        <span class="st"><b>3</b><span>SESSIONS</span></span>
+        <span class="st"><b>2</b><span>AGENTS</span></span>
+        <span class="st"><b>0</b><span>BLOCKED</span></span>
+      </div>
+      <div class="hr"></div>
+
+      <div class="pq">
+        <div class="pq__hd"><span class="seclab">額度 QUOTA</span><span class="pq__fresh">剛更新</span></div>
+        <div class="pq__row">
+          <div class="pq__c">
+            <div class="pq__l">5 小時視窗</div>
+            <div class="pq__n">28<i>%</i></div>
+            <div class="pq__bar"><u style="width:28%;background:#2975F2"></u></div>
+            <div class="pq__f">剩 2h 12m · 照均速 51%</div>
+          </div>
+          <div class="pq__d"></div>
+          <div class="pq__c">
+            <div class="pq__l">7 天 · 全模型</div>
+            <div class="pq__n">17<i>%</i></div>
+            <div class="pq__bar"><u style="width:17%;background:#2975F2"></u></div>
+            <div class="pq__f">週六 13:59 · 日均 3.4%</div>
+          </div>
+          <div class="pq__d"></div>
+          <div class="pq__c">
+            <div class="pq__l">7 天 · OPUS</div>
+            <div class="pq__n">9<i>%</i></div>
+            <div class="pq__bar"><u style="width:9%;background:#2975F2"></u></div>
+            <div class="pq__f">14 分鐘前</div>
+          </div>
+        </div>
+      </div>
+      <div class="hr"></div>
+
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span>
+        <span class="pl__cnt">0 等待 · 1 執行 · 2 閒置</span></div>
+
+      <div class="pl__body">
+
+        <!-- ① 剛完成的那一列。排到最上面（釘住的阻塞卡下方）。 -->
+        <div class="row row--done is-arrive">
+          <div class="row__drainwrap"><div class="row__drain" style="width:100%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none" aria-hidden="true"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span>
+            <span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx">
+            <span class="ctx__k">ctx</span>
+            <span class="ctx__b"><u style="width:34%;background:#4CD67A"></u></span>
+            <span class="ctx__v">34%</span><span class="ctx__w">1M</span>
+          </div>
+        </div>
+
+        <!-- ② 還在跑的 -->
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--busy"><i></i></span>
+            <span class="row__n">PEO</span>
+            <span class="row__p">~/PEO</span>
+            <span class="row__r"><span class="row__k row__k--busy">BUSY</span><span class="row__t">6m</span></span>
+          </div>
+          <div class="ctx">
+            <span class="ctx__k">ctx</span>
+            <span class="ctx__b"><u style="width:62%;background:#4CD67A"></u></span>
+            <span class="ctx__v">62%</span><span class="ctx__w">1M</span>
+          </div>
+          <div class="sub">
+            <span class="sub__bar"></span>
+            <span class="sub__n">analyse</span><span class="sub__id">wf_a91c4e</span>
+            <span class="sub__sp"></span>
+            <span class="pips"><i class="d"></i><i class="d"></i><i class="d"></i><i></i><i></i></span>
+            <span class="sub__c">3/5</span>
+          </div>
+        </div>
+
+        <!-- ③ 一直閒置著的 -->
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span>
+            <span class="row__n">zen-dial</span>
+            <span class="row__p">~/zen-dial</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">2h</span></span>
+          </div>
+        </div>
+
+      </div>
+      <div class="hr"></div>
+      <div class="pf">
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M11.9 7A4.9 4.9 0 1 1 10.3 3.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11.9 1.5V4.4H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>更新於 剛剛</span>
+        <span class="pf__sp"></span>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1.9a3.4 3.4 0 0 1 3.4 3.4c0 3 1.3 3.9 1.3 3.9H2.3s1.3-.9 1.3-3.9A3.4 3.4 0 0 1 7 1.9Z" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round"/><path d="M5.9 11.4a1.2 1.2 0 0 0 2.2 0" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1.8v5.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.1 3.6a5 5 0 1 0 5.8 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap">
+面板 <b>380 × 413 pt</b>，與現況<b>完全一樣高</b> —— 完成狀態沒有新增任何一行。
+變的只有三個地方：狀態點換成一個<em>勾</em>（同一個 10pt 的位置，名字不會左右跳）、
+<code>IDLE</code> 換成 <em>剛完成</em>、右邊的 <code>2h</code> 換成 <em>跑了 12m 04s</em>，
+加上坐在卡片上緣、會排空的那條 <b>1.5pt</b> 線。<br>
+選單列上那顆圖示<b>沒有變色，也沒有多出任何東西</b> —— 只有生物維持滿墨、其餘 ×0.72（見第 5 節）。<br>⟨注意這張圖裡的<b>三個綠</b>：會排空的線、ctx 條、workflow pip。它們是同一個色值，只靠粗細與位置分開 —— 這是這個方向最實在的一個缺陷，寫在第 7 節弱點第 4 條。⟩
+</p>
+
+<!-- ══════════════════ 2 · 它需要的三個狀態 ══════════════════ -->
+<h2>2 · 一個完成 / 兩個完成 / 完成但別的還在跑</h2>
+<p class="h2n">
+同一套骨架，三種情況。<b>完成的列會暫時排到清單最上面</b>（釘住的阻塞卡下方）——
+否則第四個 session 出現時，這則消息就在捲軸外面了。兩個完成不合併成一句話，
+因為<b>面板不是通知</b>：你已經在看了，兩列比一句「2 個 session 完成」說得更多，而且不多佔高度。
+</p>
+
+<div class="grid">
+
+  <!-- A. 一個完成 -->
+  <div class="col">
+    <div class="col__h">A · 一個完成<u>最常見</u></div>
+    <div class="pnl" style="border-radius:11px">
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span><span class="pl__cnt">0 等待 · 0 執行 · 3 閒置</span></div>
+      <div class="pl__body">
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:100%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span>
+            <span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span><span class="row__n">zen-dial</span>
+            <span class="row__p">~/zen-dial</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">2h</span></span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span><span class="row__n">F1</span>
+            <span class="row__p">~/Antigravity/F1</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">4h</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">完成的那一列在最上面。下面兩列<b>一個像素都沒變</b>。</p>
+  </div>
+
+  <!-- B. 兩個完成 -->
+  <div class="col">
+    <div class="col__h">B · 兩個完成<u>扇出剛散完</u></div>
+    <div class="pnl" style="border-radius:11px">
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span><span class="pl__cnt">0 等待 · 0 執行 · 3 閒置</span></div>
+      <div class="pl__body">
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:100%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span>
+            <span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+          <div class="sub">
+            <span class="sub__bar"></span><span class="sub__n">review</span><span class="sub__id">wf_7d02b1</span>
+            <span class="sub__sp"></span>
+            <span class="pips"><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i><i class="d"></i></span>
+            <span class="sub__c">5/5</span>
+          </div>
+        </div>
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:92%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">PEO</span>
+            <span class="row__p">~/PEO</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 41m 12s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:71%;background:#FFD426;opacity:.72"></u></span><span class="ctx__v">71%</span><span class="ctx__w">1M</span></div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span><span class="row__n">zen-dial</span>
+            <span class="row__p">~/zen-dial</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">2h</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">
+      兩條會排空的線<b>各走各的鐘</b>：<code>usage</code> 100%、<code>PEO</code> 92%（早了 48 秒完成）。
+      那道寬度差就是「誰先誰後」，不必寫時間戳。<br>
+      <b>T2「扇出全數完成」不再自己發聲</b> —— 它掛進 <code>review 5/5</code> 那一行，
+      當完成的明細。同一件事只說一次。
+    </p>
+  </div>
+
+  <!-- C. 完成 + 還在跑 -->
+  <div class="col">
+    <div class="col__h">C · 完成，但別的還在跑<u>最難讀的一種</u></div>
+    <div class="pnl" style="border-radius:11px">
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span><span class="pl__cnt">0 等待 · 2 執行 · 1 閒置</span></div>
+      <div class="pl__body">
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:100%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span>
+            <span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--busy"><i></i></span><span class="row__n">PEO</span>
+            <span class="row__p">~/PEO</span>
+            <span class="row__r"><span class="row__k row__k--busy">BUSY</span><span class="row__t">6m</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:62%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">62%</span><span class="ctx__w">1M</span></div>
+          <div class="sub">
+            <span class="sub__bar"></span><span class="sub__n">analyse</span><span class="sub__id">wf_a91c4e</span>
+            <span class="sub__sp"></span>
+            <span class="pips"><i class="d"></i><i class="d"></i><i class="d"></i><i></i><i></i><i></i><i></i></span>
+            <span class="sub__c">3/7</span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--busy"><i></i></span><span class="row__n">Equipment</span>
+            <span class="row__p">~/Antigra…/Equipment_Borrowing_System</span>
+            <span class="row__r"><span class="row__k row__k--busy">BUSY</span><span class="row__t">51s</span></span>
+          </div>
+          <div class="sub">
+            <span class="sub__bar"></span><span class="sub__dot"></span>
+            <span class="sub__n">檢查 Prisma schema</span>
+            <span class="sub__sp"></span><span class="sub__ty">general-purpose</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">
+      這張圖裡有<b>三個一模一樣的綠</b>：<em>勾</em>（session 完成）、<em>方形 pip</em>（agent 完成）、
+      還有 <b>ctx 條</b>（&lt; 70%，<code>#30D158</code>，本來就在）。只靠<b>層級與形狀</b>分開 ——
+      這是弱點第 4 條，沒有調淡。<br>
+      藍點（<code>BUSY</code>）與勾（完成）在同一個 <b>10pt</b> 欄位裡，
+      所以「有沒有跑完」是<b>掃一眼左邊那一欄就有答案</b>，不必讀任何字。
+    </p>
+  </div>
+</div>
+
+<!-- ══════════════════ 3 · 衰減 ══════════════════ -->
+<h2>3 · 衰減 —— 「剛完成」不能永遠是「剛」</h2>
+<p class="h2n">
+一個永遠不褪的「剛完成」標記，<b>三小時後就是一句謊話</b>。所以有<b>兩個鐘</b>，而且它們刻意不同步：<br>
+<b>鮮度</b>照牆上的鐘走 —— 上緣那條線在 10 分鐘內排空，用字從「剛完成」變成「N 分前完成」。
+<b>未讀</b>則等你 —— 勾會一直在，直到你<b>打開過面板</b>（或那個 session 又開始工作）。<br>
+這就是這個方向對「<i>使用者可能好幾個小時都不知道它跑完了</i>」的正面回答：
+<b>形容詞會老實變舊，標記不會在你看到之前先消失。</b><br>
+全部是 <code>now − finishedAt</code> 的純函式，面板<b>開著的時候才算</b> —— 沒有新增任何重複性計時器。
+</p>
+
+<div class="grid" style="gap:44px">
+<div class="decay">
+
+  <div class="dstep">
+    <div class="dstep__t"><b>0s</b><span>抵達<br>（一次性）</span></div>
+    <div class="dstep__r">
+      <div class="row row--done is-arrive">
+        <div class="row__drainwrap"><div class="row__drain" style="width:100%"></div></div>
+        <div class="row__hd">
+          <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+        </div>
+        <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+      </div>
+      <p class="dstep__n">勾放大就位、上緣那條線從左往右抹出來，<b>280ms，只播一次</b>。
+      它<b>不呼吸</b> —— 呼吸是 T1 的，而且只有 T1 會重複。面板沒開著的時候這一下根本不存在。</p>
+    </div>
+  </div>
+
+  <div class="dstep">
+    <div class="dstep__t"><b>+30s</b><span>還是「剛」</span></div>
+    <div class="dstep__r">
+      <div class="row row--done">
+        <div class="row__drainwrap"><div class="row__drain" style="width:95%"></div></div>
+        <div class="row__hd">
+          <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+        </div>
+        <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+      </div>
+      <p class="dstep__n"><b>刻意幾乎沒有變化</b>：只有那條線縮了 5%（16pt）。三十秒之後它<b>真的</b>還是剛完成的 ——
+      這一格如果看起來明顯不同，代表衰減太快，而「剛」這個字就開始說謊了。</p>
+    </div>
+  </div>
+
+  <div class="dstep">
+    <div class="dstep__t"><b>+4m</b><span>轉成相對時間</span></div>
+    <div class="dstep__r">
+      <div class="row row--done" style="background:rgba(48,209,88,.042)">
+        <div class="row__drainwrap"><div class="row__drain" style="width:60%;opacity:.62"></div></div>
+        <div class="row__hd">
+          <span class="ind ind--done" style="opacity:.72"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__r"><span class="row__done" style="opacity:.78">4 分前完成</span><span class="row__ran">跑了 12m 04s</span></span>
+        </div>
+        <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+      </div>
+      <p class="dstep__n">過 <b>90 秒</b>就換字：<b>剛完成 → N 分前完成</b>。90 秒不是隨便選的 ——
+      它就是 G2 那個沉澱視窗的長度。窗口關上的那一刻，「剛」的許可證也到期。</p>
+    </div>
+  </div>
+
+  <div class="dstep">
+    <div class="dstep__t"><b>+10m</b><span>鮮度歸零</span></div>
+    <div class="dstep__r">
+      <div class="row">
+        <div class="row__hd">
+          <span class="ind ind--idle"><i></i></span>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">34m</span></span>
+        </div>
+        <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+      </div>
+      <p class="dstep__n"><b>你已經看過了</b> → 完全回到原來的樣子。沒有勾、沒有線、沒有殘跡，
+      <code>34m</code> 又變回 <code>startedAt</code> 起算的既有數字。<b>面板不留歷史</b> ——
+      「最近完成了什麼」是一份會越長越長的清單，而這個 app 沒有要當那個清單。</p>
+    </div>
+  </div>
+
+  <div class="dstep">
+    <div class="dstep__t"><b>+1h</b><span>未讀<br>（你一直沒開面板）</span></div>
+    <div class="dstep__r">
+      <div class="row">
+        <div class="row__hd">
+          <span class="ind ind--done" style="color:rgba(255,255,255,.44)"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__r"><span class="row__done row__done--cold">58 分前完成</span><span class="row__ran">跑了 12m 04s</span></span>
+        </div>
+        <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+      </div>
+      <p class="dstep__n"><b>第二個鐘。</b>你一小時沒開面板，所以標記還在等你 —— 但它已經<b>退成灰色</b>，
+      而且沒有那條線。它說的是「這件事發生過，你還沒看過」，<b>不是</b>「這件事剛發生」。<br>
+      關掉面板之後它就清了，下次打開是乾淨的一列。上限 <b>30 分鐘 → 灰勾，24 小時後連灰勾都不留</b>。</p>
+    </div>
+  </div>
+
+</div>
+
+<div style="width:300px">
+  <div class="col__h">那條線在量什麼</div>
+  <div style="border:1px solid var(--line);border-radius:10px;padding:15px 16px;background:var(--card)">
+    <div style="display:flex;flex-direction:column;gap:11px">
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim2);margin-bottom:4px">0s &nbsp;剛完成</div>
+        <div style="height:1.5px;background:#30D158;width:100%;border-radius:1px"></div></div>
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim2);margin-bottom:4px">30s &nbsp;剛完成</div>
+        <div style="height:1.5px;background:#30D158;width:95%;border-radius:1px"></div></div>
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim2);margin-bottom:4px">90s &nbsp;2 分前完成</div>
+        <div style="height:1.5px;background:#30D158;width:85%;border-radius:1px;opacity:.85"></div></div>
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim2);margin-bottom:4px">4m &nbsp;&nbsp;4 分前完成</div>
+        <div style="height:1.5px;background:#30D158;width:60%;border-radius:1px;opacity:.62"></div></div>
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim2);margin-bottom:4px">8m &nbsp;&nbsp;8 分前完成</div>
+        <div style="height:1.5px;background:#30D158;width:20%;border-radius:1px;opacity:.4"></div></div>
+      <div><div style="font:500 10.5px var(--mono);color:var(--dim3);margin-bottom:4px">10m &nbsp;（沒有了）</div>
+        <div style="height:1.5px;background:var(--line);width:100%;border-radius:1px"></div></div>
+    </div>
+  </div>
+  <p class="cap">
+    線性排空，<b>從右往左縮</b>。進度條是往右長的，這條是往左退的 ——
+    方向相反，才不會被讀成「還在跑」。<br>
+    它蓋在卡片自己的<b>上緣</b>，佔的是圓角那 7pt 的內縮，<b>高度成本 0pt</b>。
+  </p>
+</div>
+</div>
+
+<!-- ══════════════════ 4 · 與 T1 並排 ══════════════════ -->
+<h2>4 · 它跟「等你輸入」擺在一起是什麼樣子</h2>
+<p class="h2n">
+這是最重要的一張。<b>琥珀只准代表一件事：有人被你擋住了。</b>
+完成不准用琥珀、不准用琥珀的形狀（三個 chevron）、不准用琥珀的節奏（呼吸）、不准佔琥珀的位置（釘在最上面的那張卡）。<br>
+左邊是兩者同時存在的面板。<b>阻塞卡照舊釘在清單上方，完成只是清單裡的一列</b> —— 階層本身就說明了哪一個比較急。
+</p>
+
+<div class="grid" style="gap:34px">
+
+  <div class="col">
+    <div class="col__h">同一個面板，<i>琥珀</i>在上、<em>綠勾</em>在下</div>
+    <div class="pnl" style="border-radius:11px">
+      <div class="ph">
+        <svg class="ph__logo" viewBox="0 0 22 22" fill="none">
+          <path d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity=".4"/>
+          <path d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" opacity=".4"/>
+          <g fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+        </svg>
+        <span class="ph__n">QuotaMonster</span><span class="ph__sp"></span>
+        <span class="st"><b>3</b><span>SESSIONS</span></span>
+        <span class="st"><b>2</b><span>AGENTS</span></span>
+        <span class="st st--am"><b>1</b><span>BLOCKED</span></span>
+      </div>
+      <div class="hr"></div>
+
+      <!-- 釘住的阻塞卡 —— 一個像素都沒改 -->
+      <div class="blk">
+        <span class="blk__rail"></span>
+        <div class="blk__b">
+          <div class="blk__l1">
+            <span class="blk__n">PEO</span><span class="blk__p">~/PEO</span>
+            <span class="blk__w">等你回覆</span>
+          </div>
+          <div class="blk__k">PERMISSION · 等待你批准一個工具呼叫</div>
+          <div class="blk__s">2 個 agent 跟著停住</div>
+        </div>
+      </div>
+
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span><span class="pl__cnt">1 等待 · 0 執行 · 2 閒置</span></div>
+      <div class="pl__body">
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:88%"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#30D158;opacity:.72"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span><span class="row__n">zen-dial</span>
+            <span class="row__p">~/zen-dial</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">2h</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="hr"></div>
+      <div class="pf">
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M11.9 7A4.9 4.9 0 1 1 10.3 3.3" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M11.9 1.5V4.4H9" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span>更新於 剛剛</span><span class="pf__sp"></span>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1.9a3.4 3.4 0 0 1 3.4 3.4c0 3 1.3 3.9 1.3 3.9H2.3s1.3-.9 1.3-3.9A3.4 3.4 0 0 1 7 1.9Z" stroke="currentColor" stroke-width="1.15" stroke-linejoin="round"/><path d="M5.9 11.4a1.2 1.2 0 0 0 2.2 0" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg>
+        <svg width="11" height="11" viewBox="0 0 14 14" fill="none"><path d="M7 1.8v5.1" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/><path d="M4.1 3.6a5 5 0 1 0 5.8 0" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+      </div>
+    </div>
+    <p class="cap">
+      有人在等你的時候，選單列整顆圖示是琥珀色的環 + 三個呼吸的 chevron ——
+      <b>結構上根本沒有位置再放完成的訊號</b>，所以完成的選單列訊號<b>自動消失</b>（G7 的自然結果，不必寫特例）。
+      面板照樣有那一列。
+    </p>
+  </div>
+
+  <div class="col" style="width:520px">
+    <div class="col__h">兩個訊號，五個軸，沒有一個重疊</div>
+    <table>
+      <tr><th style="width:96px">軸</th><th style="width:196px">T1 · 等你輸入</th><th>完成</th></tr>
+      <tr><td><b>顏色</b></td><td><i>琥珀 #FF9E0A</i></td><td><em>完成綠 #30D158</em>（不是新顏色 —— agent pip 已經在用）</td></tr>
+      <tr><td><b>形狀</b></td><td>三個向右的 <i>chevron</i></td><td>一個 <em>勾</em>。整個 app 只有這裡有勾</td></tr>
+      <tr><td><b>節奏</b></td><td>呼吸，<i>永不停止</i>，直到你回答</td><td><b>完全不動。</b>只有抵達那 280ms，一次</td></tr>
+      <tr><td><b>位置</b></td><td>釘在清單<i>上方</i>的卡，永遠可見</td><td>清單<em>裡面</em>的一列，會被捲走</td></tr>
+      <tr><td><b>通道</b></td><td>浮窗 + 音效 + 離開時補 osascript</td><td><em>面板</em>，加選單列一次 2.4 秒的慢呼吸</td></tr>
+      <tr><td><b>壽命</b></td><td>你動手才結束。時間不會讓它消失</td><td>鮮度 10 分鐘自己衰減；未讀等你開面板</td></tr>
+      <tr><td><b>靜音</b></td><td>整組壓下</td><td>壓下選單列那一下，<b>不動面板那一列</b></td></tr>
+    </table>
+    <p class="cap">
+      最後一列是刻意的：<b>面板是你自己去開的東西。</b>對一個主動來看的人隱藏資訊，
+      跟「不要打擾他」是兩回事。靜音管的是<b>不請自來的通道</b>。
+    </p>
+
+    <div class="col__h" style="margin-top:26px">兩個標記並排<u>各自放大到 40px。原尺寸不同：圖示 22pt、勾 10pt</u></div>
+    <div class="zoom">
+      <div class="zc" style="width:150px">
+        <div class="zc__box" style="height:96px">
+          <span style="color:#FF9E0A;display:flex"><svg width="40" height="40" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/><g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+        </div>
+        <div class="zc__lb"><b>T1</b> · <i>琥珀</i>環 + 三 chevron<br>會呼吸</div>
+      </div>
+      <div class="zc" style="width:150px">
+        <div class="zc__box" style="height:96px">
+          <span style="color:#30D158;display:flex"><svg width="40" height="40" viewBox="0 0 10 10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="zc__lb"><b>完成</b> · <em>綠</em>勾<br>完全靜止</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════ 5 · 選單列能承載多少 ══════════════════ -->
+<h2>5 · 選單列圖示能不能承載「有東西完成了」</h2>
+<p class="h2n">
+這是這個方向唯一真正的風險：<b>完成只在面板裡，那可能好幾個小時都沒被看到。</b>
+限制條件很硬 —— <b>幾何凍結</b>（不能加新形狀）、<b>琥珀保留</b>、<b>額度色階佔掉藍綠紅</b>、
+<b>status item 是固定 22pt 寬</b>（<code>StatusItemController</code> 裡有一條寫死的警語：可變寬度會推動選單列上所有鄰居，所以連一個數字都放不下）。<br>
+剩下沒有被佔用的維度只有一個：<b>不透明度</b>。答案因此是兩件事，一件會動一次，一件會留著。
+</p>
+
+<div class="zoom">
+  <div class="zc">
+    <div class="zc__box zc__box--bar">
+      <span style="color:#fff;display:flex"><svg class="gl" viewBox="0 0 22 22" width="22" height="22" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+      <span style="color:#fff;display:flex"><svg class="gl" viewBox="0 0 22 22" width="66" height="66" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+    </div>
+    <div class="zc__lb"><b>平常</b>（2 隻 agent 在跑）<br>弧 0.40／1.00 · agent 軌 0.32 · 生物 1.00</div>
+  </div>
+
+  <div class="zc">
+    <div class="zc__box zc__box--bar">
+      <span style="color:#fff;display:flex"><svg class="gl gl--done" viewBox="0 0 22 22" width="22" height="22" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+      <span style="color:#fff;display:flex"><svg class="gl gl--done" viewBox="0 0 22 22" width="66" height="66" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+    </div>
+    <div class="zc__lb"><b>未讀的完成</b> ·「<em>生物出列</em>」<br>其餘一律 <b>×0.72</b>，生物<b>維持滿墨</b><br><b>沒有新形狀、沒有新顏色</b></div>
+  </div>
+
+  <div class="zc">
+    <div class="zc__box zc__box--bar">
+      <span style="color:#fff;display:flex"><svg class="gl gl--sigh" viewBox="0 0 22 22" width="22" height="22" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+      <span style="color:#fff;display:flex"><svg class="gl gl--sigh" viewBox="0 0 22 22" width="66" height="66" fill="none">
+        <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#2975F2" stroke-width="1.5" stroke-linecap="round"/>
+        <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+        <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#2975F2" stroke-width="1.4" stroke-linecap="round"/>
+        <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#2975F2" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#2975F2" opacity=".42"/></g>
+        <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        <g class="l"><circle cx="9.250" cy="18.036" r=".75" fill="currentColor"/><circle cx="12.750" cy="18.036" r=".75" fill="currentColor"/></g>
+        <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+      </svg></span>
+    </div>
+    <div class="zc__lb"><b>抵達那一下</b>（重新整理頁面看）<br>整顆圖示 1.00 → 0.55 → 1.00<br><b>2.4 秒，只有一輪</b></div>
+  </div>
+
+  <div class="zc">
+    <div class="zc__box zc__box--bar">
+      <span style="color:#FF9E0A;display:flex"><svg viewBox="0 0 22 22" width="22" height="22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/><g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+      <span style="color:#FF9E0A;display:flex"><svg viewBox="0 0 22 22" width="66" height="66" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/><g class="brk" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg></span>
+    </div>
+    <div class="zc__lb"><b>T1 · 等你輸入</b>（對照組）<br>整顆換掉，<i>琥珀</i>，一直呼吸<br>完成訊號在這個狀態下<b>不存在</b></div>
+  </div>
+</div>
+
+<p class="cap">
+「<b>生物出列</b>」的理由：生物是這顆圖示裡唯一<b>永遠不染色</b>的東西
+（<code>GlyphRenderer</code> 裡有一條寫死的警語：染色會讓弧與生物糊成一團），
+所以它是唯一不會被額度色階吃掉的載體。而它剛好也是「你的工作」的化身 ——
+工作做完了，你看到的就是牠。<br>
+總墨量幾乎沒變（周邊 −28%，中心不動），所以這<b>不是一閃</b>、也不會被讀成「壞掉了」或「過期了」
+（過期是整顆 ×0.45，比這深得多）。<b>圖地關係換了邊</b>而已。<br>
+清除條件：<b>面板被打開</b>，或那個 session 又開始工作，或滿 24 小時。
+另外還有一個零像素的通道 —— <b>tooltip</b>（<code>item.button?.toolTip</code> 已經存在）會多一行
+「<code>usage · 12m 04s · 58 分前完成</code>」，滑過去就看得到，而且它可以留一整天。
+</p>
+
+<!-- ══════════════════ 6 · 淺色 ══════════════════ -->
+<h2>6 · 淺色選單列與淺色面板</h2>
+<p class="h2n">
+同一份東西在淺色上。<b>完成綠必須換一組色值</b>（<code>#30D158</code> 在淺色材質上只有 1.9:1），
+與 <code>QuotaPalette</code> 早就分兩組的做法一致。<b>這一邊比較弱</b>，而且那正是下面「弱點」第一條的來源。
+</p>
+
+<div class="stage stage--light" style="height:210px">
+  <div class="stage__wall"></div>
+  <div class="mb mb--light">
+    <b>Visual Studio Code</b><span>File</span><span>Edit</span><span>View</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__slot">
+        <svg class="gl gl--done" viewBox="0 0 22 22" width="22" height="22" fill="none" style="color:#000;--trk:.17;--lit:.72;--rail:.35">
+          <path class="t" d="M 5.446 15.660 A 7.25 7.25 0 1 1 16.554 15.660" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path class="l" d="M 5.446 15.660 A 7.25 7.25 0 1 1 17.094 7.073" stroke="#004CBF" stroke-width="1.5" stroke-linecap="round"/>
+          <path class="t" d="M 7.821 13.668 A 4.15 4.15 0 1 1 14.179 13.668" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/>
+          <path class="l" d="M 7.821 13.668 A 4.15 4.15 0 1 1 15.139 10.696" stroke="#004CBF" stroke-width="1.4" stroke-linecap="round"/>
+          <g class="l"><circle cx="11" cy="3.75" r=".75" fill="#004CBF" opacity=".42"/><circle cx="11" cy="6.85" r=".70" fill="#004CBF" opacity=".42"/></g>
+          <path class="r" d="M 13.757 17.705 A 7.25 7.25 0 0 1 8.243 17.705" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <g class="c" fill="currentColor"><rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95"/><circle cx="9.90" cy="10.35" r=".95"/><circle cx="12.10" cy="10.35" r=".95"/></g>
+        </svg>
+      </span>
+      <span class="mb__clock">週五 14:23</span>
+    </span>
+  </div>
+
+  <div class="pop" style="position:absolute;right:26px;top:32px">
+    <div class="pnl pnl--light">
+      <div class="pl__hd"><span class="seclab">工作階段 SESSIONS</span><span class="pl__cnt">0 等待 · 0 執行 · 2 閒置</span></div>
+      <div class="pl__body">
+        <div class="row row--done">
+          <div class="row__drainwrap"><div class="row__drain" style="width:100%;background:#188A3C"></div></div>
+          <div class="row__hd">
+            <span class="ind ind--done" style="color:#188A3C"><svg viewBox="0 0 10 10" width="10" height="10" fill="none"><circle cx="5" cy="5" r="4.42" stroke="currentColor" stroke-width="1.12"/><path d="M3.05 5.15 4.35 6.48 6.98 3.52" stroke="currentColor" stroke-width="1.32" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+            <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+            <span class="row__r"><span class="row__done" style="color:#137032">剛完成</span><span class="row__ran">跑了 12m 04s</span></span>
+          </div>
+          <div class="ctx"><span class="ctx__k">ctx</span><span class="ctx__b"><u style="width:34%;background:#218A47"></u></span><span class="ctx__v">34%</span><span class="ctx__w">1M</span></div>
+        </div>
+        <div class="row">
+          <div class="row__hd">
+            <span class="ind ind--idle"><i></i></span><span class="row__n">zen-dial</span>
+            <span class="row__p">~/zen-dial</span>
+            <span class="row__r"><span class="row__k">IDLE</span><span class="row__t">2h</span></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap">
+淺色：完成綠 <b>#188A3C</b>（文字用 <b>#137032</b>），對面板材質 4.7 : 1。
+選單列的「生物出列」在這一邊<b>更弱</b> —— 黑墨的暗軌本來就只有 0.24–0.32，再乘 0.72 的差
+在 1x 螢幕上幾乎讀不出來。<b>這個限制寫在下面，不掩飾。</b>
+</p>
+
+<!-- ══════════════════ 7 · 選了什麼 / 拒絕了什麼 / 弱點 ══════════════════ -->
+<h2>7 · 選了什麼 · 刻意拒絕了什麼 · 誠實的弱點</h2>
+
+<div class="notes">
+
+  <div class="note note--y">
+    <h3>Chosen</h3>
+    <h4>選了什麼</h4>
+    <ol>
+      <li><b>完成永遠不浮窗、不出聲、不進通知中心。</b>唯一不請自來的東西是選單列那一次
+        <b>2.4 秒的慢呼吸</b>，而且它照樣走 <code>G5</code>（你在不在）與 <code>G6</code>（你是不是正看著那個 app）——
+        算下來一天約 <em>1.6 次</em>。面板裡的標記不受這兩道閘限制，一天約 <em>5.4 次</em>。</li>
+      <li><b>零高度成本。</b>完成狀態整個塞進既有的 header 那一行，外加一條坐在卡片<b>上緣</b>的 1.5pt 線。
+        使用者拒絕過的那張額外的卡片沒有以任何形式回來。</li>
+      <li><b>形狀承載語意，不是顏色。</b><em>勾</em>（完成）／ <i>三個 chevron</i>（等你）。
+        這是這個 repo 已經寫下的規則：「警示狀態不是靠顏色跟這裡區分的 —— 它是完全不同的形狀」。</li>
+      <li><b>完成綠不是新顏色</b> —— 就是面板裡 agent pip 與 workflow pip 已經在用的那個綠。
+        新加的只有<b>形狀</b>與<b>衰減</b>。<i>琥珀一個像素都沒被碰到</i>。</li>
+      <li><b>兩個鐘。</b>鮮度照牆上的鐘衰減（剛完成 → N 分前 → 10 分鐘後全清），
+        未讀等你（開過面板才清）。<b>形容詞老實變舊，標記不會在你看到之前先消失。</b></li>
+      <li><b>「跑了 12m 04s」是主角</b>，不是「完成了」。你已經從勾知道它完成了；
+        你不知道的是它替你跑了多久 —— 那個數字才決定你要不要現在過去。</li>
+      <li><b>完成的列暫時排到清單最上面</b>（釘住的阻塞卡下方），否則第四個 session 出現時消息就在捲軸外。</li>
+      <li><b>選單列：生物出列。</b>未讀期間兩條弧、兩條暗軌、agent 軌一律 ×0.72，生物維持滿墨。
+        <b>不是新形狀、不是新顏色，只有不透明度</b> —— 幾何凍結的承諾沒有被違反。</li>
+      <li><b>T2 不再自己發聲</b>，掛成完成的明細行（<code>review 5/5</code>）。
+        同一件事說兩次是這個設計唯一能被繞過的破口，順手補掉。</li>
+      <li><b>靜音壓下選單列那一下與未讀標記，但不動面板那一列。</b>
+        面板是你主動去開的；對主動來看的人藏東西不叫「不打擾」。</li>
+      <li><b>零新計時器。</b>衰減是 <code>now − finishedAt</code> 的純函式，面板開著時才算；
+        圖示本來就每 3 秒重畫一次。這個 app「不在動畫的那幾秒之外不留重複性計時器」的規矩沒有破。</li>
+    </ol>
+  </div>
+
+  <div class="note note--n">
+    <h3>Rejected</h3>
+    <h4>刻意拒絕了什麼</h4>
+    <ol>
+      <li><b>浮窗。</b>一個 NSPanel 從你正在做的事情上拿走一塊螢幕。那個代價只有「有東西被你擋住」付得起。</li>
+      <li><b>音效（包括一個比較輕的音效）。</b>聲音沒有周邊視覺，它是全有全無的。
+        <b>61% 的完成發生在兩分鐘內</b>，那是對著正在看的人出聲。</li>
+      <li><b>osascript 備援。</b>它會以「指令碼編輯器」的身分留在通知中心裡<b>不會走</b>。
+        好消息的持久歷史就是垃圾。</li>
+      <li><b>任何深淺的琥珀。</b>包含「淡一點的琥珀」「琥珀色的細線」。稀釋琥珀＝毀掉 T1。</li>
+      <li><b>面板加一張「最近完成」卡。</b>使用者已經為了保住高度拒絕過一張額外的卡，那個答案在這裡同樣成立。</li>
+      <li><b>選單列上加一個點／徽章／角標。</b>幾何凍結。
+        （算過了：底部開口右肩只剩 2.0pt 弧長，放一顆 1.5pt 的點只餘 0.25pt 淨空 —— 1x 下連一個像素都不到。）</li>
+      <li><b>圖示變綠。</b>額度剩 20–50% 時圖示<b>本來就是綠的</b>，完成訊號會直接消失在裡面。</li>
+      <li><b>呼吸／脈動／任何重複的動作。</b>重複的動作 = T1 的專屬語彙。完成只動一次，而且是慢的。</li>
+      <li><b>永不消失的完成標記。</b>三小時後還寫著「剛完成」是一句謊話，而說謊的 UI 會被整個忽略。</li>
+      <li><b>「最近完成」的歷史清單。</b>會越長越長，而且沒有人回頭看。要歷史去看 transcript。</li>
+      <li><b>把 N 個完成合併成「2 個 session 完成」。</b>那是通知的做法。面板裡你已經在看了，兩列比一句話說得多且不多佔高度。</li>
+    </ol>
+  </div>
+
+  <div class="note note--w">
+    <h3>Weakness</h3>
+    <h4>這個方向誠實的弱點</h4>
+    <ol>
+      <li><b>最大的弱點：它可能根本沒被看到。</b>整個方向壓在一個<b>沒有被測量過</b>的假設上 ——
+        「你本來就會為了看額度打開面板」。如果你一天只開兩次面板，
+        那一天 5.4 次的完成標記裡有一大半會在你看到之前就過了鮮度。
+        <b>這個假設必須先量（面板開啟頻率），再決定要不要加強主動通道。</b></li>
+      <li><b>「生物出列」在淺色選單列的 1x 螢幕上接近讀不出來。</b>
+        黑墨的暗軌只有 0.24–0.32，×0.72 的差不到一階。這是「幾何凍結 + 琥珀保留 + 藍綠紅被額度佔走」
+        三個約束的<b>算術結果</b>，不是品味問題 —— 剩下的維度真的只有不透明度。</li>
+      <li><b>兩個鐘要解釋。</b>第一次看到一個<b>灰色的勾</b>配上「58 分前完成」的人，
+        不會知道那個勾為什麼還在、為什麼是灰的。這是這個設計唯一需要被教一次的地方。</li>
+      <li><b>面板裡其實有三個綠，而且其中一個就在同一張卡裡。</b>完成綠是 <code>#30D158</code>，而 <code>SessionRow.contextColour</code> 在 ctx &lt; 70% 時回傳的 <code>.green</code> <b>是同一個色值</b> —— 也就是說完成的那一列，會排空的綠線正上方就有一條綠色的 ctx 條。（第三個是 workflow pip 的完成綠，還有額度綠代表「剩 20–50%」。）目前只靠<b>粗細（1.5pt / 3pt）、位置（卡片邊 / 內文行）與形狀（勾 / 方 pip / 圓點）</b>分開。對紅綠色弱的使用者，<b>只剩形狀</b>。<br>真正的修法有兩條，都要使用者拍板：把 ctx 條改成單色（它本來就不需要顏色，數字已經在旁邊），或者完成改用別的載體。<b>這一頁把撞色照實畫出來，沒有調淡。</b></li>
+      <li><b>「跑了 12m 04s」量的是無人看管的時間，不是回合長度。</b>
+        <code>waiting → busy → idle</code> 會讓一個實際跑了 20 分鐘的回合顯示 <code>30s</code>。
+        設計上是對的（你回答的那一刻就是你在場的那一刻），但<b>讀起來會像 bug</b>，
+        而且第一次遇到的人會以為數字壞了。</li>
+      <li><b>排序會跳。</b>面板正開著的時候有 session 完成，它會跳到清單最上面 ——
+        你正要點的那一列會往下移一格。（緩解：只在面板<b>關著</b>的時候重排。但那又表示
+        面板開著時完成的那一列可能在捲軸外。兩害，還沒有量哪一個比較痛。）</li>
+      <li><b>T2 從「自己會響」降級成「完成的明細行」是一個真正的功能減損。</b>
+        目前 T2 會出聲，改完之後在「扇出散完但 session 立刻開下一輪」的情況下
+        只會在 <code>batchAttachWindow</code>（180s）之後才單獨出現一次。
+        扇出很長的多階段 workflow，<b>感覺上會變安靜</b>。</li>
+    </ol>
+  </div>
+
+</div>
+
+<p class="cap" style="margin-top:26px">
+一句話總結這個方向的立場：<b>它把「會不會漏看」這個風險，換掉了「會不會被吵到」這個風險。</b>
+漏看一次完成的代價是「晚幾分鐘回去」；被吵一次的代價是「下次琥珀亮起來時你的眼睛已經學會不看了」。
+這個 repo 已經寫下的那條規則 ——「<b>在錯的時間響的通知，比沒有通知更糟</b>」—— 選的是同一邊。
+</p>
+
+</div></div>
+</body>
+</html>

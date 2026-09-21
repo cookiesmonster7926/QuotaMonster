@@ -1,0 +1,2 @@
+{"type": "assistant", "uuid": "u-1", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "toolu_PLAIN1", "name": "Task", "input": {"description": "Explore the codebase"}}]}}
+{"type": "assistant", "uuid": "u-2", "message": {"role": "assistant", "content": [{"type": "tool_use", "id": "toolu_STALE", "name": "Task", "input": {"description": "A job from a previous resume"}}]}}

@@ -1,0 +1,807 @@
+<style>
+/* ============================================================
+   DRAWDOWN — QuotaMonster menu-bar mark.  All CSS scoped to .mb-signal
+   ============================================================ */
+
+.mb-signal{
+  --mbs-bg:#fbfbfd; --mbs-fg:#16161a; --mbs-mut:#6d6d76; --mbs-line:#e2e2e8;
+  --mbs-card:#ffffff; --mbs-accent:#b03a2e;
+  font:400 13px/1.55 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  background:var(--mbs-bg); color:var(--mbs-fg);
+  padding:30px 26px 36px; border-radius:16px;
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+  max-width:980px; box-sizing:border-box;
+}
+@media (prefers-color-scheme:dark){
+  .mb-signal{--mbs-bg:#101012;--mbs-fg:#ececed;--mbs-mut:#8f8f99;--mbs-line:#2a2a31;--mbs-card:#18181c;--mbs-accent:#ff8a7d}
+}
+
+.mb-signal *{box-sizing:border-box}
+.mb-signal h2{font:600 22px/1.25 inherit;margin:0 0 6px;letter-spacing:-.02em}
+.mb-signal h3{font:600 12px/1.3 inherit;margin:34px 0 10px;letter-spacing:.09em;text-transform:uppercase;color:var(--mbs-mut)}
+.mb-signal h3:first-of-type{margin-top:26px}
+.mb-signal p{margin:0 0 10px;max-width:74ch;color:var(--mbs-fg)}
+.mb-signal .mbs-lede{font-size:14px;line-height:1.6}
+.mb-signal .mbs-dim{color:var(--mbs-mut)}
+.mb-signal .mbs-rule{height:1px;background:var(--mbs-line);border:0;margin:26px 0 0}
+.mb-signal code{font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,monospace;background:color-mix(in srgb,var(--mbs-mut) 16%,transparent);padding:1px 5px;border-radius:4px}
+
+/* ---------- wallpaper + menu bar ---------- */
+.mb-signal .mbs-scene{position:relative;border-radius:11px;overflow:hidden;margin:0 0 14px}
+.mb-signal .mbs-paper{height:128px;position:relative}
+.mb-signal .mbs-paper--light{
+  background:
+    radial-gradient(120px 90px at 46% 96%,rgba(20,18,40,.82),transparent 70%),
+    radial-gradient(150px 120px at 79% 2%,rgba(26,22,48,.8),transparent 74%),
+    radial-gradient(180px 130px at 96% 14%,rgba(255,255,255,.95),transparent 72%),
+    radial-gradient(220px 160px at 30% 120%,rgba(255,196,120,.85),transparent 70%),
+    linear-gradient(153deg,#bcd6ff 0%,#dfd2ff 34%,#ffd9c2 68%,#fff3df 100%);
+}
+.mb-signal .mbs-paper--dark{
+  background:
+    radial-gradient(140px 100px at 50% 92%,rgba(255,255,255,.72),transparent 70%),
+    radial-gradient(150px 120px at 79% 2%,rgba(236,248,255,.9),transparent 74%),
+    radial-gradient(200px 150px at 97% 16%,rgba(120,210,255,.5),transparent 70%),
+    radial-gradient(240px 180px at 18% 110%,rgba(255,90,160,.42),transparent 72%),
+    linear-gradient(153deg,#161a2e 0%,#241a38 40%,#0f2430 74%,#08141c 100%);
+}
+.mb-signal .mbs-bar{
+  position:absolute;top:0;left:0;right:0;height:33px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 8px 0 13px;
+  -webkit-backdrop-filter:blur(26px) saturate(1.7);backdrop-filter:blur(26px) saturate(1.7);
+}
+.mb-signal .mbs-bar--light{background:rgba(250,250,252,.62);color:rgba(0,0,0,.86);--mbs-red:#e0281c}
+.mb-signal .mbs-bar--dark{background:rgba(14,14,18,.5);color:rgba(255,255,255,.93);--mbs-red:#ff5a4d}
+.mb-signal .mbs-menus{display:flex;gap:15px;font:400 13px/1 inherit;opacity:.88;white-space:nowrap}
+.mb-signal .mbs-menus b{font-weight:600}
+.mb-signal .mbs-tray{display:flex;align-items:center;gap:11px}
+.mb-signal .mbs-sys{opacity:.82;display:block}
+.mb-signal .mbs-clock{font:400 13px/1 inherit;opacity:.9;font-variant-numeric:tabular-nums;padding-left:1px}
+.mb-signal .mbs-caps{display:flex;justify-content:space-between;font:500 11px/1.4 inherit;color:var(--mbs-mut);margin:-4px 0 18px;padding:0 2px}
+
+/* ---------- the item ---------- */
+.mb-signal .mbs-item{
+  display:inline-flex;align-items:center;justify-content:space-between;
+  width:72px;height:22px;padding:0 5px;flex:none;
+}
+.mb-signal .mbs-g{display:block;overflow:visible}
+.mb-signal .mbs-num{
+  font:500 11px/13px -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,sans-serif;
+  font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+  letter-spacing:.1px;width:28px;text-align:right;white-space:nowrap;
+}
+
+/* marks */
+.mb-signal .mbs-shell{fill:none;stroke:currentColor;stroke-width:1.2;opacity:.9}
+.mb-signal .mbs-tip{fill:currentColor;opacity:.5}
+.mb-signal .mbs-fill,
+.mb-signal .mbs-proj,
+.mb-signal .mbs-front,
+.mb-signal .mbs-ghost,
+.mb-signal .mbs-tick,
+.mb-signal .mbs-cut{transform-box:fill-box;transform-origin:left center}
+.mb-signal .mbs-cut{transform-origin:center}
+.mb-signal .mbs-fill{fill:currentColor}
+.mb-signal .mbs-proj{fill:currentColor;opacity:0}
+.mb-signal .mbs-front{fill:currentColor;opacity:0}
+.mb-signal .mbs-ghost{fill:currentColor;opacity:0}
+.mb-signal .mbs-tick{fill:currentColor;opacity:.55}
+.mb-signal .mbs-wallbar{fill:var(--mbs-red,#e0281c);opacity:0}
+.mb-signal .mbs-slab{fill:currentColor;opacity:0}
+.mb-signal .mbs-tipsolid{fill:currentColor;opacity:0}
+
+/* states */
+.mb-signal .mbs-run .mbs-proj{opacity:.38}
+.mb-signal .mbs-run .mbs-front{opacity:.95}
+.mb-signal .mbs-atwall .mbs-front{opacity:0}
+.mb-signal .mbs-red .mbs-wallbar{opacity:1}
+.mb-signal .mbs-fin .mbs-ghost{opacity:.45}
+.mb-signal .mbs-block .mbs-body{opacity:0}
+.mb-signal .mbs-block .mbs-slab,
+.mb-signal .mbs-block .mbs-tipsolid{opacity:1}
+.mb-signal .mbs-block .mbs-num{font-weight:600}
+.mb-signal .mbs-stale .mbs-shell{stroke-dasharray:2 1.7;opacity:.5}
+.mb-signal .mbs-stale .mbs-fill{opacity:.32}
+.mb-signal .mbs-stale .mbs-tick{opacity:.2}
+.mb-signal .mbs-stale .mbs-num{opacity:.4}
+.mb-signal .mbs-notip .mbs-tip{display:none}
+
+/* ---------- gallery ---------- */
+.mb-signal .mbs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(212px,1fr));gap:9px}
+.mb-signal .mbs-cell{border:1px solid var(--mbs-line);border-radius:10px;overflow:hidden;background:var(--mbs-card)}
+.mb-signal .mbs-chip{
+  height:33px;display:flex;align-items:center;justify-content:flex-end;padding:0 9px;gap:9px;
+  background:
+    radial-gradient(90px 60px at 20% 110%,rgba(255,120,170,.4),transparent 70%),
+    linear-gradient(120deg,#1b1c2b,#221b33 45%,#0f2530);
+  color:rgba(255,255,255,.93);--mbs-red:#ff5a4d;
+}
+.mb-signal .mbs-chip--light{
+  background:
+    radial-gradient(90px 60px at 22% 110%,rgba(255,190,110,.75),transparent 70%),
+    linear-gradient(120deg,#cbdcff,#e6d8ff 48%,#ffe6d2);
+  color:rgba(0,0,0,.86);--mbs-red:#e0281c;
+}
+.mb-signal .mbs-meta{padding:8px 10px 10px}
+.mb-signal .mbs-t{font:600 12px/1.35 inherit;margin:0 0 2px}
+.mb-signal .mbs-d{font:400 11px/1.45 inherit;color:var(--mbs-mut);margin:0}
+.mb-signal .mbs-star{color:var(--mbs-accent);font-weight:700}
+
+/* ---------- width proof ---------- */
+.mb-signal .mbs-proof{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-start}
+.mb-signal .mbs-box{
+  display:inline-flex;flex-direction:column;align-items:center;gap:5px;
+}
+.mb-signal .mbs-box .mbs-hold{
+  outline:1px dashed color-mix(in srgb,var(--mbs-mut) 55%,transparent);outline-offset:0;
+  border-radius:3px;background:
+    linear-gradient(120deg,#1b1c2b,#221b33 45%,#0f2530);
+  color:rgba(255,255,255,.93);--mbs-red:#ff5a4d;display:flex;align-items:center;
+}
+.mb-signal .mbs-box span.mbs-lbl{font:500 10px/1.2 inherit;color:var(--mbs-mut)}
+
+/* ---------- legend ---------- */
+.mb-signal .mbs-key{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:0 22px}
+.mb-signal .mbs-key div{display:flex;gap:9px;padding:6px 0;border-bottom:1px solid var(--mbs-line);align-items:baseline}
+.mb-signal .mbs-key b{font:600 12px/1.5 inherit;flex:none;width:96px}
+.mb-signal .mbs-key span{font:400 12px/1.5 inherit;color:var(--mbs-mut)}
+
+/* ============================================================
+   LIVE SCENARIO — 16s loop
+   ============================================================ */
+.mb-signal .mbs-scn .mbs-fill{animation:mbs-k-fill 16s linear infinite}
+.mb-signal .mbs-scn .mbs-proj{animation:mbs-k-proj 16s linear infinite}
+.mb-signal .mbs-scn .mbs-front{animation:mbs-k-front 16s linear infinite}
+.mb-signal .mbs-scn .mbs-ghost{animation:mbs-k-ghost 16s linear infinite}
+.mb-signal .mbs-scn .mbs-wallbar{animation:mbs-k-wall 16s linear infinite}
+.mb-signal .mbs-scn .mbs-body{animation:mbs-k-body 16s linear infinite}
+.mb-signal .mbs-scn .mbs-slab,
+.mb-signal .mbs-scn .mbs-tipsolid{animation:mbs-k-slab 16s linear infinite}
+.mb-signal .mbs-scn .mbs-cut-slot{animation:mbs-k-slot 16s linear infinite}
+.mb-signal .mbs-scn .mbs-cut-bite{animation:mbs-k-bite 16s linear infinite}
+
+@keyframes mbs-k-fill{
+  0%,13.75%{transform:scaleX(.72)}
+  15.25%{transform:scaleX(.5826)}
+  20%{transform:scaleX(.5826)}
+  21.5%{transform:scaleX(.4817)}
+  23.125%{transform:scaleX(.4817)}
+  24.6%{transform:scaleX(.3807)}
+  26.25%{transform:scaleX(.3807)}
+  27.75%{transform:scaleX(.2615)}
+  43.75%{transform:scaleX(.2615)}
+  45.25%{transform:scaleX(.3339)}
+  49.375%{transform:scaleX(.3339)}
+  50.9%{transform:scaleX(.489)}
+  53.75%{transform:scaleX(.489)}
+  55.25%{transform:scaleX(.69)}
+  87.5%{transform:scaleX(.69)}
+  89%{transform:scaleX(.5523)}
+  93.75%{transform:scaleX(.5523)}
+  95.25%{transform:scaleX(.685)}
+  100%{transform:scaleX(.685)}
+}
+@keyframes mbs-k-proj{
+  0%,13.75%{opacity:0;transform:translateX(15.7px) scaleX(0)}
+  15.25%{opacity:.38;transform:translateX(12.7px) scaleX(.1376)}
+  20%{opacity:.38;transform:translateX(12.7px) scaleX(.1376)}
+  21.5%{opacity:.38;transform:translateX(10.5px) scaleX(.2385)}
+  23.125%{opacity:.38;transform:translateX(10.5px) scaleX(.2385)}
+  24.6%{opacity:.38;transform:translateX(8.3px) scaleX(.3394)}
+  26.25%{opacity:.38;transform:translateX(8.3px) scaleX(.3394)}
+  27.75%{opacity:.38;transform:translateX(5.7px) scaleX(.4587)}
+  43.75%{opacity:.38;transform:translateX(5.7px) scaleX(.4587)}
+  45.25%{opacity:.38;transform:translateX(7.28px) scaleX(.3761)}
+  49.375%{opacity:.38;transform:translateX(7.28px) scaleX(.3761)}
+  50.9%{opacity:.38;transform:translateX(10.66px) scaleX(.211)}
+  53.75%{opacity:.38;transform:translateX(10.66px) scaleX(.211)}
+  55.25%{opacity:0;transform:translateX(15.04px) scaleX(0)}
+  87.5%{opacity:0;transform:translateX(15.04px) scaleX(0)}
+  89%{opacity:.38;transform:translateX(12.04px) scaleX(.1376)}
+  93.75%{opacity:.38;transform:translateX(12.04px) scaleX(.1376)}
+  95.25%{opacity:0;transform:translateX(14.93px) scaleX(0)}
+  100%{opacity:0;transform:translateX(14.93px) scaleX(0)}
+}
+@keyframes mbs-k-front{
+  0%,13.75%{opacity:0;transform:translateX(15.2px)}
+  15.25%{opacity:.95;transform:translateX(12.2px)}
+  20%{opacity:.95;transform:translateX(12.2px)}
+  21.5%{opacity:.95;transform:translateX(10px)}
+  23.125%{opacity:.95;transform:translateX(10px)}
+  24.6%{opacity:.95;transform:translateX(7.8px)}
+  26.25%{opacity:.95;transform:translateX(7.8px)}
+  27.75%{opacity:.95;transform:translateX(5.2px)}
+  43.75%{opacity:.95;transform:translateX(5.2px)}
+  45.25%{opacity:.95;transform:translateX(6.78px)}
+  49.375%{opacity:.95;transform:translateX(6.78px)}
+  50.9%{opacity:.95;transform:translateX(10.16px)}
+  53.75%{opacity:.95;transform:translateX(10.16px)}
+  55.25%{opacity:0;transform:translateX(14.54px)}
+  87.5%{opacity:0;transform:translateX(14.54px)}
+  89%{opacity:.95;transform:translateX(11.54px)}
+  93.75%{opacity:.95;transform:translateX(11.54px)}
+  95.25%{opacity:0;transform:translateX(14.43px)}
+  100%{opacity:0;transform:translateX(14.43px)}
+}
+@keyframes mbs-k-ghost{
+  0%,43.74%{opacity:0;transform:translateX(5.25px)}
+  43.75%{opacity:.45;transform:translateX(5.25px)}
+  49.3%{opacity:0;transform:translateX(5.25px)}
+  49.36%{opacity:0;transform:translateX(6.83px)}
+  49.38%{opacity:.45;transform:translateX(6.83px)}
+  53.68%{opacity:0;transform:translateX(6.83px)}
+  53.73%{opacity:0;transform:translateX(10.21px)}
+  53.75%{opacity:.45;transform:translateX(10.21px)}
+  60.6%{opacity:0;transform:translateX(10.21px)}
+  93.72%{opacity:0;transform:translateX(11.59px)}
+  93.75%{opacity:.45;transform:translateX(11.59px)}
+  100%{opacity:0;transform:translateX(11.59px)}
+}
+@keyframes mbs-k-wall{
+  0%,23.09%{opacity:0}
+  23.1%{opacity:1}
+  24.03%{opacity:.22}
+  24.97%{opacity:1}
+  25.9%{opacity:.22}
+  26.84%{opacity:1}
+  27.78%{opacity:.22}
+  28.72%{opacity:1}
+  49.375%{opacity:1}
+  50.6%{opacity:0}
+  100%{opacity:0}
+}
+@keyframes mbs-k-body{
+  0%,66.25%{opacity:1}
+  67.63%{opacity:0}
+  87.5%{opacity:0}
+  88.88%{opacity:1}
+  100%{opacity:1}
+}
+@keyframes mbs-k-slab{
+  0%,66.25%{opacity:0}
+  67.63%{opacity:1}
+  69.5%{opacity:.5}
+  71.4%{opacity:1}
+  73.3%{opacity:.5}
+  75.2%{opacity:1}
+  77.1%{opacity:.5}
+  78.9%{opacity:1}
+  87.5%{opacity:1}
+  88.88%{opacity:0}
+  100%{opacity:0}
+}
+@keyframes mbs-k-slot{
+  0%,66.25%{opacity:0}
+  67.63%{opacity:1}
+  87.5%{opacity:1}
+  88.88%{opacity:0}
+  100%{opacity:0}
+}
+@keyframes mbs-k-bite{
+  0%,43.74%{opacity:0;transform:translateX(6.08px) scaleX(1)}
+  43.75%{opacity:1;transform:translateX(6.08px) scaleX(1)}
+  44.1%{opacity:1;transform:translateX(6.08px) scaleX(1)}
+  45.4%{opacity:1;transform:translateX(6.08px) scaleX(.02)}
+  45.5%{opacity:0;transform:translateX(9.46px) scaleX(1)}
+  49.37%{opacity:0;transform:translateX(9.46px) scaleX(1)}
+  49.38%{opacity:1;transform:translateX(9.46px) scaleX(1)}
+  49.73%{opacity:1;transform:translateX(9.46px) scaleX(1)}
+  51.03%{opacity:1;transform:translateX(9.46px) scaleX(.02)}
+  51.13%{opacity:0;transform:translateX(13.84px) scaleX(1)}
+  53.74%{opacity:0;transform:translateX(13.84px) scaleX(1)}
+  53.75%{opacity:1;transform:translateX(13.84px) scaleX(1)}
+  54.1%{opacity:1;transform:translateX(13.84px) scaleX(1)}
+  55.4%{opacity:1;transform:translateX(13.84px) scaleX(.02)}
+  55.5%{opacity:0;transform:translateX(13.73px) scaleX(1)}
+  93.74%{opacity:0;transform:translateX(13.73px) scaleX(1)}
+  93.75%{opacity:1;transform:translateX(13.73px) scaleX(1)}
+  94.1%{opacity:1;transform:translateX(13.73px) scaleX(1)}
+  95.4%{opacity:1;transform:translateX(13.73px) scaleX(.02)}
+  95.5%,100%{opacity:0;transform:translateX(13.73px) scaleX(1)}
+}
+
+/* number + caption swaps */
+.mb-signal .mbs-numstack{position:relative;width:28px;height:13px;display:inline-block}
+.mb-signal .mbs-numstack i{
+  position:absolute;right:0;top:0;font-style:normal;opacity:0;
+  font:500 11px/13px -apple-system,BlinkMacSystemFont,"SF Pro Text",Helvetica,sans-serif;
+  font-variant-numeric:tabular-nums;letter-spacing:.1px;white-space:nowrap;
+}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(1){animation:mbs-n1 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(2){animation:mbs-n2 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(3){animation:mbs-n3 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(4){animation:mbs-n4 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(5){animation:mbs-n5 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(6){animation:mbs-n6 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(7){animation:mbs-n7 16s steps(1,end) infinite}
+.mb-signal .mbs-scn .mbs-numstack i:nth-child(8){animation:mbs-n8 16s steps(1,end) infinite}
+@keyframes mbs-n1{0%{opacity:1}23.1%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n2{0%{opacity:0}23.1%{opacity:1}26.25%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n3{0%{opacity:0}26.25%{opacity:1}43.75%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n4{0%{opacity:0}43.75%{opacity:1}49.375%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n5{0%{opacity:0}49.375%{opacity:1}66.25%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n6{0%{opacity:0}67.63%{opacity:1}73.75%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n7{0%{opacity:0}73.75%{opacity:1}87.5%{opacity:0}100%{opacity:0}}
+@keyframes mbs-n8{0%{opacity:0}87.5%{opacity:1}100%{opacity:1}}
+
+.mb-signal .mbs-capstack{position:relative;height:58px;margin:10px 0 0}
+.mb-signal .mbs-capstack i{
+  position:absolute;left:0;top:0;right:0;font-style:normal;opacity:0;
+  font:400 12.5px/1.5 inherit;color:var(--mbs-fg);
+}
+.mb-signal .mbs-capstack i b{font-weight:650}
+.mb-signal .mbs-capstack i:nth-child(1){animation:mbs-c1 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(2){animation:mbs-c2 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(3){animation:mbs-c3 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(4){animation:mbs-c4 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(5){animation:mbs-c5 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(6){animation:mbs-c6 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(7){animation:mbs-c7 16s steps(1,end) infinite}
+.mb-signal .mbs-capstack i:nth-child(8){animation:mbs-c8 16s steps(1,end) infinite}
+@keyframes mbs-c1{0%{opacity:1}13.75%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c2{0%{opacity:0}13.75%{opacity:1}20%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c3{0%{opacity:0}20%{opacity:1}26.25%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c4{0%{opacity:0}26.25%{opacity:1}43.75%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c5{0%{opacity:0}43.75%{opacity:1}53.75%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c6{0%{opacity:0}53.75%{opacity:1}66.25%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c7{0%{opacity:0}66.25%{opacity:1}87.5%{opacity:0}100%{opacity:0}}
+@keyframes mbs-c8{0%{opacity:0}87.5%{opacity:1}100%{opacity:1}}
+
+/* timeline ruler (mockup chrome, not product) */
+.mb-signal .mbs-ruler{position:relative;height:46px;margin:16px 0 0;border-top:1px solid var(--mbs-line)}
+.mb-signal .mbs-band{position:absolute;top:0;height:9px;background:color-mix(in srgb,var(--mbs-accent) 40%,transparent);border-radius:0 0 2px 2px}
+.mb-signal .mbs-still{position:absolute;top:0;height:9px;background:color-mix(in srgb,var(--mbs-mut) 26%,transparent)}
+.mb-signal .mbs-tickline{position:absolute;top:0;width:1px;height:15px;background:var(--mbs-line)}
+.mb-signal .mbs-tlab{position:absolute;top:17px;font:500 10px/1.2 inherit;color:var(--mbs-mut);transform:translateX(-50%);white-space:nowrap}
+.mb-signal .mbs-play{position:absolute;top:0;width:1px;height:15px;background:var(--mbs-accent);animation:mbs-k-play 16s linear infinite}
+@keyframes mbs-k-play{0%{left:0}100%{left:100%}}
+.mb-signal .mbs-rlegend{position:absolute;top:32px;left:0;font:400 10.5px/1.3 inherit;color:var(--mbs-mut)}
+.mb-signal .mbs-sw{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin:0 3px 0 10px}
+.mb-signal .mbs-sw--m{background:color-mix(in srgb,var(--mbs-accent) 40%,transparent)}
+.mb-signal .mbs-sw--s{background:color-mix(in srgb,var(--mbs-mut) 26%,transparent)}
+.mb-signal .mbs-sw:first-child{margin-left:0}
+
+/* reduced motion: every signal keeps a static form; only the noticing is lost */
+@media (prefers-reduced-motion:reduce){
+  .mb-signal .mbs-scn .mbs-fill,
+  .mb-signal .mbs-scn .mbs-proj,
+  .mb-signal .mbs-scn .mbs-front,
+  .mb-signal .mbs-scn .mbs-ghost,
+  .mb-signal .mbs-scn .mbs-body,
+  .mb-signal .mbs-scn .mbs-cut-bite{animation-timing-function:steps(1,end)!important}
+  .mb-signal .mbs-scn .mbs-wallbar{animation:mbs-k-wall-rm 16s steps(1,end) infinite!important}
+  .mb-signal .mbs-scn .mbs-slab,
+  .mb-signal .mbs-scn .mbs-tipsolid{animation:mbs-k-slot 16s steps(1,end) infinite!important}
+  .mb-signal .mbs-play{animation-timing-function:steps(16,end)}
+}
+@keyframes mbs-k-wall-rm{0%{opacity:0}23.1%{opacity:1}49.375%{opacity:0}100%{opacity:0}}
+</style>
+
+<div class="mb-signal">
+
+  <h2>Drawdown</h2>
+  <p class="mbs-lede">The battery everyone can already read, pointed at your quota — with <b>the next half hour of consumption drawn as a shadow inside it</b>. The shadow <em>is</em> the activity signal, because activity is nothing but the rate the quota drains. An agent finishing is the shadow retracting and leaving a ghost. A session blocking on you turns the whole cell solid.</p>
+  <p class="mbs-dim">Fixed 72&thinsp;pt &middot; glyph 28.2&thinsp;&times;&thinsp;14&thinsp;pt inside the 22&thinsp;pt content box &middot; one colour, spent once &middot; nothing loops.</p>
+
+  <h3>On the bar — dark appearance</h3>
+  <div class="mbs-scene">
+    <div class="mbs-paper mbs-paper--dark"></div>
+    <div class="mbs-bar mbs-bar--dark">
+      <div class="mbs-menus"><b>Claude</b><span>File</span><span>Edit</span><span>Session</span><span>View</span><span>Window</span><span>Help</span></div>
+      <div class="mbs-tray">
+        <span class="mbs-item mbs-run mbs-red">
+          <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+            <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+            <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.2615)"/>
+            <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(5.7px) scaleX(.4587)"/>
+            <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+            <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(5.2px)"/>
+            <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+            <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+          </g><g class="mbs-inv">
+            <rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/>
+            <rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          </g></svg><span class="mbs-num">47m</span>
+        </span>
+        <svg class="mbs-sys" viewBox="0 0 17 12" width="17" height="12" aria-hidden="true"><path d="M1 3.6A11 11 0 0 1 16 3.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3.8 6.4a7.2 7.2 0 0 1 9.4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8.5" cy="9.9" r="1.5" fill="currentColor"/></svg>
+        <svg class="mbs-sys" viewBox="0 0 28 13" width="28" height="13" aria-hidden="true"><rect x="0.6" y="0.6" width="24" height="11.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="2" y="2" width="15" height="9" rx="1.6" fill="currentColor"/><rect x="25.6" y="4.2" width="1.6" height="4.6" rx="0.8" fill="currentColor" opacity=".4"/></svg>
+        <svg class="mbs-sys" viewBox="0 0 14 13" width="14" height="13" aria-hidden="true"><rect x="0.6" y="1.1" width="12.8" height="4.2" rx="2.1" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="3.7" cy="3.2" r="1.1" fill="currentColor"/><rect x="0.6" y="7.6" width="12.8" height="4.2" rx="2.1" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="10.3" cy="9.7" r="1.1" fill="currentColor"/></svg>
+        <span class="mbs-clock">Thu 1:28&thinsp;AM</span>
+      </div>
+    </div>
+  </div>
+  <div class="mbs-caps"><span>The real reading: 5h 28% used, burning 92%/h, 5 agents across 4 sessions.</span><span>Next to the system battery for scale.</span></div>
+
+  <h3>On the bar — light appearance</h3>
+  <div class="mbs-scene">
+    <div class="mbs-paper mbs-paper--light"></div>
+    <div class="mbs-bar mbs-bar--light">
+      <div class="mbs-menus"><b>Claude</b><span>File</span><span>Edit</span><span>Session</span><span>View</span><span>Window</span><span>Help</span></div>
+      <div class="mbs-tray">
+        <span class="mbs-item mbs-block">
+          <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+            <defs><mask id="mbs-k-a" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+              <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+              <rect class="mbs-cut" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.9px)"/>
+              <rect class="mbs-cut" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/>
+            </mask></defs>
+            <g mask="url(#mbs-k-a)"><g class="mbs-body">
+              <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+              <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+              <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+              <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+              <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+              <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+              <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+              <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+            </g><g class="mbs-inv">
+              <rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/>
+              <rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            </g></g>
+          </svg><span class="mbs-num">2m</span>
+        </span>
+        <svg class="mbs-sys" viewBox="0 0 17 12" width="17" height="12" aria-hidden="true"><path d="M1 3.6A11 11 0 0 1 16 3.6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M3.8 6.4a7.2 7.2 0 0 1 9.4 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="8.5" cy="9.9" r="1.5" fill="currentColor"/></svg>
+        <svg class="mbs-sys" viewBox="0 0 28 13" width="28" height="13" aria-hidden="true"><rect x="0.6" y="0.6" width="24" height="11.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="2" y="2" width="15" height="9" rx="1.6" fill="currentColor"/><rect x="25.6" y="4.2" width="1.6" height="4.6" rx="0.8" fill="currentColor" opacity=".4"/></svg>
+        <svg class="mbs-sys" viewBox="0 0 14 13" width="14" height="13" aria-hidden="true"><rect x="0.6" y="1.1" width="12.8" height="4.2" rx="2.1" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="3.7" cy="3.2" r="1.1" fill="currentColor"/><rect x="0.6" y="7.6" width="12.8" height="4.2" rx="2.1" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="10.3" cy="9.7" r="1.1" fill="currentColor"/></svg>
+        <span class="mbs-clock">Thu 1:28&thinsp;AM</span>
+      </div>
+    </div>
+  </div>
+  <div class="mbs-caps"><span><b>f1-e3</b> is blocked on a permission prompt: the cell goes solid, slots keep both levels, the number counts your wait.</span><span>No colour used.</span></div>
+
+  <h3>What each mark means</h3>
+  <div class="mbs-key">
+    <div><b>Shell + fill</b><span>5-hour window remaining. Full = untouched, empty = spent. Drains right&#8209;to&#8209;left exactly like the system battery.</span></div>
+    <div><b>Thin tick</b><span>7-day window remaining, on the same 0–100% axis. Sits ahead of the fill when the week is the looser constraint.</span></div>
+    <div><b>Shadow</b><span>What the current burn rate will eat in the next 30 minutes. No shadow = nothing is running. Floor of 3&thinsp;pt so one agent is never invisible.</span></div>
+    <div><b>Front line</b><span>Where you will be in 30 minutes. The crisp boundary makes the shadow readable over any wallpaper.</span></div>
+    <div><b>Red sliver</b><span>The only colour in the design. Lit when the projection exhausts the window <em>before</em> it resets. The low&#8209;fuel lamp, nothing else.</span></div>
+    <div><b>Number</b><span>Time to the next thing that changes your situation: exhaustion if it comes first (red lit), otherwise the reset (red dark). Wait time when blocked.</span></div>
+    <div><b>Ghost</b><span>Where the front stood before an agent finished. Fades over 1.1&thinsp;s and is gone. The only transient mark.</span></div>
+    <div><b>Solid slab</b><span>A human is blocking work. The whole object inverts; slots carry both levels through. Persists, without motion, until it clears.</span></div>
+  </div>
+
+  <h3>State gallery</h3>
+  <div class="mbs-grid">
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">2:12</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Idle — nothing running</p><p class="mbs-d">No shadow at all. 5h 28% used, 7d tick ahead of the fill. Number is the countdown to the 3:40&thinsp;am reset.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-run">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.5826)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(12.7px) scaleX(.1376)"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(12.2px)"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">2:12</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">1 agent</p><p class="mbs-d">≈10%/h. The true 30-minute shadow would be 1.1&thinsp;pt, so it is clamped to the 3&thinsp;pt floor: “something is running” is never sub-pixel.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-run mbs-red">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.3807)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(8.3px) scaleX(.3394)"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(7.8px)"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">1:30</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">5 agents</p><p class="mbs-d">≈48%/h. Shadow 7.4&thinsp;pt. This is the first rate that exhausts the window before 3:40&thinsp;am, so the lamp lights and the number flips from reset to runway.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-run mbs-red">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.2615)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(5.7px) scaleX(.4587)"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(5.2px)"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">47m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t"><span class="mbs-star">&#9679;</span> 10+ agents — the real reading</p><p class="mbs-d">92%/h. Shadow 10&thinsp;pt: nearly half the tank goes in half an hour. 47&thinsp;m of runway against 2&thinsp;h&thinsp;12&thinsp;m to reset. This is the warning that matters and you can see it without opening anything.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-run mbs-red mbs-atwall">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(0)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(0px) scaleX(.15)"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">30m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">5h high — 85% used</p><p class="mbs-d">The whole remaining sliver is shadow: everything left is already spoken for. The front line is suppressed once it reaches the wall, so the lamp is the only mark there.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+          <defs><mask id="mbs-k-b" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+            <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+            <rect class="mbs-cut" x="2.2" y="3.2" width="1.6" height="9.6" fill="#000" style="transform:translateX(1.82px)"/>
+          </mask></defs>
+          <g mask="url(#mbs-k-b)"><g class="mbs-body">
+            <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+            <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+            <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+            <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+            <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+            <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px);opacity:0"/>
+            <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+          </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></g>
+        </svg><span class="mbs-num">4d</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">7-day binding</p><p class="mbs-d">When the week is tighter than the 5&thinsp;h, its mark stops being a quiet tick and <em>cuts the fill</em> — a gap you can see the wallpaper through. The real wall is there, not at the fill edge.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-block">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+          <defs><mask id="mbs-k-c" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+            <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+            <rect class="mbs-cut" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.9px)"/>
+            <rect class="mbs-cut" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/>
+          </mask></defs>
+          <g mask="url(#mbs-k-c)"><g class="mbs-body">
+            <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+            <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+            <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+            <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+            <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+            <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+            <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+          </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></g>
+        </svg><span class="mbs-num">2m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Needs input — 1 blocked</p><p class="mbs-d">A negative of itself. No hue, and no motion once the 1.8&thinsp;s entry burst ends. Both slots still read as levels — and at most levels they land close enough to read as a pause bar, which is exactly what has happened.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-block">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+          <defs><mask id="mbs-k-d" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+            <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+            <rect class="mbs-cut" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.9px)"/>
+            <rect class="mbs-cut" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/>
+          </mask></defs>
+          <g mask="url(#mbs-k-d)"><g class="mbs-body">
+            <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+            <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+            <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+            <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+            <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+            <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+            <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+          </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></g>
+        </svg><span class="mbs-num">2&middot;9m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Needs input — 2 blocked, 9&thinsp;m</p><p class="mbs-d">Anti-habituation is carried by the number, not by more motion: the count appears and the wait keeps climbing. Ignoring it makes it <em>more specific</em>, never twitchier.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-run mbs-red mbs-fin">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+          <defs><mask id="mbs-k-e" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+            <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+            <rect class="mbs-cut" x="2.2" y="3.2" width="2.4" height="9.6" fill="#000" style="transform:translateX(6.08px)"/>
+          </mask></defs>
+          <g mask="url(#mbs-k-e)"><g class="mbs-body">
+            <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+            <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.3339)"/>
+            <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(7.28px) scaleX(.3761)"/>
+            <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+            <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(6.78px)"/>
+            <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+            <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8" style="transform:translateX(5.25px)"/>
+          </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></g>
+        </svg><span class="mbs-num">55m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Agent just finished — caught mid-transient</p><p class="mbs-d">Three things at once, all of them the existing marks changing: a bite is cut at the front, the shadow retracts by that agent’s share, and a ghost holds the old front. 360&thinsp;ms + 1.1&thinsp;s and it is gone.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip">
+      <span class="mbs-item mbs-stale">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8" style="opacity:.25"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">47m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Data stale</p><p class="mbs-d">Past 5 minutes the shell goes dashed and everything dims. The shadow is dropped entirely — we do not know what is running, so the icon refuses to claim it. Today’s 3-minute fetch is fresh and draws normally.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip mbs-chip--light">
+      <span class="mbs-item">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">28%</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Percent mode (popover preference)</p><p class="mbs-d">The number field is the one soft part of the design. It can read 5h percent-used instead of time. Same glyph, same width, no other change.</p></div></div>
+
+    <div class="mbs-cell"><div class="mbs-chip mbs-chip--light">
+      <span class="mbs-item mbs-run mbs-red mbs-notip">
+        <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body">
+          <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+          <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+          <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.2615)"/>
+          <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(5.7px) scaleX(.4587)"/>
+          <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+          <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(5.2px)"/>
+          <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+          <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+        </g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></svg><span class="mbs-num">47m</span>
+      </span>
+    </div><div class="mbs-meta"><p class="mbs-t">Tipless variant</p><p class="mbs-d">The honest cost of borrowing this language is a second battery in the bar. Dropping the nub keeps the level read and kills the confusion, for laptop users who want it.</p></div></div>
+
+  </div>
+
+  <h3>Fixed width — the item never resizes</h3>
+  <div class="mbs-proof">
+    <span class="mbs-box"><span class="mbs-hold">
+      <span class="mbs-item"><svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body"><rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/><rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/><rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/><rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/></g></svg><span class="mbs-num">2:12</span></span>
+    </span><span class="mbs-lbl">idle</span></span>
+    <span class="mbs-box"><span class="mbs-hold">
+      <span class="mbs-item mbs-run mbs-red"><svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body"><rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/><rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/><rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.2615)"/><rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:translateX(5.7px) scaleX(.4587)"/><rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/><rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2" style="transform:translateX(5.2px)"/><rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/></g></svg><span class="mbs-num">47m</span></span>
+    </span><span class="mbs-lbl">burning</span></span>
+    <span class="mbs-box"><span class="mbs-hold">
+      <span class="mbs-item mbs-block"><svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><defs><mask id="mbs-k-f" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16"><rect x="0" y="0" width="29" height="16" fill="#fff"/><rect class="mbs-cut" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.9px)"/><rect class="mbs-cut" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/></mask></defs><g mask="url(#mbs-k-f)"><g class="mbs-body"><rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/><rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/></g><g class="mbs-inv"><rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/><rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/></g></g></svg><span class="mbs-num">2m</span></span>
+    </span><span class="mbs-lbl">blocked</span></span>
+    <span class="mbs-box"><span class="mbs-hold">
+      <span class="mbs-item mbs-stale"><svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true"><g class="mbs-body"><rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/><rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8" style="opacity:.25"/><rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4" style="transform:scaleX(.72)"/><rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/></g></svg><span class="mbs-num">47m</span></span>
+    </span><span class="mbs-lbl">stale</span></span>
+    <span class="mbs-box" style="align-self:center"><span class="mbs-lbl" style="max-width:190px;display:block;line-height:1.5">Every state occupies the same 72&thinsp;&times;&thinsp;22&thinsp;pt box (dashed). Neighbouring icons never move — the whole silhouette changes inside a frame that does not.</span></span>
+  </div>
+
+  <h3>Live scenario — 16&thinsp;s loop</h3>
+  <div class="mbs-scene">
+    <div class="mbs-paper mbs-paper--dark" style="height:96px"></div>
+    <div class="mbs-bar mbs-bar--dark">
+      <div class="mbs-menus"><b>Claude</b><span>File</span><span>Edit</span><span>Session</span><span>View</span></div>
+      <div class="mbs-tray">
+        <span class="mbs-item mbs-scn">
+          <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+            <defs><mask id="mbs-k-s1" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+              <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+              <rect class="mbs-cut mbs-cut-slot" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.24px)"/>
+              <rect class="mbs-cut mbs-cut-slot" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/>
+              <rect class="mbs-cut mbs-cut-bite" x="2.2" y="3.2" width="2.4" height="9.6" fill="#000"/>
+            </mask></defs>
+            <g mask="url(#mbs-k-s1)"><g class="mbs-body">
+              <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+              <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+              <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+              <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+              <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+              <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+              <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+              <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+            </g><g class="mbs-inv">
+              <rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/>
+              <rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            </g></g>
+          </svg>
+          <span class="mbs-num mbs-numstack"><i>2:12</i><i>1:30</i><i>47m</i><i>55m</i><i>2:05</i><i>0m</i><i>2m</i><i>2:03</i></span>
+        </span>
+        <svg class="mbs-sys" viewBox="0 0 28 13" width="28" height="13" aria-hidden="true"><rect x="0.6" y="0.6" width="24" height="11.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="2" y="2" width="15" height="9" rx="1.6" fill="currentColor"/><rect x="25.6" y="4.2" width="1.6" height="4.6" rx="0.8" fill="currentColor" opacity=".4"/></svg>
+        <span class="mbs-clock">Thu 1:28&thinsp;AM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mbs-scene" style="margin-top:-6px">
+    <div class="mbs-paper mbs-paper--light" style="height:66px"></div>
+    <div class="mbs-bar mbs-bar--light">
+      <div class="mbs-menus"><b>Claude</b><span>File</span><span>Edit</span><span>Session</span><span>View</span></div>
+      <div class="mbs-tray">
+        <span class="mbs-item mbs-scn">
+          <svg class="mbs-g" viewBox="0 0 29 16" width="29" height="16" aria-hidden="true">
+            <defs><mask id="mbs-k-s2" maskUnits="userSpaceOnUse" x="0" y="0" width="29" height="16">
+              <rect x="0" y="0" width="29" height="16" fill="#fff"/>
+              <rect class="mbs-cut mbs-cut-slot" x="2.2" y="3" width="1.6" height="10" fill="#000" style="transform:translateX(14.24px)"/>
+              <rect class="mbs-cut mbs-cut-slot" x="2.2" y="3" width="1.1" height="10" fill="#000" style="transform:translateX(17.33px)"/>
+              <rect class="mbs-cut mbs-cut-bite" x="2.2" y="3.2" width="2.4" height="9.6" fill="#000"/>
+            </mask></defs>
+            <g mask="url(#mbs-k-s2)"><g class="mbs-body">
+              <rect class="mbs-shell" x="0.6" y="1.6" width="25" height="12.8" rx="3.2"/>
+              <rect class="mbs-tip" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+              <rect class="mbs-fill" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+              <rect class="mbs-proj" x="2.2" y="3.2" width="21.8" height="9.6" rx="1.4"/>
+              <rect class="mbs-wallbar" x="2.2" y="3.2" width="1.9" height="9.6" rx="0.95"/>
+              <rect class="mbs-front" x="2.2" y="2.4" width="1" height="11.2"/>
+              <rect class="mbs-tick" x="2.2" y="2.6" width="1" height="10.8" style="transform:translateX(17.38px)"/>
+              <rect class="mbs-ghost" x="2.2" y="2.6" width="0.9" height="10.8"/>
+            </g><g class="mbs-inv">
+              <rect class="mbs-slab" x="0" y="1" width="26.2" height="14" rx="3.6"/>
+              <rect class="mbs-tipsolid" x="26.6" y="5.6" width="1.6" height="4.8" rx="0.8"/>
+            </g></g>
+          </svg>
+          <span class="mbs-num mbs-numstack"><i>2:12</i><i>1:30</i><i>47m</i><i>55m</i><i>2:05</i><i>0m</i><i>2m</i><i>2:03</i></span>
+        </span>
+        <svg class="mbs-sys" viewBox="0 0 28 13" width="28" height="13" aria-hidden="true"><rect x="0.6" y="0.6" width="24" height="11.8" rx="3" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="2" y="2" width="15" height="9" rx="1.6" fill="currentColor"/><rect x="25.6" y="4.2" width="1.6" height="4.6" rx="0.8" fill="currentColor" opacity=".4"/></svg>
+        <span class="mbs-clock">Thu 1:28&thinsp;AM</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mbs-capstack">
+    <i><b>0:00 — idle.</b> Nothing running, so there is no shadow at all. Number counts down to the 3:40&thinsp;am reset.</i>
+    <i><b>2.2&thinsp;s — usage-97 starts one agent.</b> A shadow opens at the fill edge, clamped to the 3&thinsp;pt floor. This is the whole “是否有在使用” signal.</i>
+    <i><b>3.2&thinsp;s — the workflow fans out to 7.</b> The shadow grows in three steps. It tracks burn rate, not agent count — ten cheap agents do not out-shout one expensive one.</i>
+    <i><b>4.2&thinsp;s — 92%/h.</b> The projection runs past the wall: the lamp lights with three pulses and stops, and the number flips from “2:12 to reset” to “47m of runway”. You are going to run out 1&thinsp;h&thinsp;25&thinsp;m early.</i>
+    <i><b>7.0&thinsp;s — an agent finishes.</b> A bite is cut at the front (360&thinsp;ms), the shadow retracts by that agent’s share, a ghost holds the old front and fades over 1.1&thinsp;s. Then the rest drain: 7 → 6 → 3 → 0.</i>
+    <i><b>8.6&thinsp;s — drained to zero.</b> Shadow gone, lamp released, last ghost fading. From 9.6&thinsp;s the icon is <b>completely still</b> — that stillness is the termination rule, and it is the point.</i>
+    <i><b>10.6&thinsp;s — f1-e3 blocks on a permission prompt.</b> The whole cell inverts in 220&thinsp;ms, slots keep both levels, three pulses over 1.8&thinsp;s, then dead still while the number counts your wait: 0m → 2m.</i>
+    <i><b>14.0&thinsp;s — you answer.</b> The cell returns in 220&thinsp;ms, the resumed agent draws a small shadow, finishes, and everything goes quiet again.</i>
+  </div>
+
+  <div class="mbs-ruler">
+    <span class="mbs-still" style="left:0;width:13.75%"></span>
+    <span class="mbs-band" style="left:13.75%;width:1.5%"></span>
+    <span class="mbs-still" style="left:15.25%;width:4.75%"></span>
+    <span class="mbs-band" style="left:20%;width:1.5%"></span>
+    <span class="mbs-still" style="left:21.5%;width:1.625%"></span>
+    <span class="mbs-band" style="left:23.125%;width:5.6%"></span>
+    <span class="mbs-still" style="left:28.72%;width:15.03%"></span>
+    <span class="mbs-band" style="left:43.75%;width:16.85%"></span>
+    <span class="mbs-still" style="left:60.6%;width:5.65%"></span>
+    <span class="mbs-band" style="left:66.25%;width:12.65%"></span>
+    <span class="mbs-still" style="left:78.9%;width:8.6%"></span>
+    <span class="mbs-band" style="left:87.5%;width:1.38%"></span>
+    <span class="mbs-still" style="left:88.88%;width:4.87%"></span>
+    <span class="mbs-band" style="left:93.75%;width:6.25%"></span>
+    <span class="mbs-tickline" style="left:0"></span><span class="mbs-tlab" style="left:0;transform:none">0s</span>
+    <span class="mbs-tickline" style="left:25%"></span><span class="mbs-tlab" style="left:25%">4s</span>
+    <span class="mbs-tickline" style="left:50%"></span><span class="mbs-tlab" style="left:50%">8s</span>
+    <span class="mbs-tickline" style="left:75%"></span><span class="mbs-tlab" style="left:75%">12s</span>
+    <span class="mbs-tickline" style="left:99.9%"></span><span class="mbs-tlab" style="left:99.9%;transform:translateX(-100%)">16s</span>
+    <span class="mbs-play"></span>
+    <span class="mbs-rlegend"><span class="mbs-sw mbs-sw--m"></span>anything moving<span class="mbs-sw mbs-sw--s"></span>completely still &nbsp;·&nbsp; dwell is compressed ≈40×; every transition and decay runs at its real duration (240&thinsp;ms steps, 360&thinsp;ms bite, 1.1&thinsp;s ghost, 220&thinsp;ms morph, 1.8&thinsp;s block burst).</span>
+  </div>
+
+  <hr class="mbs-rule">
+  <h3>The integration, stated plainly</h3>
+  <p><b>Quota and activity are the same channel</b> because activity <em>is</em> the derivative of quota. The shadow is not a second gauge bolted on; it is the same fill, marked as already-committed. That is the honest reason they can share a form, and it is the thing the previous fifteen never had.</p>
+  <p><b>The transient is a change to marks that already exist</b> — the front retreats, the shadow shortens, a bite closes, a ghost of the old front fades. Nothing new appears and nothing has to be dismissed. After a fan-out of seven drains to zero you get a two-second staircase, the lamp releasing, one last ghost dissolving, and then a plain still battery at a visibly lower level. The event is legible <em>and</em> it leaves a correct reading behind.</p>
+  <p><b>Urgency is a state of the whole object</b>, not a badge and not a hue. Inverting to a solid slab is the largest possible change a 28&thinsp;×&thinsp;14&thinsp;pt monochrome mark can make, it works identically on a light bar, a dark bar and a busy wallpaper, and it costs nothing from the colour budget — which is spent entirely on one red sliver meaning one thing.</p>
+  <p class="mbs-dim">Where the borrowed language breaks, and I would rather say it than hide it: a battery recharges when you plug it in, and a quota window refills on a wall clock whether you are working or not. So the reset is time-based, not effort-based — which is why the number carries the clock and the fill never “charges”. And two windows on one 0–100% axis is the one part of this that is learned rather than known; the 7-day mark stays quiet until it is the binding wall, and then it cuts the fill so you cannot miss where the real limit is.</p>
+
+</div>

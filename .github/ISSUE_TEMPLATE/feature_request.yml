@@ -1,0 +1,91 @@
+name: 功能建議
+description: 你想要它多做一件事，或換一種做法
+title: "[feat] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **先花三分鐘讀這兩節，會省下我們雙方很多時間：**
+
+        - `docs/quotamonster.md` **第二節「寫下來的拒絕」** —— 16 條**刻意不做**的事，
+          每一條都附理由（例如：不自建安靜時段排程器、完成訊號不出聲、
+          `killed` 的 run 完全不發通知、不加獨立的詳細額度卡）。
+          那些不是待辦，是決定。
+        - `docs/quotamonster.md` **第五節 B「還沒做的功能」** —— 已經想做、還沒做的。
+          如果你要的在那裡，請直接在那個 issue 底下說話（或開一個並連結過來），
+          告訴我們你的使用情境，那比再開一張新的有用。
+
+        **要推翻其中一條拒絕是可以的**，但請帶著推翻它的理由來 ——
+        這個 repo 的第三節整節都是「曾經這樣想、後來被資料推翻」，
+        推翻本身就是知識。
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你想解決的問題是什麼
+      description: |
+        **請寫問題，不要寫解法。** 「我要一個 X 按鈕」很難判斷，
+        「我常常在 Y 的時候錯過 Z」才有得談。
+      placeholder: |
+        我常常一邊等 Claude Code 跑完一邊做別的事，回頭才發現它十分鐘前就在等我批准，
+        而我當時人在螢幕前，只是視線不在選單列上。
+    validations:
+      required: true
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: 你現在怎麼繞過它
+      description: 沒有繞過方式也請說一聲 —— 「只能一直盯著」本身就是資訊。
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: 這件事落在哪一塊
+      options:
+        - "選單列圖示"
+        - "面板（額度、session 列、展望）"
+        - "通知與浮窗"
+        - "完成訊號"
+        - "額度資料來源 / statusline tee"
+        - "偏好設定"
+        - "打包、安裝、更新"
+        - "其他、或跨好幾塊"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 你想到的做法（選填）
+      description: |
+        有想法就寫。兩件事先講在前面，免得白寫：
+
+        - **決策只能放在 `QuotaMonsterCore`**（純邏輯、有測試），
+          `QuotaMonsterApp` 只有路由與繪圖。所以「什麼時候該發生」要能寫成
+          一個不碰 AppKit、不碰 `Date()` 的函式。
+        - **缺資料一律是 `nil`／畫「—」**，不可以回 `0`。
+          你的提議如果需要「沒讀到就當成 0」才成立，它八成過不了。
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: 你考慮過、但覺得不好的做法（選填）
+      description: 這一格常常比上一格有用 —— 它告訴我們你已經排除了哪些方向，以及為什麼。
+
+  - type: checkboxes
+    id: before-submit
+    attributes:
+      label: 送出前
+      options:
+        - label: 我讀過「寫下來的拒絕」那一節，這個提議不在裡面；或者它在裡面，而我在上面寫了要推翻它的理由
+          required: true
+        - label: 我描述的是問題，不只是我想要的那個按鈕
+          required: true
+        - label: 我願意自己送 PR（選填；不勾也完全沒關係）
+          required: false

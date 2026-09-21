@@ -1,0 +1,13 @@
+[  0.092s] === QuotaMonster Stage 0 probe ===
+[  0.093s] pid            32479
+[  0.093s] macOS          Version 27.0 (Build 26A428)
+[  0.093s] bundlePath     /Applications/QMProbeB.app
+[  0.093s] bundleID       com.cookiesmonster.QMProbeB
+[  0.093s] activationPol  0 (0 regular, 1 accessory, 2 prohibited)
+[  0.093s] barThickness   22.0
+[  1.166s] WIDTH  button.frame   {{0, 0}, {60, 22}}
+[  1.167s] WIDTH  window.origin.y 923.0
+[  1.167s] WIDTH  isVisible       true
+[  1.167s] WIDTH  ✅ placed on screen at 60pt
+[  2.217s] NOTIF  NSApp.isActive = true — requesting now
+[  2.225s] NOTIF  settings BEFORE  authorization=0 (0 notDetermined, 1 denied, 2 authorized, 3 provisional)

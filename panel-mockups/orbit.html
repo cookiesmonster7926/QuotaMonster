@@ -1,0 +1,458 @@
+<style>
+.qm-orbit{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","IBM Plex Sans TC",sans-serif;
+  -webkit-font-smoothing:antialiased;
+  text-rendering:optimizeLegibility;
+  padding:20px 0 28px;
+  color:#8a8a90;
+}
+.qm-orbit *{box-sizing:border-box;margin:0;padding:0;}
+.qm-orbit .qm-cap{
+  font-size:10px;font-weight:700;letter-spacing:.11em;text-transform:uppercase;
+  color:#8a8a90;margin:0 0 9px 2px;
+}
+.qm-orbit .qm-sub-cap{font-size:11.5px;line-height:1.5;color:#8a8a90;letter-spacing:0;text-transform:none;font-weight:400;}
+.qm-orbit .qm-sprite{position:absolute;width:0;height:0;overflow:hidden;}
+.qm-orbit .qm-mono{font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;}
+
+/* ============ WALLPAPER STAGES ============ */
+.qm-orbit .qm-stage{
+  position:relative;overflow:hidden;border-radius:14px;
+  box-shadow:0 1px 3px rgba(0,0,0,.18),0 0 0 .5px rgba(0,0,0,.12);
+}
+.qm-orbit .qm-stage--night{
+  background:
+    radial-gradient(120% 90% at 16% 6%,#43307d 0%,rgba(67,48,125,0) 56%),
+    radial-gradient(100% 80% at 90% 18%,#1b6f8f 0%,rgba(27,111,143,0) 58%),
+    radial-gradient(100% 75% at 62% 104%,#b0426f 0%,rgba(176,66,111,0) 56%),
+    linear-gradient(158deg,#16162c 0%,#0c0c16 58%,#1a1026 100%);
+}
+.qm-orbit .qm-stage--day{
+  background:
+    radial-gradient(115% 85% at 14% 6%,#ffe6bd 0%,rgba(255,230,189,0) 60%),
+    radial-gradient(100% 80% at 88% 14%,#c9e3ff 0%,rgba(201,227,255,0) 62%),
+    radial-gradient(95% 90% at 72% 104%,#ffd2e3 0%,rgba(255,210,227,0) 58%),
+    linear-gradient(150deg,#f6f3ef 0%,#e6ebf3 56%,#f8efe9 100%);
+}
+
+/* ============ MENU BAR ============ */
+.qm-orbit .qm-mb{
+  height:33px;display:flex;align-items:center;justify-content:space-between;
+  padding:0 11px 0 13px;font-variant-numeric:tabular-nums;
+}
+.qm-orbit .qm-stage--night .qm-mb{background:rgba(0,0,0,.26);color:rgba(255,255,255,.92);}
+.qm-orbit .qm-stage--day .qm-mb{background:rgba(255,255,255,.34);color:rgba(0,0,0,.85);}
+.qm-orbit .qm-mb-l{display:flex;align-items:center;gap:15px;font-size:12.5px;}
+.qm-orbit .qm-mb-l .qm-mb-app{font-weight:700;}
+.qm-orbit .qm-mb-l span:not(.qm-mb-app){opacity:.82;}
+.qm-orbit .qm-mb-r{display:flex;align-items:center;gap:4px;}
+.qm-orbit .qm-mb-sys{display:flex;align-items:center;justify-content:center;height:22px;padding:0 5px;opacity:.9;}
+.qm-orbit .qm-mb-clock{font-size:12.5px;padding:0 3px 0 6px;letter-spacing:.1px;}
+.qm-orbit .qm-mb-sep{width:.5px;height:15px;margin:0 5px;background:currentColor;opacity:.22;}
+
+/* menu-bar items: fixed widths, badge slot always reserved */
+.qm-orbit .qm-mbi{
+  position:relative;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:0 0 auto;
+}
+.qm-orbit .qm-mbi--a{width:50px;gap:5px;}
+.qm-orbit .qm-mbi--b{width:56px;gap:5px;}
+.qm-orbit .qm-mbi--c{width:42px;gap:3px;}
+.qm-orbit .qm-mbi.is-open{background:rgba(255,255,255,.22);}
+.qm-orbit .qm-stage--day .qm-mbi.is-open{background:rgba(0,0,0,.10);}
+.qm-orbit .qm-mbnum{font-size:11.5px;font-weight:590;letter-spacing:-.2px;}
+.qm-orbit .qm-mbstack{display:flex;flex-direction:column;justify-content:center;gap:1px;}
+.qm-orbit .qm-mbstack div{display:flex;align-items:center;gap:3px;height:9px;line-height:9px;}
+.qm-orbit .qm-mbstack em{font-style:normal;font-size:7.5px;font-weight:700;opacity:.55;letter-spacing:.02em;width:11px;}
+.qm-orbit .qm-mbstack b{font-size:9.5px;font-weight:600;letter-spacing:-.1px;}
+.qm-orbit .qm-mbtype{display:flex;flex-direction:column;align-items:center;gap:2.5px;}
+.qm-orbit .qm-mbtrack{width:26px;height:2.5px;border-radius:2px;background:currentColor;opacity:.28;position:relative;}
+.qm-orbit .qm-mbtrack i{position:absolute;left:0;top:0;bottom:0;width:28%;border-radius:2px;background:currentColor;opacity:1;}
+.qm-orbit .qm-mbi .qm-badge{position:absolute;opacity:0;}
+.qm-orbit .qm-mbi.is-blocked .qm-badge{opacity:1;}
+.qm-orbit .qm-mbi--a .qm-badge{top:-1px;left:9px;}
+.qm-orbit .qm-mbi--b .qm-badge{top:6px;left:2px;}
+.qm-orbit .qm-mbslot{flex:0 0 10px;height:10px;display:flex;align-items:center;justify-content:center;}
+.qm-orbit .qm-mbi--c .qm-badge{position:static;}
+.qm-orbit .qm-mbi.is-blocked .qm-mbmark{opacity:.25;}
+.qm-orbit .qm-mbchip{
+  display:inline-flex;align-items:center;justify-content:center;height:31px;padding:0 10px;
+  border-radius:8px;margin-right:8px;box-shadow:0 0 0 .5px rgba(0,0,0,.16);
+  font-variant-numeric:tabular-nums;vertical-align:middle;
+}
+.qm-orbit .qm-mbchip--night{background:linear-gradient(135deg,#2c2455 0%,#123049 100%);color:rgba(255,255,255,.92);}
+.qm-orbit .qm-mbchip--day{background:linear-gradient(135deg,#ffe7c4 0%,#cfe2ff 100%);color:rgba(0,0,0,.85);}
+.qm-orbit .qm-mbgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:11px;}
+.qm-orbit .qm-mbgrid h4{font-size:11.5px;font-weight:650;color:#6f6f77;margin-bottom:2px;letter-spacing:0;}
+.qm-orbit .qm-mbgrid h4 span{font-weight:400;color:#9a9aa2;}
+
+/* ============ POPOVER SHELL ============ */
+.qm-orbit .qm-pop{position:relative;margin:10px 24px 26px;}
+.qm-orbit .qm-notch{position:absolute;top:-9.5px;left:295px;transform:translateX(-50%);width:26px;height:10px;overflow:hidden;}
+.qm-orbit .qm-notch i{
+  position:absolute;left:50%;top:3.2px;margin-left:-8px;width:16px;height:16px;transform:rotate(45deg);
+  background:rgba(32,32,36,.70);
+  -webkit-backdrop-filter:blur(34px) saturate(190%);backdrop-filter:blur(34px) saturate(190%);
+  box-shadow:0 0 0 .5px rgba(255,255,255,.15);
+}
+.qm-orbit .qm-pop.is-light .qm-notch i{
+  background:rgba(247,247,249,.74);
+  -webkit-backdrop-filter:blur(34px) saturate(180%) brightness(1.04);
+  backdrop-filter:blur(34px) saturate(180%) brightness(1.04);
+  box-shadow:0 0 0 .5px rgba(0,0,0,.11);
+}
+.qm-orbit .qm-panel{
+  --mat:rgba(32,32,36,.70);
+  --bf:blur(34px) saturate(190%);
+  --stroke:rgba(255,255,255,.15);
+  --t1:rgba(255,255,255,.94);--t2:rgba(255,255,255,.60);--t3:rgba(255,255,255,.40);
+  --hair:rgba(255,255,255,.085);--spine:rgba(255,255,255,.18);
+  --well:rgba(255,255,255,.10);--wellstroke:rgba(255,255,255,.10);
+  --track:rgba(255,255,255,.14);
+  --card:rgba(255,255,255,.055);--cardstroke:rgba(255,255,255,.075);
+  --seg:rgba(255,255,255,.08);--segon:rgba(255,255,255,.20);--segsh:0 .5px 1.5px rgba(0,0,0,.34);
+  --blue:#0A84FF;--violet:#BF5AF2;--amber:#FF9F0A;--amberT:#FFB945;--grey:#98989D;
+  --amberBg:rgba(255,159,10,.135);--amberChip:rgba(255,159,10,.18);--amberLine:rgba(255,159,10,.34);
+  --footBg:rgba(255,255,255,.035);
+  width:380px;border-radius:12px;overflow:hidden;position:relative;
+  background:var(--mat);
+  -webkit-backdrop-filter:var(--bf);backdrop-filter:var(--bf);
+  box-shadow:0 0 0 .5px var(--stroke),0 20px 46px rgba(0,0,0,.44),0 4px 12px rgba(0,0,0,.26);
+  color:var(--t1);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1;
+}
+.qm-orbit .qm-panel.is-light{
+  --mat:rgba(247,247,249,.74);
+  --bf:blur(34px) saturate(180%) brightness(1.04);
+  --stroke:rgba(0,0,0,.11);
+  --t1:rgba(0,0,0,.88);--t2:rgba(0,0,0,.56);--t3:rgba(0,0,0,.40);
+  --hair:rgba(0,0,0,.10);--spine:rgba(0,0,0,.20);
+  --well:rgba(0,0,0,.055);--wellstroke:rgba(0,0,0,.07);
+  --track:rgba(0,0,0,.11);
+  --card:rgba(0,0,0,.032);--cardstroke:rgba(0,0,0,.055);
+  --seg:rgba(0,0,0,.065);--segon:#fff;--segsh:0 .5px 1.5px rgba(0,0,0,.20),0 0 0 .5px rgba(0,0,0,.05);
+  --blue:#0068d6;--violet:#8944AB;--amber:#E08600;--amberT:#9B5E00;--grey:#86868B;
+  --amberBg:rgba(255,159,10,.20);--amberChip:rgba(255,159,10,.26);--amberLine:rgba(200,120,0,.36);
+  --footBg:rgba(0,0,0,.022);
+  box-shadow:0 0 0 .5px var(--stroke),0 20px 46px rgba(0,0,0,.24),0 4px 12px rgba(0,0,0,.12);
+}
+.qm-orbit .qm-panel::after{
+  content:"";position:absolute;inset:0;border-radius:12px;pointer-events:none;
+  box-shadow:inset 0 .5px 0 rgba(255,255,255,.14);
+}
+.qm-orbit .qm-panel.is-light::after{box-shadow:inset 0 .5px 0 rgba(255,255,255,.7);}
+
+/* ============ HEADER ============ */
+.qm-orbit .qm-head{display:flex;align-items:center;justify-content:space-between;padding:11px 13px 10px;}
+.qm-orbit .qm-brand{display:flex;align-items:center;gap:8px;}
+.qm-orbit .qm-title{font-size:13px;font-weight:640;letter-spacing:-.15px;}
+.qm-orbit .qm-ver{font-size:10px;color:var(--t3);letter-spacing:.02em;}
+
+/* ============ BLOCKED BANNER ============ */
+.qm-orbit .qm-alert{
+  display:flex;align-items:center;gap:9px;padding:8px 13px 8px 12px;
+  background:var(--amberBg);
+  border-top:.5px solid var(--hair);border-bottom:.5px solid var(--hair);
+  box-shadow:inset 2px 0 0 var(--amber);
+}
+.qm-orbit .qm-alert .qm-awell{position:relative;flex:0 0 26px;}
+.qm-orbit .qm-alert .qm-awell::after{
+  content:"";position:absolute;inset:0;border-radius:50%;border:1.5px solid var(--amber);
+  animation:qm-orbit-ping 2.8s cubic-bezier(.22,.7,.3,1) infinite;
+}
+.qm-orbit .qm-abody{min-width:0;flex:1;}
+.qm-orbit .qm-aline{display:flex;align-items:baseline;gap:6px;}
+.qm-orbit .qm-aname{font-size:12.5px;font-weight:650;letter-spacing:-.1px;}
+.qm-orbit .qm-atime{font-size:10.5px;color:var(--t3);}
+.qm-orbit .qm-acmd{
+  display:flex;align-items:center;gap:5px;margin-top:2px;font-size:10.5px;color:var(--t2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qm-orbit .qm-acmd b{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;font-size:10px;font-weight:500;
+  color:var(--t1);background:var(--card);box-shadow:inset 0 0 0 .5px var(--cardstroke);
+  padding:1px 5px;border-radius:4px;
+}
+.qm-orbit .qm-abtn{
+  display:flex;align-items:center;gap:4px;flex:0 0 auto;
+  font-size:11.5px;font-weight:620;color:var(--amberT);
+  background:var(--amberChip);box-shadow:inset 0 0 0 .5px var(--amberLine);
+  padding:4px 8px;border-radius:6px;
+}
+
+/* ============ TABS ============ */
+.qm-orbit .qm-tabs{display:flex;gap:2px;margin:10px 13px 2px;padding:2px;background:var(--seg);border-radius:8px;}
+.qm-orbit .qm-tab{
+  flex:1;display:flex;align-items:center;justify-content:center;gap:4px;
+  font-size:11.5px;font-weight:500;color:var(--t2);padding:4px 0 4.5px;border-radius:6px;letter-spacing:.01em;
+}
+.qm-orbit .qm-tab.is-on{background:var(--segon);color:var(--t1);font-weight:620;box-shadow:var(--segsh);}
+.qm-orbit .qm-tab u{
+  text-decoration:none;font-size:9px;font-weight:700;color:var(--t3);
+  background:var(--well);border-radius:4px;padding:0 3.5px;line-height:12px;
+}
+.qm-orbit .qm-tab.is-on u{color:var(--blue);background:rgba(10,132,255,.16);}
+
+/* ============ SECTION LABEL ============ */
+.qm-orbit .qm-lab{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:13px 13px 5px;font-size:10px;font-weight:660;letter-spacing:.09em;color:var(--t3);
+}
+.qm-orbit .qm-lab em{font-style:normal;letter-spacing:.02em;font-weight:500;}
+
+/* ============ WELLS + ICONS ============ */
+.qm-orbit .qm-well{
+  width:26px;height:26px;border-radius:50%;flex:0 0 26px;
+  display:flex;align-items:center;justify-content:center;
+  background:var(--well);box-shadow:inset 0 0 0 .5px var(--wellstroke);color:var(--t2);
+}
+.qm-orbit .qm-well--blue{background:rgba(10,132,255,.17);color:var(--blue);box-shadow:inset 0 0 0 .5px rgba(10,132,255,.22);}
+.qm-orbit .qm-well--violet{background:rgba(191,90,242,.17);color:var(--violet);box-shadow:inset 0 0 0 .5px rgba(191,90,242,.22);}
+.qm-orbit .qm-well--amber{background:rgba(255,159,10,.22);color:var(--amber);box-shadow:inset 0 0 0 .5px rgba(255,159,10,.3);}
+.qm-orbit .qm-well--grey{color:var(--grey);}
+
+/* ============ HERO QUOTA ROW ============ */
+.qm-orbit .qm-hero{display:flex;gap:10px;padding:5px 13px 9px;}
+.qm-orbit .qm-hbody{flex:1;min-width:0;}
+.qm-orbit .qm-hline{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:7px;}
+.qm-orbit .qm-hname{font-size:12.5px;font-weight:600;letter-spacing:-.1px;}
+.qm-orbit .qm-hval{font-size:17px;font-weight:600;letter-spacing:-.5px;line-height:1;}
+.qm-orbit .qm-hval i{font-style:normal;font-size:11px;font-weight:600;color:var(--t3);margin-left:1px;letter-spacing:0;}
+.qm-orbit .qm-meter{position:relative;height:6px;border-radius:3px;background:var(--track);overflow:hidden;}
+.qm-orbit .qm-meter .qm-f{position:absolute;left:0;top:0;bottom:0;border-radius:3px;background:var(--blue);}
+.qm-orbit .qm-meter .qm-proj{
+  position:absolute;top:0;bottom:0;
+  background:repeating-linear-gradient(115deg,rgba(255,159,10,.44) 0 2px,rgba(255,159,10,.11) 2px 5px);
+}
+.qm-orbit .qm-meter .qm-edge{position:absolute;top:0;bottom:0;width:1px;background:var(--amber);}
+.qm-orbit .qm-hfoot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:6px;font-size:10.5px;color:var(--t3);}
+.qm-orbit .qm-hfoot b{font-weight:600;color:var(--t2);}
+.qm-orbit .qm-flag{
+  display:flex;align-items:center;gap:4px;flex:0 0 auto;
+  font-size:10px;font-weight:640;color:var(--amberT);
+  background:var(--amberChip);padding:2px 6px;border-radius:5px;
+}
+
+/* ============ COMPACT QUOTA ROWS ============ */
+.qm-orbit .qm-qrow{display:flex;align-items:center;gap:10px;padding:0 13px;height:36px;border-top:.5px solid var(--hair);}
+.qm-orbit .qm-qbody{flex:1;min-width:0;}
+.qm-orbit .qm-qname{font-size:12.5px;font-weight:500;letter-spacing:-.1px;}
+.qm-orbit .qm-qmeta{font-size:10.5px;color:var(--t3);margin-top:1px;}
+.qm-orbit .qm-spark{color:var(--blue);flex:0 0 auto;display:block;}
+.qm-orbit .qm-spark--v{color:var(--violet);}
+.qm-orbit .qm-qval{font-size:13px;font-weight:600;letter-spacing:-.3px;width:36px;text-align:right;flex:0 0 36px;}
+.qm-orbit .qm-qval i{font-style:normal;font-size:9.5px;color:var(--t3);margin-left:.5px;}
+
+/* ============ SESSION ROWS ============ */
+.qm-orbit .qm-srow{position:relative;display:flex;align-items:center;gap:10px;padding:0 13px;height:36px;}
+.qm-orbit .qm-srow--top{border-top:.5px solid var(--hair);}
+.qm-orbit .qm-rail{position:absolute;left:0;top:6px;bottom:6px;width:2.5px;border-radius:0 2px 2px 0;background:var(--grey);opacity:.5;}
+.qm-orbit .is-busy .qm-rail{background:var(--blue);opacity:1;}
+.qm-orbit .is-wait .qm-rail{background:var(--amber);opacity:1;}
+.qm-orbit .qm-sbody{flex:1;min-width:0;}
+.qm-orbit .qm-sline{display:flex;align-items:center;gap:6px;}
+.qm-orbit .qm-sname{font-size:12.5px;font-weight:600;letter-spacing:-.1px;}
+.qm-orbit .qm-spath{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  font-size:10px;color:var(--t3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qm-orbit .qm-chip{font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:1.5px 5px;border-radius:4px;}
+.qm-orbit .qm-chip--busy{color:var(--blue);background:rgba(10,132,255,.15);}
+.qm-orbit .qm-chip--wait{color:var(--amberT);background:var(--amberChip);}
+.qm-orbit .qm-chip--idle{color:var(--grey);background:rgba(152,152,157,.16);}
+.qm-orbit .qm-sright{display:flex;flex-direction:column;align-items:flex-end;gap:3px;flex:0 0 auto;}
+.qm-orbit .qm-stime{font-size:11px;color:var(--t2);letter-spacing:-.1px;}
+.qm-orbit .qm-ctx{display:flex;align-items:center;gap:5px;font-size:9.5px;color:var(--t3);}
+.qm-orbit .qm-ctxbar{width:26px;height:3px;border-radius:2px;background:var(--track);position:relative;overflow:hidden;}
+.qm-orbit .qm-ctxbar i{position:absolute;left:0;top:0;bottom:0;background:var(--t2);border-radius:2px;}
+
+/* ============ NESTED CARD (workflow / agents) ============ */
+.qm-orbit .qm-sub{position:relative;padding:0 13px 9px 51px;}
+.qm-orbit .qm-spine{
+  position:absolute;left:25.5px;top:-8px;width:12px;height:19px;
+  border-left:1.5px solid var(--spine);border-bottom:1.5px solid var(--spine);border-bottom-left-radius:7px;
+}
+.qm-orbit .qm-card{background:var(--card);box-shadow:inset 0 0 0 .5px var(--cardstroke);border-radius:8px;padding:7px 9px 7px 8px;}
+.qm-orbit .qm-card--amber{background:var(--amberBg);box-shadow:inset 0 0 0 .5px var(--amberLine);}
+.qm-orbit .qm-wfhead{display:flex;align-items:center;gap:6px;}
+.qm-orbit .qm-wfname{font-size:11.5px;font-weight:620;letter-spacing:-.05px;}
+.qm-orbit .qm-wfid{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  font-size:9.5px;color:var(--t3);margin-left:auto;
+}
+.qm-orbit .qm-wfprog{display:flex;align-items:center;gap:8px;margin-top:6px;}
+.qm-orbit .qm-pips{color:var(--blue);display:block;flex:0 0 auto;}
+.qm-orbit .qm-wfcount{font-size:10px;color:var(--t3);}
+.qm-orbit .qm-wfcount b{font-weight:600;color:var(--t2);}
+
+/* ============ AGENT LIST ============ */
+.qm-orbit .qm-aglist{position:relative;margin-top:6px;padding-top:6px;border-top:.5px solid var(--hair);}
+.qm-orbit .qm-aglist::before{content:"";position:absolute;left:3px;top:4px;bottom:11px;width:1px;background:var(--spine);}
+.qm-orbit .qm-ag{position:relative;display:flex;align-items:center;gap:7px;height:21px;padding-left:13px;}
+.qm-orbit .qm-ag::before{content:"";position:absolute;left:3px;top:10px;width:6px;height:1px;background:var(--spine);}
+.qm-orbit .qm-dot{width:6px;height:6px;border-radius:50%;flex:0 0 6px;background:var(--blue);}
+.qm-orbit .qm-ag.is-run .qm-dot{animation:qm-orbit-breathe 3s ease-in-out infinite;}
+.qm-orbit .qm-agname{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  font-size:11px;letter-spacing:-.2px;color:var(--t1);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qm-orbit .qm-agname span{color:var(--t3);}
+.qm-orbit .qm-agt{font-size:10px;color:var(--t3);margin-left:auto;flex:0 0 auto;letter-spacing:-.1px;}
+.qm-orbit .qm-ag.is-done .qm-agname{color:var(--t2);}
+.qm-orbit .qm-ag.is-done .qm-agname span{color:var(--t3);}
+.qm-orbit .qm-agmore{
+  display:flex;align-items:center;gap:7px;padding-left:13px;height:19px;
+  font-size:10px;color:var(--t3);position:relative;
+}
+.qm-orbit .qm-agmore::before{content:"";position:absolute;left:3px;top:9px;width:6px;height:1px;background:var(--spine);}
+.qm-orbit .qm-prompt{display:flex;align-items:center;gap:6px;}
+.qm-orbit .qm-prompt b{
+  font-family:ui-monospace,SFMono-Regular,"SF Mono",Menlo,monospace;
+  font-size:10px;font-weight:500;color:var(--t1);
+  background:rgba(0,0,0,.20);box-shadow:inset 0 0 0 .5px var(--cardstroke);
+  padding:2px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.qm-orbit .is-light .qm-prompt b{background:rgba(255,255,255,.62);}
+.qm-orbit .qm-promptlab{font-size:10px;font-weight:650;color:var(--amberT);flex:0 0 auto;}
+.qm-orbit .qm-sub--plain .qm-card{background:none;box-shadow:none;padding:0;}
+.qm-orbit .qm-ag--bare{padding-left:4px;height:22px;}
+.qm-orbit .qm-ag--bare::before{display:none;}
+.qm-orbit .qm-empty{font-size:10px;color:var(--t3);padding:0 13px 9px 51px;position:relative;}
+
+/* ============ FOOTER ============ */
+.qm-orbit .qm-foot{
+  display:flex;align-items:center;gap:7px;padding:7px 10px;
+  border-top:.5px solid var(--hair);background:var(--footBg);
+}
+.qm-orbit .qm-fbtn{
+  width:24px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--t2);
+}
+.qm-orbit .qm-fbtn.is-on{background:var(--well);color:var(--t1);box-shadow:inset 0 0 0 .5px var(--wellstroke);}
+.qm-orbit .qm-drop{
+  display:flex;align-items:center;gap:6px;height:22px;padding:0 5px 0 8px;border-radius:6px;
+  background:var(--well);box-shadow:inset 0 0 0 .5px var(--wellstroke);
+  font-size:11px;color:var(--t1);
+}
+.qm-orbit .qm-fresh{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--t3);}
+
+@keyframes qm-orbit-ping{0%{transform:scale(1);opacity:.55}70%{transform:scale(1.55);opacity:0}100%{transform:scale(1.55);opacity:0}}
+@keyframes qm-orbit-breathe{0%,100%{opacity:1}50%{opacity:.42}}
+@media (prefers-reduced-motion:reduce){
+  .qm-orbit .qm-alert .qm-awell::after,.qm-orbit .qm-ag.is-run .qm-dot{animation:none;}
+  .qm-orbit .qm-alert .qm-awell::after{opacity:.5;}
+}
+.qm-orbit .qm-hr{height:.5px;background:var(--hair);margin-top:7px;}
+.qm-orbit .qm-grid{display:flex;flex-wrap:wrap;gap:20px 22px;}
+.qm-orbit .qm-col{flex:0 0 auto;}
+
+</style>
+<div class="qm-orbit"><svg class="qm-sprite" width="0" height="0" aria-hidden="true" focusable="false"><defs><symbol id="qmo-01" viewBox="0 0 14 15"><path d="M10.6 8.3c0-1.7 1.4-2.5 1.5-2.6-.8-1.2-2.1-1.4-2.6-1.4-1.1-.1-2.1.6-2.7.6s-1.4-.6-2.3-.6c-1.2 0-2.3.7-2.9 1.8-1.2 2.1-.3 5.3.9 7 .6.8 1.3 1.8 2.2 1.7.9 0 1.2-.6 2.2-.6s1.3.6 2.3.5c.9 0 1.5-.8 2.1-1.7.7-1 .9-1.9.9-2-.1 0-1.8-.7-1.8-2.7zM8.9 3.2c.5-.6.8-1.4.7-2.2-.7 0-1.6.5-2.1 1.1-.4.5-.8 1.4-.7 2.2.8.1 1.6-.4 2.1-1.1z" fill="currentColor"/></symbol><symbol id="qmo-02" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.75" fill="none" stroke="currentColor" stroke-opacity=".34" stroke-width="1.95"/><circle cx="8" cy="8" r="5.75" fill="none" stroke="currentColor" stroke-width="1.95" stroke-linecap="round" stroke-dasharray="36.13" stroke-dashoffset="26.01" transform="rotate(-90 8 8)"/></symbol><symbol id="qmo-03" viewBox="0 0 10 10"><circle cx="5" cy="5" r="4.7" fill="#FF9F0A" stroke="#7a4500" stroke-opacity=".35" stroke-width=".7"/><rect x="4.25" y="2.2" width="1.5" height="3.7" rx=".75" fill="#231400"/><circle cx="5" cy="7.3" r=".9" fill="#231400"/></symbol><symbol id="qmo-04" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-opacity=".34" stroke-width="2.4"/><circle cx="8" cy="8" r="5.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="33.93" stroke-dashoffset="24.43" transform="rotate(-90 8 8)"/></symbol><symbol id="qmo-05" viewBox="0 0 16 12"><path d="M1.3 4.3a10 10 0 0 1 13.4 0M3.9 6.9a6.3 6.3 0 0 1 8.2 0M6.4 9.4a2.7 2.7 0 0 1 3.2 0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/><circle cx="8" cy="11.1" r=".95" fill="currentColor"/></symbol><symbol id="qmo-06" viewBox="0 0 23 12"><rect x=".6" y="1.6" width="19.6" height="8.8" rx="2.8" fill="none" stroke="currentColor" stroke-opacity=".45" stroke-width="1"/><rect x="2" y="3" width="13" height="6" rx="1.5" fill="currentColor"/><path d="M21.6 4.2a2.4 2.4 0 0 1 0 3.6z" fill="currentColor" fill-opacity=".45"/></symbol><symbol id="qmo-07" viewBox="0 0 15 12"><rect x=".6" y="1" width="13.8" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="10.6" cy="3" r="1.15" fill="currentColor"/><rect x=".6" y="7" width="13.8" height="4" rx="2" fill="none" stroke="currentColor" stroke-width="1.1"/><circle cx="4.4" cy="9" r="1.15" fill="currentColor"/></symbol><symbol id="qmo-08" viewBox="0 0 16 16"><circle cx="8" cy="8" r="5.7" fill="none" stroke="currentColor" stroke-opacity=".32" stroke-width="2.1"/><path d="M8 2.3a5.7 5.7 0 0 1 4.9 2.8" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" fill="none"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/></symbol><symbol id="qmo-09" viewBox="0 0 16 16"><path d="M14 8.2a2.6 2.6 0 0 1-2.6 2.6H7.9l-3.1 2.3v-2.3H4.2a2.6 2.6 0 0 1-2.6-2.6V5.4a2.6 2.6 0 0 1 2.6-2.6h7.2A2.6 2.6 0 0 1 14 5.4z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.3"/><circle cx="5.6" cy="6.8" r=".85" fill="currentColor"/><circle cx="7.8" cy="6.8" r=".85" fill="currentColor"/><circle cx="10" cy="6.8" r=".85" fill="currentColor"/></symbol><symbol id="qmo-10" viewBox="0 0 12 11"><path d="M3.8 7.2 8 3M4.7 3h3.6v3.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol><symbol id="qmo-11" viewBox="0 0 16 16"><circle cx="8" cy="8" r="6.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/><path d="M8 4.4V8.2l2.5 1.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/></symbol><symbol id="qmo-12" viewBox="0 0 10 10"><path d="M1 8.6 4 5.2l2 1.8 2.9-4.1" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M6.4 2.4h2.7v2.6" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol><symbol id="qmo-13" viewBox="0 0 16 16"><rect x="2.1" y="3.2" width="11.8" height="10.6" rx="2.5" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/><path d="M2.1 6.6h11.8M5.4 1.9v2.4M10.6 1.9v2.4" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/><circle cx="5.6" cy="9.6" r=".95" fill="currentColor"/><circle cx="8" cy="9.6" r=".95" fill="currentColor"/><circle cx="10.4" cy="9.6" r=".95" fill="currentColor"/></symbol><symbol id="qmo-14" viewBox="0 0 63 20"><rect x="0" y="19" width="63" height=".8" fill="currentColor" opacity=".32"/><rect x="0.0" y="14.00" width="6" height="5.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="9.5" y="6.00" width="6" height="13.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="19.0" y="15.00" width="6" height="4.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="28.5" y="4.00" width="6" height="15.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="38.0" y="10.00" width="6" height="9.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="47.5" y="16.00" width="6" height="3.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="57.0" y="5.00" width="6" height="14.00" rx="1.3" fill="currentColor" opacity="1"/></symbol><symbol id="qmo-15" viewBox="0 0 16 16"><path d="M8 2.2Q8.9 7.1 13.8 8Q8.9 8.9 8 13.8Q7.1 8.9 2.2 8Q7.1 7.1 8 2.2Z" fill="currentColor"/></symbol><symbol id="qmo-16" viewBox="0 0 63 20"><rect x="0" y="19" width="63" height=".8" fill="currentColor" opacity=".32"/><rect x="0.0" y="17.60" width="6" height="1.40" rx="1.3" fill="currentColor" opacity=".55"/><rect x="9.5" y="17.60" width="6" height="1.40" rx="1.3" fill="currentColor" opacity=".55"/><rect x="19.0" y="17.60" width="6" height="1.40" rx="1.3" fill="currentColor" opacity=".55"/><rect x="28.5" y="10.00" width="6" height="9.00" rx="1.3" fill="currentColor" opacity=".55"/><rect x="38.0" y="17.60" width="6" height="1.40" rx="1.3" fill="currentColor" opacity=".55"/><rect x="47.5" y="17.60" width="6" height="1.40" rx="1.3" fill="currentColor" opacity=".55"/><rect x="57.0" y="13.00" width="6" height="6.00" rx="1.3" fill="currentColor" opacity="1"/></symbol><symbol id="qmo-17" viewBox="0 0 16 16"><rect x="2.6" y="6.6" width="2" height="5.4" rx="1" fill="currentColor"/><rect x="7" y="3.4" width="2" height="8.6" rx="1" fill="currentColor"/><rect x="11.4" y="8.4" width="2" height="3.6" rx="1" fill="currentColor"/></symbol><symbol id="qmo-18" viewBox="0 0 16 16"><circle cx="3.6" cy="8" r="1.9" fill="currentColor"/><path d="M5.5 8h2.9V4.6h2.2M8.4 8v3.4h2.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.25"/><circle cx="12" cy="4.6" r="1.5" fill="currentColor"/><circle cx="12" cy="11.4" r="1.5" fill="currentColor"/></symbol><symbol id="qmo-19" viewBox="0 0 63.0 8"><circle cx="3.5" cy="4" r="3.4" fill="currentColor"/><circle cx="13.0" cy="4" r="3.4" fill="currentColor"/><circle cx="22.5" cy="4" r="3.4" fill="currentColor"/><circle cx="32.0" cy="4" r="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="41.5" cy="4" r="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="51.0" cy="4" r="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="60.5" cy="4" r="2.7" fill="none" stroke="currentColor" stroke-width="1.5"/></symbol><symbol id="qmo-20" viewBox="0 0 16 16"><rect x="4.9" y="4" width="2.1" height="8" rx="1.05" fill="currentColor"/><rect x="9" y="4" width="2.1" height="8" rx="1.05" fill="currentColor"/></symbol><symbol id="qmo-21" viewBox="0 0 16 16"><path d="M8 2.5A3.5 3.5 0 0 1 11.5 6c0 2.6-3.5 6.6-3.5 6.6S4.5 8.6 4.5 6A3.5 3.5 0 0 1 8 2.5z" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.3"/><circle cx="8" cy="6" r="1.25" fill="currentColor"/></symbol><symbol id="qmo-22" viewBox="0 0 9 14"><path d="M2 5.1 4.5 2.6 7 5.1M2 8.9l2.5 2.5L7 8.9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.35"/></symbol><symbol id="qmo-23" viewBox="0 0 16 16"><path d="M12.6 8a4.6 4.6 0 1 1-1.4-3.3" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/><path d="M11.8 1.9v3H8.9" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"/></symbol><symbol id="qmo-24" viewBox="0 0 16 16"><path d="M5 4.8a4.4 4.4 0 1 0 6 0M8 2.1v5.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.4"/></symbol><symbol id="qmo-25" viewBox="0 0 16 16"><path d="M2.6 8.3 6 11.5 13 4.2" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.9"/></symbol></defs></svg>
+<div class="qm-cap">選單列 · MENU BAR <span class="qm-sub-cap">三種變體。上排＝正常，下排＝有 session 在等你（琥珀色徽章）。徽章為絕對定位，寬度永遠不變，鄰居不會位移。</span></div>
+<div style="display:flex;flex-direction:column;gap:9px;max-width:880px"><div class="qm-stage qm-stage--night"><div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span><span>檔案</span><span>檢視</span><span>說明</span></div><div class="qm-mb-r"><span style="display:flex;align-items:center;gap:15px"><div class="qm-mbi qm-mbi--a"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><div class="qm-mbi qm-mbi--b"><span class="qm-mbmark"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-04"/></svg></span><span class="qm-mbstack"><div><em>5h</em><b>28%</b></div><div><em>7d</em><b>18%</b></div></span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><div class="qm-mbi qm-mbi--c"><span class="qm-mbslot"><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></span><span class="qm-mbtype"><span class="qm-mbnum">28%</span><span class="qm-mbtrack"><i></i></span></span></div></span><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div></div><div class="qm-stage qm-stage--day"><div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span><span>檔案</span><span>檢視</span><span>說明</span></div><div class="qm-mb-r"><span style="display:flex;align-items:center;gap:15px"><div class="qm-mbi qm-mbi--a is-blocked"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><div class="qm-mbi qm-mbi--b is-blocked"><span class="qm-mbmark"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-04"/></svg></span><span class="qm-mbstack"><div><em>5h</em><b>28%</b></div><div><em>7d</em><b>18%</b></div></span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><div class="qm-mbi qm-mbi--c is-blocked"><span class="qm-mbslot"><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></span><span class="qm-mbtype"><span class="qm-mbnum">28%</span><span class="qm-mbtrack"><i></i></span></span></div></span><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div></div></div>
+<div class="qm-mbgrid"><div><div style="margin-bottom:7px"><span class="qm-mbchip qm-mbchip--night"><div class="qm-mbi qm-mbi--a"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div></span><span class="qm-mbchip qm-mbchip--day"><div class="qm-mbi qm-mbi--a is-blocked"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div></span></div><h4>A — 環形 + 數字 <span>· 50pt</span></h4><span class="qm-sub-cap">5 小時視窗的環形進度加上數字。圖形為 template（currentColor），淺色列、深色列、桌布上一致可讀。建議出貨此版。</span></div><div><div style="margin-bottom:7px"><span class="qm-mbchip qm-mbchip--night"><div class="qm-mbi qm-mbi--b"><span class="qm-mbmark"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-04"/></svg></span><span class="qm-mbstack"><div><em>5h</em><b>28%</b></div><div><em>7d</em><b>18%</b></div></span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div></span><span class="qm-mbchip qm-mbchip--day"><div class="qm-mbi qm-mbi--b is-blocked"><span class="qm-mbmark"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-04"/></svg></span><span class="qm-mbstack"><div><em>5h</em><b>28%</b></div><div><em>7d</em><b>18%</b></div></span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div></span></div><h4>B — 雙視窗數字 <span>· 56pt</span></h4><span class="qm-sub-cap">5h 與 7d 兩層數字堆疊，9.5pt tabular。給同時盯兩個視窗的人；寬度固定，數字不跳動。</span></div><div><div style="margin-bottom:7px"><span class="qm-mbchip qm-mbchip--night"><div class="qm-mbi qm-mbi--c"><span class="qm-mbslot"><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></span><span class="qm-mbtype"><span class="qm-mbnum">28%</span><span class="qm-mbtrack"><i></i></span></span></div></span><span class="qm-mbchip qm-mbchip--day"><div class="qm-mbi qm-mbi--c is-blocked"><span class="qm-mbslot"><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></span><span class="qm-mbtype"><span class="qm-mbnum">28%</span><span class="qm-mbtrack"><i></i></span></span></div></span></div><h4>C — 純數字 + 底線量表 <span>· 42pt</span></h4><span class="qm-sub-cap">最小佔位。只有 28% 與一條 26pt 底線量表。選單列擁擠時用。</span></div></div>
+<div style="height:30px"></div>
+<div class="qm-cap">面板 · POPOVER <span class="qm-sub-cap">1pt = 1px。面板寬 380pt，材質為模擬 NSVisualEffectView 的半透明材質，直接疊在桌布上。</span></div>
+<div class="qm-grid">
+<div class="qm-col"><div class="qm-cap">深色材質 · 總覽 </div><div class="qm-stage qm-stage--night" style="width:428px">
+<div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span></div><div class="qm-mb-r"><div class="qm-mbi qm-mbi--a is-blocked is-open"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div>
+<div class="qm-pop"><span class="qm-notch"><i></i></span>
+<div class="qm-panel">
+<div class="qm-head"><div class="qm-brand"><span class="qm-well qm-well--blue" style="width:24px;height:24px;flex:0 0 24px"><svg width="15" height="15" aria-hidden="true"><use href="#qmo-08"/></svg></span><span class="qm-title">QuotaMonster</span></div><span class="qm-ver qm-mono">v0.4.2</span></div>
+<div class="qm-alert"><span class="qm-well qm-well--amber qm-awell"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-abody"><div class="qm-aline"><span class="qm-aname">f1-e3 正在等你回覆</span><span class="qm-atime">已等待 2m</span></div><div class="qm-acmd"><span>權限請求</span><b>Bash git push --force</b></div></div><span class="qm-abtn">開啟<svg width="11" height="11" aria-hidden="true"><use href="#qmo-10"/></svg></span></div>
+<div class="qm-tabs"><div class="qm-tab is-on">總覽</div><div class="qm-tab">Agents<u>5</u></div><div class="qm-tab">歷史</div></div>
+<div class="qm-lab"><span>配額 QUOTA</span></div><div class="qm-hero"><span class="qm-well qm-well--blue"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-11"/></svg></span><div class="qm-hbody"><div class="qm-hline"><span class="qm-hname">5 小時視窗</span><span class="qm-hval">28<i>%</i></span></div><div class="qm-meter"><span class="qm-f" style="width:28%"></span><span class="qm-proj" style="left:28%;right:0"></span><span class="qm-edge" style="left:28%"></span></div><div class="qm-hfoot"><span>3:40am 重置 · 還有 <b>2h 12m</b></span><span class="qm-flag"><svg width="10" height="10" aria-hidden="true"><use href="#qmo-12"/></svg> 依目前速率 47m 後用完</span></div></div></div><div class="qm-qrow"><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-13"/></svg></span><div class="qm-qbody"><div class="qm-qname">7 天視窗 · 全模型</div><div class="qm-qmeta">Sat 1:59pm 重置 · 還有 4d 14h</div></div><svg class="qm-spark" width="63" height="20" aria-hidden="true"><use href="#qmo-14"/></svg><span class="qm-qval">18<i>%</i></span></div><div class="qm-qrow"><span class="qm-well qm-well--violet"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-15"/></svg></span><div class="qm-qbody"><div class="qm-qname">7 天視窗 · Fable <span style="color:var(--t3);font-size:10.5px">(Opus 5)</span></div><div class="qm-qmeta">與全模型共用同一個重置時間</div></div><svg class="qm-spark qm-spark--v" width="63" height="20" aria-hidden="true"><use href="#qmo-16"/></svg><span class="qm-qval">1<i>%</i></span></div>
+<div class="qm-hr"></div>
+<div class="qm-lab"><span>工作階段 SESSIONS</span><em>4 個 · 5 agents 執行中</em></div>
+<div class="qm-srow is-busy"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">usage-97</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/Antigravity/usage</div></div><div class="qm-sright"><span class="qm-stime">12m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:34%"></i></span>34%</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card"><div class="qm-wfhead"><span style="color:var(--blue);display:flex"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-18"/></svg></span><span class="qm-wfname">Design 階段</span><span class="qm-wfid">wf_79e5d247</span></div>
+<div class="qm-wfprog"><svg class="qm-pips" width="63.0" height="8" aria-hidden="true"><use href="#qmo-19"/></svg><span class="qm-wfcount"><b>3</b>/7 完成 · <b>4</b> 執行中</span></div>
+<div style="margin-top:5px;font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="qm-mono">dynamic-island · apple-hig-native · max-density +1</div></div></div>
+<div class="qm-srow is-wait qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--amber"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">f1-e3</span><span class="qm-chip qm-chip--wait">等你回覆</span></div><div class="qm-spath">~/Antigravity/F1</div></div><div class="qm-sright"><span class="qm-stime">2m</span></div></div>
+<div class="qm-sub qm-sub--plain"><span class="qm-spine"></span><div class="qm-ag is-run qm-ag--bare"><span class="qm-dot"></span><span class="qm-agname"><span>agent:</span>general-purpose</span><span class="qm-agt">1m20s</span></div></div>
+<div class="qm-srow is-idle qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--grey"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-20"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">obsidian-4a</span><span class="qm-chip qm-chip--idle">閒置</span></div><div class="qm-spath">~/Obsidian</div></div><div class="qm-sright"><span class="qm-stime">41m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:12%"></i></span>12%</span></div></div>
+<div class="qm-srow is-busy qm-srow--top"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">wrapx-comsol</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/wrapx-comsol</div></div><div class="qm-sright"><span class="qm-stime">3m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:61%"></i></span>61%</span></div></div>
+<div class="qm-foot"><span class="qm-fbtn is-on" title="釘選"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-21"/></svg></span><span class="qm-drop">每 30 秒更新<svg width="9" height="13" aria-hidden="true"><use href="#qmo-22"/></svg></span><span class="qm-fresh"><svg width="11" height="11" aria-hidden="true"><use href="#qmo-23"/></svg>3 分鐘前更新</span><span class="qm-fbtn"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-24"/></svg></span></div>
+</div></div></div></div>
+<div class="qm-col"><div class="qm-cap">淺色材質 · 總覽 </div><div class="qm-stage qm-stage--day" style="width:428px">
+<div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span></div><div class="qm-mb-r"><div class="qm-mbi qm-mbi--a is-blocked is-open"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div>
+<div class="qm-pop is-light"><span class="qm-notch"><i></i></span>
+<div class="qm-panel is-light">
+<div class="qm-head"><div class="qm-brand"><span class="qm-well qm-well--blue" style="width:24px;height:24px;flex:0 0 24px"><svg width="15" height="15" aria-hidden="true"><use href="#qmo-08"/></svg></span><span class="qm-title">QuotaMonster</span></div><span class="qm-ver qm-mono">v0.4.2</span></div>
+<div class="qm-alert"><span class="qm-well qm-well--amber qm-awell"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-abody"><div class="qm-aline"><span class="qm-aname">f1-e3 正在等你回覆</span><span class="qm-atime">已等待 2m</span></div><div class="qm-acmd"><span>權限請求</span><b>Bash git push --force</b></div></div><span class="qm-abtn">開啟<svg width="11" height="11" aria-hidden="true"><use href="#qmo-10"/></svg></span></div>
+<div class="qm-tabs"><div class="qm-tab is-on">總覽</div><div class="qm-tab">Agents<u>5</u></div><div class="qm-tab">歷史</div></div>
+<div class="qm-lab"><span>配額 QUOTA</span></div><div class="qm-hero"><span class="qm-well qm-well--blue"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-11"/></svg></span><div class="qm-hbody"><div class="qm-hline"><span class="qm-hname">5 小時視窗</span><span class="qm-hval">28<i>%</i></span></div><div class="qm-meter"><span class="qm-f" style="width:28%"></span><span class="qm-proj" style="left:28%;right:0"></span><span class="qm-edge" style="left:28%"></span></div><div class="qm-hfoot"><span>3:40am 重置 · 還有 <b>2h 12m</b></span><span class="qm-flag"><svg width="10" height="10" aria-hidden="true"><use href="#qmo-12"/></svg> 依目前速率 47m 後用完</span></div></div></div><div class="qm-qrow"><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-13"/></svg></span><div class="qm-qbody"><div class="qm-qname">7 天視窗 · 全模型</div><div class="qm-qmeta">Sat 1:59pm 重置 · 還有 4d 14h</div></div><svg class="qm-spark" width="63" height="20" aria-hidden="true"><use href="#qmo-14"/></svg><span class="qm-qval">18<i>%</i></span></div><div class="qm-qrow"><span class="qm-well qm-well--violet"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-15"/></svg></span><div class="qm-qbody"><div class="qm-qname">7 天視窗 · Fable <span style="color:var(--t3);font-size:10.5px">(Opus 5)</span></div><div class="qm-qmeta">與全模型共用同一個重置時間</div></div><svg class="qm-spark qm-spark--v" width="63" height="20" aria-hidden="true"><use href="#qmo-16"/></svg><span class="qm-qval">1<i>%</i></span></div>
+<div class="qm-hr"></div>
+<div class="qm-lab"><span>工作階段 SESSIONS</span><em>4 個 · 5 agents 執行中</em></div>
+<div class="qm-srow is-busy"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">usage-97</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/Antigravity/usage</div></div><div class="qm-sright"><span class="qm-stime">12m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:34%"></i></span>34%</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card"><div class="qm-wfhead"><span style="color:var(--blue);display:flex"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-18"/></svg></span><span class="qm-wfname">Design 階段</span><span class="qm-wfid">wf_79e5d247</span></div>
+<div class="qm-wfprog"><svg class="qm-pips" width="63.0" height="8" aria-hidden="true"><use href="#qmo-19"/></svg><span class="qm-wfcount"><b>3</b>/7 完成 · <b>4</b> 執行中</span></div>
+<div style="margin-top:5px;font-size:10px;color:var(--t3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis" class="qm-mono">dynamic-island · apple-hig-native · max-density +1</div></div></div>
+<div class="qm-srow is-wait qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--amber"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">f1-e3</span><span class="qm-chip qm-chip--wait">等你回覆</span></div><div class="qm-spath">~/Antigravity/F1</div></div><div class="qm-sright"><span class="qm-stime">2m</span></div></div>
+<div class="qm-sub qm-sub--plain"><span class="qm-spine"></span><div class="qm-ag is-run qm-ag--bare"><span class="qm-dot"></span><span class="qm-agname"><span>agent:</span>general-purpose</span><span class="qm-agt">1m20s</span></div></div>
+<div class="qm-srow is-idle qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--grey"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-20"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">obsidian-4a</span><span class="qm-chip qm-chip--idle">閒置</span></div><div class="qm-spath">~/Obsidian</div></div><div class="qm-sright"><span class="qm-stime">41m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:12%"></i></span>12%</span></div></div>
+<div class="qm-srow is-busy qm-srow--top"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">wrapx-comsol</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/wrapx-comsol</div></div><div class="qm-sright"><span class="qm-stime">3m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:61%"></i></span>61%</span></div></div>
+<div class="qm-foot"><span class="qm-fbtn is-on" title="釘選"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-21"/></svg></span><span class="qm-drop">每 30 秒更新<svg width="9" height="13" aria-hidden="true"><use href="#qmo-22"/></svg></span><span class="qm-fresh"><svg width="11" height="11" aria-hidden="true"><use href="#qmo-23"/></svg>3 分鐘前更新</span><span class="qm-fbtn"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-24"/></svg></span></div>
+</div></div></div></div>
+<div class="qm-col"><div class="qm-cap">深色材質 · Agents 分頁 </div><div class="qm-stage qm-stage--night" style="width:428px">
+<div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span></div><div class="qm-mb-r"><div class="qm-mbi qm-mbi--a is-blocked is-open"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div>
+<div class="qm-pop"><span class="qm-notch"><i></i></span>
+<div class="qm-panel">
+<div class="qm-head"><div class="qm-brand"><span class="qm-well qm-well--blue" style="width:24px;height:24px;flex:0 0 24px"><svg width="15" height="15" aria-hidden="true"><use href="#qmo-08"/></svg></span><span class="qm-title">QuotaMonster</span></div><span class="qm-ver qm-mono">v0.4.2</span></div>
+<div class="qm-alert"><span class="qm-well qm-well--amber qm-awell"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-abody"><div class="qm-aline"><span class="qm-aname">f1-e3 正在等你回覆</span><span class="qm-atime">已等待 2m</span></div><div class="qm-acmd"><span>權限請求</span><b>Bash git push --force</b></div></div><span class="qm-abtn">開啟<svg width="11" height="11" aria-hidden="true"><use href="#qmo-10"/></svg></span></div>
+<div class="qm-tabs"><div class="qm-tab">總覽</div><div class="qm-tab is-on">Agents<u>5</u></div><div class="qm-tab">歷史</div></div>
+<div class="qm-lab"><span>AGENT TREE</span><em>8 個 agent · 5 個執行中</em></div>
+<div class="qm-srow is-busy"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">usage-97</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/Antigravity/usage</div></div><div class="qm-sright"><span class="qm-stime">12m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:34%"></i></span>34%</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card"><div class="qm-wfhead"><span style="color:var(--blue);display:flex"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-18"/></svg></span><span class="qm-wfname">Design 階段</span><span class="qm-wfid">wf_79e5d247</span></div>
+<div class="qm-wfprog"><svg class="qm-pips" width="63.0" height="8" aria-hidden="true"><use href="#qmo-19"/></svg><span class="qm-wfcount"><b>3</b>/7 完成 · <b>4</b> 執行中</span></div>
+<div class="qm-aglist">
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>dynamic-island</span><span class="qm-agt">4m12s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>apple-hig-native</span><span class="qm-agt">3m48s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>max-density</span><span class="qm-agt">3m31s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>creature-motif</span><span class="qm-agt">2m55s</span></div>
+<div class="qm-ag is-done"><span class="qm-dot" style="background:none;color:var(--t3);display:flex;align-items:center;justify-content:center;width:7px;flex:0 0 7px"><svg width="9" height="9" aria-hidden="true"><use href="#qmo-25"/></svg></span><span class="qm-agname"><span>design:</span>state-machine-kinetic</span><span class="qm-agt">5m02s</span></div>
+<div class="qm-agmore">另有 2 個已完成的 agent</div>
+</div></div></div>
+<div class="qm-srow is-wait qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--amber"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">f1-e3</span><span class="qm-chip qm-chip--wait">等你回覆</span></div><div class="qm-spath">~/Antigravity/F1</div></div><div class="qm-sright"><span class="qm-stime">2m</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card qm-card--amber"><div class="qm-prompt"><span class="qm-promptlab">需要你核准</span><b>Bash git push --force</b></div>
+<div class="qm-aglist"><div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>agent:</span>general-purpose</span><span class="qm-agt">1m20s</span></div></div></div></div>
+<div class="qm-hr"></div>
+<div class="qm-lab"><span>其他工作階段</span><em>無執行中的 agent</em></div>
+<div class="qm-srow is-idle"><span class="qm-rail"></span><span class="qm-well qm-well--grey"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-20"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">obsidian-4a</span><span class="qm-chip qm-chip--idle">閒置</span></div><div class="qm-spath">~/Obsidian</div></div><div class="qm-sright"><span class="qm-stime">41m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:12%"></i></span>12%</span></div></div>
+<div class="qm-srow is-busy qm-srow--top"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">wrapx-comsol</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/wrapx-comsol</div></div><div class="qm-sright"><span class="qm-stime">3m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:61%"></i></span>61%</span></div></div>
+<div class="qm-foot"><span class="qm-fbtn is-on" title="釘選"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-21"/></svg></span><span class="qm-drop">每 30 秒更新<svg width="9" height="13" aria-hidden="true"><use href="#qmo-22"/></svg></span><span class="qm-fresh"><svg width="11" height="11" aria-hidden="true"><use href="#qmo-23"/></svg>3 分鐘前更新</span><span class="qm-fbtn"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-24"/></svg></span></div>
+</div></div></div></div>
+<div class="qm-col"><div class="qm-cap">淺色材質 · Agents 分頁 </div><div class="qm-stage qm-stage--day" style="width:428px">
+<div class="qm-mb"><div class="qm-mb-l"><svg width="13" height="15" aria-hidden="true"><use href="#qmo-01"/></svg><span class="qm-mb-app">QuotaMonster</span></div><div class="qm-mb-r"><div class="qm-mbi qm-mbi--a is-blocked is-open"><svg class="qm-mbmark" width="15" height="15" aria-hidden="true"><use href="#qmo-02"/></svg><span class="qm-mbnum">28%</span><svg class="qm-badge" width="10" height="10" aria-hidden="true"><use href="#qmo-03"/></svg></div><span class="qm-mb-sep"></span><span class="qm-mb-sys"><svg width="16" height="12" aria-hidden="true"><use href="#qmo-05"/></svg></span><span class="qm-mb-sys"><svg width="25" height="12" aria-hidden="true"><use href="#qmo-06"/></svg></span><span class="qm-mb-sys"><svg width="15" height="12" aria-hidden="true"><use href="#qmo-07"/></svg></span><span class="qm-mb-clock">上午 1:28</span></div></div>
+<div class="qm-pop is-light"><span class="qm-notch"><i></i></span>
+<div class="qm-panel is-light">
+<div class="qm-head"><div class="qm-brand"><span class="qm-well qm-well--blue" style="width:24px;height:24px;flex:0 0 24px"><svg width="15" height="15" aria-hidden="true"><use href="#qmo-08"/></svg></span><span class="qm-title">QuotaMonster</span></div><span class="qm-ver qm-mono">v0.4.2</span></div>
+<div class="qm-alert"><span class="qm-well qm-well--amber qm-awell"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-abody"><div class="qm-aline"><span class="qm-aname">f1-e3 正在等你回覆</span><span class="qm-atime">已等待 2m</span></div><div class="qm-acmd"><span>權限請求</span><b>Bash git push --force</b></div></div><span class="qm-abtn">開啟<svg width="11" height="11" aria-hidden="true"><use href="#qmo-10"/></svg></span></div>
+<div class="qm-tabs"><div class="qm-tab">總覽</div><div class="qm-tab is-on">Agents<u>5</u></div><div class="qm-tab">歷史</div></div>
+<div class="qm-lab"><span>AGENT TREE</span><em>8 個 agent · 5 個執行中</em></div>
+<div class="qm-srow is-busy"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">usage-97</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/Antigravity/usage</div></div><div class="qm-sright"><span class="qm-stime">12m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:34%"></i></span>34%</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card"><div class="qm-wfhead"><span style="color:var(--blue);display:flex"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-18"/></svg></span><span class="qm-wfname">Design 階段</span><span class="qm-wfid">wf_79e5d247</span></div>
+<div class="qm-wfprog"><svg class="qm-pips" width="63.0" height="8" aria-hidden="true"><use href="#qmo-19"/></svg><span class="qm-wfcount"><b>3</b>/7 完成 · <b>4</b> 執行中</span></div>
+<div class="qm-aglist">
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>dynamic-island</span><span class="qm-agt">4m12s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>apple-hig-native</span><span class="qm-agt">3m48s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>max-density</span><span class="qm-agt">3m31s</span></div>
+<div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>design:</span>creature-motif</span><span class="qm-agt">2m55s</span></div>
+<div class="qm-ag is-done"><span class="qm-dot" style="background:none;color:var(--t3);display:flex;align-items:center;justify-content:center;width:7px;flex:0 0 7px"><svg width="9" height="9" aria-hidden="true"><use href="#qmo-25"/></svg></span><span class="qm-agname"><span>design:</span>state-machine-kinetic</span><span class="qm-agt">5m02s</span></div>
+<div class="qm-agmore">另有 2 個已完成的 agent</div>
+</div></div></div>
+<div class="qm-srow is-wait qm-srow--top"><span class="qm-rail"></span><span class="qm-well qm-well--amber"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-09"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">f1-e3</span><span class="qm-chip qm-chip--wait">等你回覆</span></div><div class="qm-spath">~/Antigravity/F1</div></div><div class="qm-sright"><span class="qm-stime">2m</span></div></div>
+<div class="qm-sub"><span class="qm-spine"></span>
+<div class="qm-card qm-card--amber"><div class="qm-prompt"><span class="qm-promptlab">需要你核准</span><b>Bash git push --force</b></div>
+<div class="qm-aglist"><div class="qm-ag is-run"><span class="qm-dot"></span><span class="qm-agname"><span>agent:</span>general-purpose</span><span class="qm-agt">1m20s</span></div></div></div></div>
+<div class="qm-hr"></div>
+<div class="qm-lab"><span>其他工作階段</span><em>無執行中的 agent</em></div>
+<div class="qm-srow is-idle"><span class="qm-rail"></span><span class="qm-well qm-well--grey"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-20"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">obsidian-4a</span><span class="qm-chip qm-chip--idle">閒置</span></div><div class="qm-spath">~/Obsidian</div></div><div class="qm-sright"><span class="qm-stime">41m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:12%"></i></span>12%</span></div></div>
+<div class="qm-srow is-busy qm-srow--top"><span class="qm-rail"></span><span class="qm-well"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-17"/></svg></span><div class="qm-sbody"><div class="qm-sline"><span class="qm-sname">wrapx-comsol</span><span class="qm-chip qm-chip--busy">執行中</span></div><div class="qm-spath">~/wrapx-comsol</div></div><div class="qm-sright"><span class="qm-stime">3m</span><span class="qm-ctx">ctx<span class="qm-ctxbar"><i style="width:61%"></i></span>61%</span></div></div>
+<div class="qm-foot"><span class="qm-fbtn is-on" title="釘選"><svg width="14" height="14" aria-hidden="true"><use href="#qmo-21"/></svg></span><span class="qm-drop">每 30 秒更新<svg width="9" height="13" aria-hidden="true"><use href="#qmo-22"/></svg></span><span class="qm-fresh"><svg width="11" height="11" aria-hidden="true"><use href="#qmo-23"/></svg>3 分鐘前更新</span><span class="qm-fbtn"><svg width="13" height="13" aria-hidden="true"><use href="#qmo-24"/></svg></span></div>
+</div></div></div></div>
+</div>
+</div>

@@ -1,0 +1,8 @@
+{
+ "agentType": "Explore",
+ "description": "Read the docs",
+ "toolUseId": "toolu_MIN",
+ "spawnDepth": 1,
+ "isBuiltIn": true,
+ "aFieldAnthropicHasNotShippedYet": 42
+}

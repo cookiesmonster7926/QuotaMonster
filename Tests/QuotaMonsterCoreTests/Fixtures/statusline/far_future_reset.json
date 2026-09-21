@@ -1,0 +1,59 @@
+{
+ "session_id": "11111111-1111-4111-8111-111111111111",
+ "transcript_path": "/tmp/fixture-project/11111111-1111-4111-8111-111111111111.jsonl",
+ "cwd": "/tmp/fixture-project",
+ "scratchpad_dir": "/tmp/fixture-scratchpad",
+ "prompt_id": "22222222-2222-4222-8222-222222222222",
+ "effort": {
+  "level": "xhigh"
+ },
+ "session_name": "fixture session",
+ "model": {
+  "id": "claude-opus-5[1m]",
+  "display_name": "Opus 5 (1M context)"
+ },
+ "workspace": {
+  "current_dir": "/tmp/fixture-project",
+  "project_dir": "/tmp/fixture-project",
+  "added_dirs": []
+ },
+ "version": "2.1.275",
+ "output_style": {
+  "name": "default"
+ },
+ "cost": {
+  "total_cost_usd": 33.09,
+  "total_duration_ms": 1784501,
+  "total_api_duration_ms": 2170148,
+  "total_lines_added": 1105,
+  "total_lines_removed": 6
+ },
+ "context_window": {
+  "total_input_tokens": 274547,
+  "total_output_tokens": 628,
+  "context_window_size": 1000000,
+  "current_usage": {
+   "input_tokens": 2,
+   "output_tokens": 628,
+   "cache_creation_input_tokens": 5383,
+   "cache_read_input_tokens": 269162
+  },
+  "used_percentage": 27,
+  "remaining_percentage": 73
+ },
+ "exceeds_200k_tokens": true,
+ "fast_mode": false,
+ "thinking": {
+  "enabled": true
+ },
+ "rate_limits": {
+  "five_hour": {
+   "used_percentage": 9,
+   "resets_at": 2105020000
+  },
+  "seven_day": {
+   "used_percentage": 42,
+   "resets_at": 1789832800
+  }
+ }
+}

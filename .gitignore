@@ -1,0 +1,13 @@
+# SwiftPM
+.build/
+.swiftpm/
+*.xcodeproj
+Package.resolved
+
+# macOS
+.DS_Store
+
+# 打包產物
+QuotaMonster.app/
+dist/
+*.dmg

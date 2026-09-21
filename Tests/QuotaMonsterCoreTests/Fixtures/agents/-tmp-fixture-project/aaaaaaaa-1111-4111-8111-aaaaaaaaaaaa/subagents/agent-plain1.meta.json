@@ -1,0 +1,8 @@
+{
+ "agentType": "general-purpose",
+ "description": "Explore the codebase",
+ "toolUseId": "toolu_PLAIN1",
+ "spawnDepth": 1,
+ "requestShape": "foreground",
+ "requestNonInteractive": false
+}

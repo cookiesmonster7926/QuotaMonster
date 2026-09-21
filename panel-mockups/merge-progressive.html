@@ -1,0 +1,497 @@
+<style>
+/* ============ QuotaMonster — Progressive Panel (merge) ============ */
+.pn-progressive{
+  --pg:#0d0e11;
+  background:var(--pg);
+  padding:26px 22px 30px;
+  color:rgba(255,255,255,.72);
+  font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue","PingFang TC","Noto Sans TC",sans-serif;
+  font-variant-numeric:tabular-nums;
+  -webkit-font-smoothing:antialiased;
+  line-height:1;
+}
+.pn-progressive *{box-sizing:border-box;margin:0;padding:0;border:0;}
+.pn-progressive svg{display:block;overflow:visible}
+
+/* ---------- page furniture ---------- */
+.pn-progressive .pnp-kicker{font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(255,255,255,.34);margin-bottom:7px}
+.pn-progressive .pnp-h1{font-size:15px;font-weight:600;color:rgba(255,255,255,.9);margin-bottom:5px}
+.pn-progressive .pnp-sub{font-size:11.5px;line-height:1.55;color:rgba(255,255,255,.45);max-width:760px;margin-bottom:22px}
+.pn-progressive .pnp-stages{display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start}
+.pn-progressive .pnp-cap{font-size:10px;letter-spacing:.06em;color:rgba(255,255,255,.4);margin-top:9px;text-align:center}
+.pn-progressive .pnp-cap b{color:rgba(255,255,255,.66);font-weight:590}
+
+/* ---------- wallpaper ---------- */
+.pn-progressive .pnp-wall{position:relative;width:420px;border-radius:13px;overflow:hidden;padding:0 24px 22px}
+.pn-progressive .pnp-wall--dark{--amber:#ffb340;
+  background:
+    radial-gradient(120% 80% at 12% 6%,#43306b 0%,rgba(67,48,107,0) 58%),
+    radial-gradient(95% 70% at 90% 16%,#0c5c72 0%,rgba(12,92,114,0) 55%),
+    radial-gradient(110% 95% at 58% 98%,#63283c 0%,rgba(99,40,60,0) 58%),
+    repeating-linear-gradient(112deg,rgba(255,255,255,.05) 0 2px,rgba(255,255,255,0) 2px 9px),
+    linear-gradient(162deg,#10121b 0%,#1b1522 55%,#0b1015 100%);
+}
+.pn-progressive .pnp-wall--light{--amber:#b56700;
+  background:
+    radial-gradient(120% 80% at 12% 6%,#ffd9a4 0%,rgba(255,217,164,0) 58%),
+    radial-gradient(95% 70% at 90% 16%,#a9dcff 0%,rgba(169,220,255,0) 55%),
+    radial-gradient(110% 95% at 58% 98%,#ffbfd0 0%,rgba(255,191,208,0) 58%),
+    repeating-linear-gradient(112deg,rgba(0,0,0,.038) 0 2px,rgba(0,0,0,0) 2px 9px),
+    linear-gradient(162deg,#f5f1e9 0%,#e7eef7 55%,#f8eef1 100%);
+}
+
+/* ---------- menu bar (context for the notch) ---------- */
+.pn-progressive .pnp-bar{position:relative;height:33px;margin:0 -24px 0;padding:0 9px;display:flex;align-items:center;gap:13px;
+  -webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%)}
+.pn-progressive .pnp-wall--dark .pnp-bar{background:rgba(22,22,26,.42);color:rgba(255,255,255,.88)}
+.pn-progressive .pnp-wall--light .pnp-bar{background:rgba(252,252,253,.5);color:rgba(0,0,0,.82)}
+.pn-progressive .pnp-bar-l{display:flex;align-items:center;gap:12px;font-size:11px}
+.pn-progressive .pnp-bar-l b{font-weight:640}
+.pn-progressive .pnp-bar-r{margin-left:auto;display:flex;align-items:center;gap:11px;opacity:.72}
+.pn-progressive .pnp-item{position:absolute;left:173px;top:5.5px;height:22px;width:74px;border-radius:5px;display:flex;align-items:center;gap:4px;padding:0 6px;
+  font-size:11px;font-weight:560}
+.pn-progressive .pnp-wall--dark .pnp-item{background:rgba(255,255,255,.2)}
+.pn-progressive .pnp-wall--light .pnp-item{background:rgba(0,0,0,.115)}
+.pn-progressive .pnp-item .pnp-bdot{width:5px;height:5px;border-radius:50%;background:var(--amber);margin-left:auto}
+
+/* ---------- popover shell ---------- */
+.pn-progressive .pnp-pop{position:relative;padding-top:9px;--panel:rgba(30,30,34,.66)}
+.pn-progressive .pnp-wall--light .pnp-pop{--panel:rgba(249,249,251,.62)}
+.pn-progressive .pnp-notch{width:22px;height:9px;margin-left:175px;margin-bottom:-0.5px;
+  clip-path:polygon(50% 0,100% 100%,0 100%);background:var(--panel);
+  -webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%)}
+
+.pn-progressive .pnp-panel{
+  --panel:rgba(30,30,34,.66);
+  --tx1:rgba(255,255,255,.95);--tx2:rgba(255,255,255,.58);--tx3:rgba(255,255,255,.355);
+  --line:rgba(255,255,255,.105);--edge:rgba(255,255,255,.14);
+  --fill1:rgba(255,255,255,.055);--fill2:rgba(255,255,255,.1);
+  --trk:rgba(255,255,255,.115);--neu:rgba(255,255,255,.34);--neu2:rgba(255,255,255,.22);
+  --hatch:rgba(255,255,255,.2);
+  --blue:#4e9cff;--green:#3bd960;--purple:#c07cf5;
+  --amber:#ffb340;--amber-bg:rgba(255,179,64,.12);--amber-ln:rgba(255,179,64,.42);
+  --scrim:30,30,34;
+  width:372px;height:620px;display:flex;flex-direction:column;
+  border-radius:13px;overflow:hidden;background:var(--panel);color:var(--tx1);
+  -webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  box-shadow:0 0 0 .5px var(--edge),0 16px 44px rgba(0,0,0,.46),0 2px 9px rgba(0,0,0,.3);
+}
+.pn-progressive .pnp-panel--light{
+  --panel:rgba(249,249,251,.62);
+  --tx1:rgba(0,0,0,.9);--tx2:rgba(0,0,0,.55);--tx3:rgba(0,0,0,.36);
+  --line:rgba(0,0,0,.115);--edge:rgba(0,0,0,.14);
+  --fill1:rgba(0,0,0,.042);--fill2:rgba(0,0,0,.072);
+  --trk:rgba(0,0,0,.11);--neu:rgba(0,0,0,.36);--neu2:rgba(0,0,0,.2);
+  --hatch:rgba(0,0,0,.17);
+  --blue:#0a6be1;--green:#1e9a41;--purple:#8b44d6;
+  --amber:#b56700;--amber-bg:rgba(200,120,0,.13);--amber-ln:rgba(200,120,0,.44);
+  --scrim:249,249,251;
+  box-shadow:0 0 0 .5px var(--edge),0 16px 40px rgba(0,0,0,.24),0 2px 8px rgba(0,0,0,.14);
+}
+
+/* ---------- shared atoms ---------- */
+.pn-progressive .pnp-trk{background:var(--trk);border-radius:2px;overflow:hidden;flex:none}
+.pn-progressive .pnp-trk>i{display:block;height:100%;border-radius:2px;background:var(--neu)}
+.pn-progressive .pnp-mono{font-family:"SF Mono",ui-monospace,Menlo,monospace}
+.pn-progressive .pnp-kbd{font-size:9px;line-height:13px;height:14px;padding:0 4px;border-radius:3.5px;background:var(--fill2);color:var(--tx2);
+  box-shadow:inset 0 0 0 .5px var(--line);font-family:"SF Mono",ui-monospace,Menlo,monospace;flex:none}
+.pn-progressive .pnp-seclab{font-size:10.5px;font-weight:600;color:var(--tx2);letter-spacing:.02em}
+.pn-progressive .pnp-seclab em{font-style:normal;font-size:9px;letter-spacing:.12em;color:var(--tx3);margin-left:4px;font-weight:600}
+
+/* ---------- HEADER (pinned) ---------- */
+.pn-progressive .pnp-hdr{flex:none;padding:10px 12px;border-bottom:.5px solid var(--line);background:var(--fill1)}
+.pn-progressive .pnp-brandrow{height:28px;display:flex;align-items:center}
+.pn-progressive .pnp-brand{display:flex;align-items:center;gap:6px;color:var(--tx1)}
+.pn-progressive .pnp-wordmark{font-size:13px;font-weight:620;letter-spacing:-.01em}
+.pn-progressive .pnp-rollup{margin-left:auto;display:flex;align-items:center;gap:4px}
+.pn-progressive .pnp-cell{min-width:50px;padding:0 5px;text-align:center}
+.pn-progressive .pnp-cell-n{display:block;font-size:15px;font-weight:560;line-height:16px;color:var(--tx1)}
+.pn-progressive .pnp-cell-l{display:block;font-size:8.5px;font-weight:620;letter-spacing:.075em;color:var(--tx3);margin-top:1px}
+.pn-progressive .pnp-cell--amber{background:var(--amber-bg);border-radius:5px;padding:2px 6px 3px;box-shadow:inset 0 0 0 .5px var(--amber-ln);min-width:52px}
+.pn-progressive .pnp-cell--amber .pnp-cell-n,
+.pn-progressive .pnp-cell--amber .pnp-cell-l{color:var(--amber)}
+
+.pn-progressive .pnp-secrow{height:12px;margin-top:8px;display:flex;align-items:center}
+.pn-progressive .pnp-fresh{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--tx3)}
+
+.pn-progressive .pnp-qrow{height:56px;margin-top:6px;display:flex}
+.pn-progressive .pnp-qcell{flex:1 1 0;min-width:0;padding-right:8px}
+.pn-progressive .pnp-qcell+.pnp-qcell{border-left:.5px solid var(--line);padding-left:10px}
+.pn-progressive .pnp-qlab{font-size:9.5px;color:var(--tx3);height:10px;white-space:nowrap}
+.pn-progressive .pnp-qbig{font-size:23px;font-weight:330;line-height:26px;color:var(--tx1);letter-spacing:-.01em}
+.pn-progressive .pnp-qbig span{font-size:11.5px;font-weight:500;color:var(--tx2);margin-left:1px;letter-spacing:0}
+.pn-progressive .pnp-qbar{height:3px;margin:4px 0}
+.pn-progressive .pnp-qfoot{font-size:9px;color:var(--tx3);height:10px;white-space:nowrap}
+
+/* ---------- QUOTA cards ---------- */
+.pn-progressive .pnp-quota{flex:none;padding:8px 10px;border-bottom:.5px solid var(--line)}
+.pn-progressive .pnp-card{border-radius:8px;background:var(--fill1);box-shadow:inset 0 0 0 .5px var(--line);padding:8px 8px 7px}
+.pn-progressive .pnp-card-hd{height:15px;display:flex;align-items:center;gap:5px}
+.pn-progressive .pnp-chev{color:var(--tx3);flex:none}
+.pn-progressive .pnp-card-t{font-size:12px;font-weight:620;color:var(--tx1)}
+.pn-progressive .pnp-card-sub{font-size:9.5px;color:var(--tx3);letter-spacing:.02em}
+.pn-progressive .pnp-card-rst{margin-left:auto;font-size:9.5px;color:var(--tx2)}
+
+.pn-progressive .pnp-cbody{display:flex;gap:10px;margin-top:7px;height:44px}
+.pn-progressive .pnp-keys{flex:0 0 146px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.pn-progressive .pnp-key{height:17px;display:flex;align-items:center;gap:6px}
+.pn-progressive .pnp-sw{width:8px;height:8px;border-radius:2px;flex:none}
+.pn-progressive .pnp-sw--blue{background:var(--blue)}
+.pn-progressive .pnp-sw--amber{background:var(--amber)}
+.pn-progressive .pnp-sw--green{background:var(--green)}
+.pn-progressive .pnp-sw--purple{background:var(--purple)}
+.pn-progressive .pnp-key-l{font-size:11.5px;color:var(--tx2)}
+.pn-progressive .pnp-key-l em{font-style:normal;font-size:9px;color:var(--tx3);margin-left:3px}
+.pn-progressive .pnp-key-v{margin-left:auto;font-size:11.5px;font-weight:560;color:var(--tx1)}
+.pn-progressive .pnp-chart{flex:1 1 auto;min-width:0}
+.pn-progressive .pnp-ccap{font-size:8.5px;line-height:10px;height:10px;color:var(--tx3);margin-top:2px;white-space:nowrap}
+
+.pn-progressive .pnp-bigbar{height:6px;border-radius:3px;margin-top:7px;overflow:hidden;position:relative;
+  background:repeating-linear-gradient(45deg,var(--hatch) 0 1px,rgba(0,0,0,0) 1px 5px),var(--trk)}
+.pn-progressive .pnp-bigbar>i{display:block;height:100%;border-radius:3px;background:var(--blue)}
+.pn-progressive .pnp-bigbar--g>i{background:var(--green)}
+.pn-progressive .pnp-pace{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--neu)}
+.pn-progressive .pnp-pace::before{content:"";position:absolute;top:-3.5px;left:-2px;width:5px;height:5px;background:var(--neu);border-radius:1px;transform:rotate(45deg)}
+
+.pn-progressive .pnp-fline{height:12px;margin-top:6px;display:flex;align-items:center;font-size:9.5px;color:var(--tx3)}
+.pn-progressive .pnp-fline b{margin-left:auto;font-size:10.5px;font-weight:560;color:var(--tx2)}
+
+.pn-progressive .pnp-warn{height:24px;margin-top:7px;border-radius:5px;background:var(--amber-bg);
+  box-shadow:inset 1.5px 0 0 var(--amber),inset 0 0 0 .5px var(--amber-ln);
+  display:flex;align-items:center;gap:6px;padding:0 8px 0 9px;color:var(--amber);font-size:11px}
+.pn-progressive .pnp-warn b{font-weight:660}
+
+/* collapsed quota row */
+.pn-progressive .pnp-crow{height:31px;margin-top:6px;border-radius:8px;background:var(--fill1);box-shadow:inset 0 0 0 .5px var(--line);
+  display:flex;align-items:center;gap:7px;padding:0 9px 0 8px}
+.pn-progressive .pnp-crow-t{font-size:12px;font-weight:560;color:var(--tx1)}
+.pn-progressive .pnp-crow-bar{width:52px;height:3px;margin-left:2px}
+.pn-progressive .pnp-crow-v{font-size:12.5px;font-weight:500;color:var(--tx1);margin-left:1px}
+.pn-progressive .pnp-crow-f{margin-left:auto;font-size:9.5px;color:var(--tx3)}
+.pn-progressive .pnp-crow-w{margin-left:auto;display:flex;align-items:center;gap:4px;font-size:9.5px;color:var(--amber)}
+.pn-progressive .pnp-crow-w i{width:5px;height:5px;border-radius:50%;background:var(--amber);flex:none}
+
+/* ---------- SESSIONS head + blocked (pinned) ---------- */
+.pn-progressive .pnp-shead{flex:none;height:25px;padding:8px 12px 5px;display:flex;align-items:center}
+.pn-progressive .pnp-ssum{margin-left:auto;font-size:9.5px;color:var(--tx3)}
+.pn-progressive .pnp-ssum b{color:var(--amber);font-weight:560}
+
+.pn-progressive .pnp-blkwrap{flex:none;padding:0 10px 8px}
+.pn-progressive .pnp-blk{border-radius:8px;background:var(--amber-bg);
+  box-shadow:inset 3px 0 0 var(--amber),inset 0 0 0 .5px var(--amber-ln);padding:7px 8px 7px 11px}
+.pn-progressive .pnp-blk-hd{height:17px;display:flex;align-items:center;gap:6px}
+.pn-progressive .pnp-sid{font-size:12px;font-weight:620;color:var(--tx1);flex:none}
+.pn-progressive .pnp-path{font-size:10px;color:var(--tx3);font-family:"SF Mono",ui-monospace,Menlo,monospace;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pn-progressive .pnp-wait{margin-left:auto;font-size:11px;font-weight:560;color:var(--amber);flex:none}
+.pn-progressive .pnp-el{font-size:10px;color:var(--tx3);flex:none}
+.pn-progressive .pnp-cons{height:13px;margin-top:5px;display:flex;align-items:center;gap:5px;font-size:10.5px;color:var(--amber)}
+.pn-progressive .pnp-cons em{font-style:normal;color:var(--tx3)}
+.pn-progressive .pnp-cmd{height:26px;margin-top:6px;border-radius:5px;background:var(--fill2);box-shadow:inset 0 0 0 .5px var(--line);
+  display:flex;align-items:center;gap:6px;padding:0 6px 0 7px}
+.pn-progressive .pnp-cmd svg{color:var(--tx3);flex:none}
+.pn-progressive .pnp-tag{font-size:8.5px;font-weight:660;letter-spacing:.08em;color:var(--tx2);flex:none}
+.pn-progressive .pnp-cmd code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:10.5px;color:var(--tx1);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pn-progressive .pnp-cmd .pnp-kbd{margin-left:auto}
+
+/* agent rows */
+.pn-progressive .pnp-ag{height:19px;display:flex;align-items:center;gap:6px;padding-left:5px}
+.pn-progressive .pnp-tick{color:var(--tx3);opacity:.6;flex:none}
+.pn-progressive .pnp-ag-n{font-size:11px;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pn-progressive .pnp-ag-bar{width:48px;height:3px;margin-left:auto;flex:none}
+.pn-progressive .pnp-ag-bar>i{background:var(--blue)}
+.pn-progressive .pnp-ag-t{font-size:9.5px;color:var(--tx3);width:36px;text-align:right;flex:none;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace}
+.pn-progressive .pnp-ag--stall .pnp-ag-bar>i{background:var(--neu2)}
+.pn-progressive .pnp-ag--done .pnp-ag-n{color:var(--tx3)}
+.pn-progressive .pnp-ag--done .pnp-ag-bar>i{background:var(--neu2)}
+.pn-progressive .pnp-ok{color:var(--green);flex:none}
+
+/* ---------- scroll region ---------- */
+.pn-progressive .pnp-scroll{flex:1 1 auto;min-height:0;position:relative;overflow:hidden;border-top:.5px solid var(--line)}
+.pn-progressive .pnp-scin{padding:6px 12px 8px}
+.pn-progressive .pnp-row{height:30px;display:flex;align-items:center;gap:6px}
+.pn-progressive .pnp-dot{width:6px;height:6px;border-radius:50%;flex:none}
+.pn-progressive .pnp-dot--busy{background:var(--blue)}
+.pn-progressive .pnp-dot--idle{background:var(--neu2);box-shadow:inset 0 0 0 1px var(--neu)}
+.pn-progressive .pnp-pill{font-size:8.5px;font-weight:660;letter-spacing:.06em;height:14px;line-height:14px;padding:0 5px;border-radius:3.5px;flex:none;
+  background:var(--fill2);color:var(--tx2);box-shadow:inset 0 0 0 .5px var(--line)}
+.pn-progressive .pnp-pill--busy{color:var(--blue)}
+.pn-progressive .pnp-ctx{display:flex;align-items:center;gap:4px;flex:none;margin-left:2px}
+.pn-progressive .pnp-ctx span{font-size:8px;font-weight:620;letter-spacing:.07em;color:var(--tx3)}
+.pn-progressive .pnp-ctx .pnp-trk{width:24px;height:3px}
+.pn-progressive .pnp-ctx b{font-size:9.5px;font-weight:460;color:var(--tx3);width:24px;text-align:right}
+
+.pn-progressive .pnp-wf{height:26px;display:flex;align-items:center;gap:6px;padding-left:5px}
+.pn-progressive .pnp-wf-ph{font-size:11px;font-weight:600;color:var(--tx1);flex:none}
+.pn-progressive .pnp-wf-id{font-size:9.5px;color:var(--tx3);font-family:"SF Mono",ui-monospace,Menlo,monospace;flex:none}
+.pn-progressive .pnp-pips{margin-left:auto;display:flex;gap:3px;flex:none}
+.pn-progressive .pnp-pips i{width:6px;height:6px;border-radius:1.5px;background:var(--trk)}
+.pn-progressive .pnp-pips i.g{background:var(--green)}
+.pn-progressive .pnp-pips i.b{background:var(--blue)}
+.pn-progressive .pnp-wf-n{font-size:9.5px;color:var(--tx3);width:26px;text-align:right;flex:none;
+  font-family:"SF Mono",ui-monospace,Menlo,monospace}
+.pn-progressive .pnp-more{height:18px;display:flex;align-items:center;gap:6px;padding-left:5px;font-size:9.5px;color:var(--tx3)}
+.pn-progressive .pnp-gap{height:6px}
+
+.pn-progressive .pnp-fade{position:absolute;left:0;right:0;height:16px;pointer-events:none}
+.pn-progressive .pnp-fade--t{top:0;background:linear-gradient(to bottom,rgba(var(--scrim),.72),rgba(var(--scrim),0))}
+.pn-progressive .pnp-fade--b{bottom:0;background:linear-gradient(to top,rgba(var(--scrim),.72),rgba(var(--scrim),0))}
+.pn-progressive .pnp-sb{position:absolute;right:3px;top:4px;bottom:4px;width:4px}
+.pn-progressive .pnp-sb>i{position:absolute;left:0;width:4px;border-radius:2px;background:var(--neu2)}
+
+/* ---------- footer ---------- */
+.pn-progressive .pnp-ftr{flex:none;height:31px;border-top:.5px solid var(--line);background:var(--fill1);
+  display:flex;align-items:center;gap:6px;padding:0 10px}
+.pn-progressive .pnp-ftr-a{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2)}
+.pn-progressive .pnp-ftr-r{margin-left:auto;display:flex;align-items:center;gap:12px;color:var(--tx3)}
+
+/* ---------- chart svg tokens ---------- */
+.pn-progressive .pnp-svg text{font-size:8px;fill:var(--tx3);font-family:inherit;letter-spacing:.02em}
+.pn-progressive .pnp-rule{stroke:var(--neu2);stroke-width:1;stroke-dasharray:1.5 2.5}
+.pn-progressive .pnp-now-l{stroke:var(--neu2);stroke-width:1;stroke-dasharray:1.5 2}
+.pn-progressive .pnp-brk{fill:none;stroke:var(--amber);stroke-width:1;stroke-linecap:round;opacity:.9}
+.pn-progressive .pnp-svg text.pnp-gaplab{fill:var(--amber);font-size:8px}
+.pn-progressive .pnp-area{fill:var(--blue);opacity:.16}
+.pn-progressive .pnp-line{fill:none;stroke:var(--blue);stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.pn-progressive .pnp-proj{fill:none;stroke:var(--amber);stroke-width:1.4;stroke-dasharray:2.5 2.2;stroke-linecap:round}
+.pn-progressive .pnp-reset{stroke:var(--neu);stroke-width:1}
+.pn-progressive .pnp-nowdot{fill:var(--blue)}
+.pn-progressive .pnp-exh{fill:none;stroke:var(--amber);stroke-width:1.4}
+.pn-progressive .pnp-col-g{fill:var(--green)}
+.pn-progressive .pnp-col-p{fill:var(--purple)}
+.pn-progressive .pnp-base{stroke:var(--neu2);stroke-width:1}
+
+/* ---------- mechanism strip ---------- */
+.pn-progressive .pnp-mech{display:flex;gap:20px;flex-wrap:wrap;margin-top:26px;align-items:flex-start}
+.pn-progressive .pnp-slabwrap{width:420px;border-radius:13px;overflow:hidden;padding:16px 24px}
+.pn-progressive .pnp-slab{width:372px;border-radius:13px;padding:8px 10px;
+  -webkit-backdrop-filter:blur(34px) saturate(185%);backdrop-filter:blur(34px) saturate(185%);
+  box-shadow:0 0 0 .5px var(--edge),0 10px 30px rgba(0,0,0,.34)}
+
+/* ---------- notes ---------- */
+.pn-progressive .pnp-notes{margin-top:28px;display:flex;gap:18px;flex-wrap:wrap}
+.pn-progressive .pnp-note{width:400px;border-radius:9px;background:rgba(255,255,255,.035);
+  box-shadow:inset 0 0 0 .5px rgba(255,255,255,.09);padding:13px 15px 14px}
+.pn-progressive .pnp-note h4{font-size:9.5px;font-weight:660;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,.4);margin-bottom:8px}
+.pn-progressive .pnp-note p{font-size:11.5px;line-height:1.6;color:rgba(255,255,255,.6);margin-bottom:6px}
+.pn-progressive .pnp-note p:last-child{margin-bottom:0}
+.pn-progressive .pnp-note b{color:rgba(255,255,255,.88);font-weight:560}
+.pn-progressive .pnp-note code{font-family:"SF Mono",ui-monospace,Menlo,monospace;font-size:10.5px;color:rgba(255,255,255,.72)}
+.pn-progressive .pnp-amb{color:#ffb340}
+
+.pn-progressive .pnp-f-blue{background:var(--blue) !important}
+.pn-progressive .pnp-f-green{background:var(--green) !important}
+.pn-progressive .pnp-f-purple{background:var(--purple) !important}
+.pn-progressive .pnp-appmark{color:var(--tx1);flex:none}
+
+.pn-progressive .pnp-slab{
+  --panel:rgba(30,30,34,.66);
+  --tx1:rgba(255,255,255,.95);--tx2:rgba(255,255,255,.58);--tx3:rgba(255,255,255,.355);
+  --line:rgba(255,255,255,.105);--edge:rgba(255,255,255,.14);
+  --fill1:rgba(255,255,255,.055);--fill2:rgba(255,255,255,.1);
+  --trk:rgba(255,255,255,.115);--neu:rgba(255,255,255,.34);--neu2:rgba(255,255,255,.22);
+  --hatch:rgba(255,255,255,.2);
+  --blue:#4e9cff;--green:#3bd960;--purple:#c07cf5;
+  --amber:#ffb340;--amber-bg:rgba(255,179,64,.12);--amber-ln:rgba(255,179,64,.42);
+  background:var(--panel);color:var(--tx1);
+}
+</style>
+<div class="pn-progressive"><div class="pnp-kicker">QuotaMonster · Panel merge</div><div class="pnp-h1">Progressive Panel — 372 × 620pt</div><div class="pnp-sub">Dense 的 header ＋ Stats 的卡片與 session tree。額度卡預設收合、必要時自動展開，把高度還給工作階段清單。1pt = 1px。</div><div class="pnp-stages"><figure class="pnp-stage"><div class="pnp-wall pnp-wall--dark"><div class="pnp-bar">
+ <span class="pnp-bar-l"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="opacity:.8"><path d="M1 3h10M1 6h10M1 9h7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><b>Finder</b><span>檔案</span><span>編輯</span></span>
+ <span class="pnp-item"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"/><path d="M8 2a6 6 0 0 1 4.9 9.45" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>28%</span><i class="pnp-bdot"></i></span>
+ <span class="pnp-bar-r"><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M1.2 4.4a8 8 0 0 1 10.6 0M3.3 6.6a5 5 0 0 1 6.4 0" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="6.5" cy="9.3" r="1.05" fill="currentColor"/></svg><svg width="17" height="12" viewBox="0 0 17 12" aria-hidden="true"><rect x="0.6" y="3" width="13" height="6.2" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="4.4" width="8" height="3.4" rx="1" fill="currentColor"/><path d="M15 5v2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg><span style="font-size:11px">週五 01:28</span></span>
+</div><div class="pnp-pop"><div class="pnp-notch"></div><div class="pnp-panel"><div class="pnp-hdr">
+ <div class="pnp-brandrow">
+  <div class="pnp-brand"><svg class="pnp-appmark" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="4.2" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><path d="M3.9 10.3a4.7 4.7 0 0 0 8.2 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="5.9" cy="6.2" r="1.05" fill="currentColor"/><circle cx="10.1" cy="6.2" r="1.05" fill="currentColor"/></svg><span class="pnp-wordmark">QuotaMonster</span></div>
+  <div class="pnp-rollup">
+   <div class="pnp-cell"><span class="pnp-cell-n">4</span><span class="pnp-cell-l">SESSIONS</span></div>
+   <div class="pnp-cell"><span class="pnp-cell-n">5</span><span class="pnp-cell-l">AGENTS</span></div>
+   <div class="pnp-cell pnp-cell--amber"><span class="pnp-cell-n">1</span><span class="pnp-cell-l">BLOCKED</span></div>
+  </div>
+ </div>
+ <div class="pnp-secrow">
+  <span class="pnp-seclab">額度 <em>QUOTA</em></span>
+  <span class="pnp-fresh"><svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.3 6.3A4.3 4.3 0 1 1 8.4 2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M7.1 0.5 10.7 2.2 7.5 4.4Z" fill="currentColor"/></svg>3 分鐘前</span>
+ </div>
+ <div class="pnp-qrow">
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">5 小時視窗</div>
+   <div class="pnp-qbig">28<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-blue" style="width:28%"></i></div>
+   <div class="pnp-qfoot">03:40 · 剩 2h12m</div>
+  </div>
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">7 天 · 全模型</div>
+   <div class="pnp-qbig">18<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-green" style="width:18%"></i></div>
+   <div class="pnp-qfoot">週六 13:59 · 4d14h</div>
+  </div>
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">7 天 · FABLE</div>
+   <div class="pnp-qbig">1<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-purple" style="width:1%"></i></div>
+   <div class="pnp-qfoot">Opus 5 · 幾乎未用</div>
+  </div>
+ </div>
+</div><div class="pnp-quota"><div class="pnp-card">
+ <div class="pnp-card-hd"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.6 3.4 5 6.8 8.4 3.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-card-t">5 小時視窗</span><span class="pnp-card-sub">5-hour window</span>
+  <span class="pnp-card-rst">3:40am 重置</span></div>
+ <div class="pnp-cbody">
+  <div class="pnp-keys">
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--blue"></i><span class="pnp-key-l">已使用 <em>used</em></span><span class="pnp-key-v">28%</span></div>
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--amber"></i><span class="pnp-key-l">燃燒率 <em>burn</em></span><span class="pnp-key-v">92%/h</span></div>
+  </div>
+  <div class="pnp-chart"><svg class="pnp-svg" width="176" height="32" viewBox="0 0 176 32" aria-hidden="true"><line class="pnp-rule" x1="0" y1="2.0" x2="176" y2="2.0"/><path class="pnp-area" d="M0.0 30.0 L11.9 29.7 L23.8 29.3 L35.7 28.8 L47.6 28.4 L59.5 27.9 L71.4 27.1 L79.9 26.5 L86.7 25.6 L90.1 24.7 L93.5 23.4 L95.2 22.2 L95.2 30.0 L0 30.0 Z"/><line class="pnp-now-l" x1="95.2" y1="2.0" x2="95.2" y2="30.0"/><path class="pnp-line" d="M0.0 30.0 L11.9 29.7 L23.8 29.3 L35.7 28.8 L47.6 28.4 L59.5 27.9 L71.4 27.1 L79.9 26.5 L86.7 25.6 L90.1 24.7 L93.5 23.4 L95.2 22.2"/><path class="pnp-proj" d="M95.2 22.2 L121.8 2.8"/><line class="pnp-reset" x1="170.0" y1="1" x2="170.0" y2="31"/><circle class="pnp-nowdot" cx="95.2" cy="22.2" r="2"/><circle class="pnp-exh" cx="121.8" cy="3.4" r="2.2"/><path class="pnp-brk" d="M121.8 15.5V19.5M121.8 17.5H170.0 M170.0 15.5V19.5"/><text class="pnp-gaplab" x="145.9" y="13" text-anchor="middle">1h 25m</text><text x="0" y="9.5">100% 用盡線</text><line class="pnp-base" x1="0" y1="30.5" x2="176" y2="30.5"/><text x="167.0" y="29" text-anchor="end">重置</text></svg><div class="pnp-ccap">累計 % of window ・斜率＝燃燒率</div></div>
+ </div>
+ <div class="pnp-bigbar"><i style="width:28%"></i></div>
+ <div class="pnp-fline"><span>剩 72% · 2h 12m 後重置 · 視窗均速 10 %/h</span><b>28%</b></div>
+ <div class="pnp-warn"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3 11.3 10.4H0.7Z" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linejoin="round"/><path d="M6 4.8v2.5" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="6" cy="8.75" r=".62" fill="currentColor"/></svg><span>照目前燃燒率，約 <b>47 分鐘</b>後用盡 — 比重置早 1h 25m</span></div>
+</div><div class="pnp-crow"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.4 1.6 6.8 5 3.4 8.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-crow-t">7 天 · 全模型</span>
+ <span class="pnp-crow-bar pnp-trk"><i class="pnp-f-green" style="width:18%"></i></span>
+ <span class="pnp-crow-v">18%</span><span class="pnp-crow-f">剩 4d 14h · Fable 1%</span></div></div><div class="pnp-shead"><span class="pnp-seclab">工作階段 <em>SESSIONS</em></span>
+ <span class="pnp-ssum"><b>1 等待</b> · 2 BUSY · 1 IDLE</span></div>
+<div class="pnp-blkwrap"><div class="pnp-blk">
+ <div class="pnp-blk-hd"><span class="pnp-sid">f1-e3</span><span class="pnp-path">~/Antigravity/F1</span>
+  <span class="pnp-wait">等待你回覆</span><span class="pnp-el">2m</span></div>
+ <div class="pnp-cons"><svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="5.1" fill="none" stroke="currentColor" stroke-width="1.05"/><path d="M4.7 4.2v3.6M7.3 4.2v3.6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><span>1 個 agent 跟著停住 <em>— 這段時間都在空轉</em></span></div>
+ <div class="pnp-cmd"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><rect x="0.6" y="1.7" width="10.8" height="8.6" rx="2" fill="none" stroke="currentColor" stroke-width="1" opacity=".8"/><path d="M3.1 4.6 5.1 6l-2 1.4M6.5 8h2.5" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-tag">PERMISSION</span><code>Bash git push --force</code><span class="pnp-kbd">⌘⏎</span></div>
+ <div class="pnp-ag pnp-ag--stall"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">general-purpose</span>
+  <span class="pnp-ag-bar pnp-trk"><i style="width:26%"></i></span><span class="pnp-ag-t">1m20s</span></div>
+</div></div><div class="pnp-scroll"><div class="pnp-scin" style="margin-top:-14px"><div class="pnp-row"><i class="pnp-dot pnp-dot--busy"></i><span class="pnp-sid">usage-97</span>
+  <span class="pnp-path">~/Antigravity/usage</span><span class="pnp-pill pnp-pill--busy">BUSY</span><span class="pnp-el">12m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:34%"></i></span><b>34%</b></span></div>
+ <div class="pnp-wf"><svg class="pnp-tick" width="8" height="26" viewBox="0 0 8 26" aria-hidden="true"><path d="M1 0V26M1 13.0H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-wf-ph">Design</span><span class="pnp-tag">PHASE</span>
+  <span class="pnp-wf-id">wf_79e5d247</span>
+  <span class="pnp-pips"><i class="g"></i><i class="g"></i><i class="g"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i></span>
+  <span class="pnp-wf-n">3/7</span></div>
+ <div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:dynamic-island</span><span class="pnp-ag-bar pnp-trk"><i style="width:83%"></i></span><span class="pnp-ag-t">4m12s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:apple-hig-native</span><span class="pnp-ag-bar pnp-trk"><i style="width:75%"></i></span><span class="pnp-ag-t">3m48s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:max-density</span><span class="pnp-ag-bar pnp-trk"><i style="width:70%"></i></span><span class="pnp-ag-t">3m31s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:creature-motif</span><span class="pnp-ag-bar pnp-trk"><i style="width:58%"></i></span><span class="pnp-ag-t">2m55s</span></div><div class="pnp-ag pnp-ag--done"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:state-machine-kinetic</span><svg class="pnp-ok" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.3 5.3 3.8 7.8 8.7 2.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-ag-bar pnp-trk"><i style="width:100%"></i></span><span class="pnp-ag-t">5m02s</span></div>
+ <div class="pnp-more"><svg class="pnp-tick" width="8" height="18" viewBox="0 0 8 18" aria-hidden="true"><path d="M1 0V9.0H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span>另有 2 個 agent 已完成</span></div>
+ <div class="pnp-gap"></div>
+ <div class="pnp-row"><i class="pnp-dot pnp-dot--idle"></i><span class="pnp-sid">obsidian-4a</span>
+  <span class="pnp-path">~/Obsidian</span><span class="pnp-pill">IDLE</span><span class="pnp-el">41m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:12%"></i></span><b>12%</b></span></div>
+ <div class="pnp-row"><i class="pnp-dot pnp-dot--busy"></i><span class="pnp-sid">wrapx-comsol</span>
+  <span class="pnp-path">~/wrapx-comsol</span><span class="pnp-pill pnp-pill--busy">BUSY</span><span class="pnp-el">3m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:61%"></i></span><b>61%</b></span></div></div><div class="pnp-fade pnp-fade--t"></div><div class="pnp-fade pnp-fade--b"></div><div class="pnp-sb"><i style="top:11px;height:64px"></i></div></div><div class="pnp-ftr">
+ <span class="pnp-ftr-a"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.3 6.3A4.3 4.3 0 1 1 8.4 2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M7.1 0.5 10.7 2.2 7.5 4.4Z" fill="currentColor"/></svg>重新整理<span class="pnp-kbd">⌘R</span></span>
+ <span class="pnp-ftr-r"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.2 1.2h3.6l-.5 3 2 1.7v1H2.7v-1l2-1.7z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M6 6.9v3.9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 3.4h1.6M5.8 3.4h5.2M1 8.6h5.2M9.4 8.6h1.6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><circle cx="4.2" cy="3.4" r="1.6" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7.8" cy="8.6" r="1.6" fill="none" stroke="currentColor" stroke-width="1"/></svg><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.2v4.3" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M3.2 3a4.2 4.2 0 1 0 5.6 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span></div></div></div></div><figcaption class="pnp-cap"><b>深色材質</b>　清單已捲動 14pt — 上緣淡出 ＋ 捲軸</figcaption></figure><figure class="pnp-stage"><div class="pnp-wall pnp-wall--light"><div class="pnp-bar">
+ <span class="pnp-bar-l"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true" style="opacity:.8"><path d="M1 3h10M1 6h10M1 9h7" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><b>Finder</b><span>檔案</span><span>編輯</span></span>
+ <span class="pnp-item"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".3"/><path d="M8 2a6 6 0 0 1 4.9 9.45" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>28%</span><i class="pnp-bdot"></i></span>
+ <span class="pnp-bar-r"><svg width="13" height="12" viewBox="0 0 13 12" aria-hidden="true"><path d="M1.2 4.4a8 8 0 0 1 10.6 0M3.3 6.6a5 5 0 0 1 6.4 0" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/><circle cx="6.5" cy="9.3" r="1.05" fill="currentColor"/></svg><svg width="17" height="12" viewBox="0 0 17 12" aria-hidden="true"><rect x="0.6" y="3" width="13" height="6.2" rx="2" fill="none" stroke="currentColor" stroke-width="1"/><rect x="2" y="4.4" width="8" height="3.4" rx="1" fill="currentColor"/><path d="M15 5v2.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" opacity=".55"/></svg><span style="font-size:11px">週五 01:28</span></span>
+</div><div class="pnp-pop"><div class="pnp-notch"></div><div class="pnp-panel pnp-panel--light"><div class="pnp-hdr">
+ <div class="pnp-brandrow">
+  <div class="pnp-brand"><svg class="pnp-appmark" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><rect x="1" y="1" width="14" height="14" rx="4.2" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><path d="M3.9 10.3a4.7 4.7 0 0 0 8.2 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="5.9" cy="6.2" r="1.05" fill="currentColor"/><circle cx="10.1" cy="6.2" r="1.05" fill="currentColor"/></svg><span class="pnp-wordmark">QuotaMonster</span></div>
+  <div class="pnp-rollup">
+   <div class="pnp-cell"><span class="pnp-cell-n">4</span><span class="pnp-cell-l">SESSIONS</span></div>
+   <div class="pnp-cell"><span class="pnp-cell-n">5</span><span class="pnp-cell-l">AGENTS</span></div>
+   <div class="pnp-cell pnp-cell--amber"><span class="pnp-cell-n">1</span><span class="pnp-cell-l">BLOCKED</span></div>
+  </div>
+ </div>
+ <div class="pnp-secrow">
+  <span class="pnp-seclab">額度 <em>QUOTA</em></span>
+  <span class="pnp-fresh"><svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.3 6.3A4.3 4.3 0 1 1 8.4 2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M7.1 0.5 10.7 2.2 7.5 4.4Z" fill="currentColor"/></svg>3 分鐘前</span>
+ </div>
+ <div class="pnp-qrow">
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">5 小時視窗</div>
+   <div class="pnp-qbig">28<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-blue" style="width:28%"></i></div>
+   <div class="pnp-qfoot">03:40 · 剩 2h12m</div>
+  </div>
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">7 天 · 全模型</div>
+   <div class="pnp-qbig">18<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-green" style="width:18%"></i></div>
+   <div class="pnp-qfoot">週六 13:59 · 4d14h</div>
+  </div>
+  <div class="pnp-qcell">
+   <div class="pnp-qlab">7 天 · FABLE</div>
+   <div class="pnp-qbig">1<span>%</span></div>
+   <div class="pnp-qbar pnp-trk"><i class="pnp-f-purple" style="width:1%"></i></div>
+   <div class="pnp-qfoot">Opus 5 · 幾乎未用</div>
+  </div>
+ </div>
+</div><div class="pnp-quota"><div class="pnp-card">
+ <div class="pnp-card-hd"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.6 3.4 5 6.8 8.4 3.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-card-t">5 小時視窗</span><span class="pnp-card-sub">5-hour window</span>
+  <span class="pnp-card-rst">3:40am 重置</span></div>
+ <div class="pnp-cbody">
+  <div class="pnp-keys">
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--blue"></i><span class="pnp-key-l">已使用 <em>used</em></span><span class="pnp-key-v">28%</span></div>
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--amber"></i><span class="pnp-key-l">燃燒率 <em>burn</em></span><span class="pnp-key-v">92%/h</span></div>
+  </div>
+  <div class="pnp-chart"><svg class="pnp-svg" width="176" height="32" viewBox="0 0 176 32" aria-hidden="true"><line class="pnp-rule" x1="0" y1="2.0" x2="176" y2="2.0"/><path class="pnp-area" d="M0.0 30.0 L11.9 29.7 L23.8 29.3 L35.7 28.8 L47.6 28.4 L59.5 27.9 L71.4 27.1 L79.9 26.5 L86.7 25.6 L90.1 24.7 L93.5 23.4 L95.2 22.2 L95.2 30.0 L0 30.0 Z"/><line class="pnp-now-l" x1="95.2" y1="2.0" x2="95.2" y2="30.0"/><path class="pnp-line" d="M0.0 30.0 L11.9 29.7 L23.8 29.3 L35.7 28.8 L47.6 28.4 L59.5 27.9 L71.4 27.1 L79.9 26.5 L86.7 25.6 L90.1 24.7 L93.5 23.4 L95.2 22.2"/><path class="pnp-proj" d="M95.2 22.2 L121.8 2.8"/><line class="pnp-reset" x1="170.0" y1="1" x2="170.0" y2="31"/><circle class="pnp-nowdot" cx="95.2" cy="22.2" r="2"/><circle class="pnp-exh" cx="121.8" cy="3.4" r="2.2"/><path class="pnp-brk" d="M121.8 15.5V19.5M121.8 17.5H170.0 M170.0 15.5V19.5"/><text class="pnp-gaplab" x="145.9" y="13" text-anchor="middle">1h 25m</text><text x="0" y="9.5">100% 用盡線</text><line class="pnp-base" x1="0" y1="30.5" x2="176" y2="30.5"/><text x="167.0" y="29" text-anchor="end">重置</text></svg><div class="pnp-ccap">累計 % of window ・斜率＝燃燒率</div></div>
+ </div>
+ <div class="pnp-bigbar"><i style="width:28%"></i></div>
+ <div class="pnp-fline"><span>剩 72% · 2h 12m 後重置 · 視窗均速 10 %/h</span><b>28%</b></div>
+ <div class="pnp-warn"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.3 11.3 10.4H0.7Z" fill="none" stroke="currentColor" stroke-width="1.05" stroke-linejoin="round"/><path d="M6 4.8v2.5" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><circle cx="6" cy="8.75" r=".62" fill="currentColor"/></svg><span>照目前燃燒率，約 <b>47 分鐘</b>後用盡 — 比重置早 1h 25m</span></div>
+</div><div class="pnp-crow"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.4 1.6 6.8 5 3.4 8.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-crow-t">7 天 · 全模型</span>
+ <span class="pnp-crow-bar pnp-trk"><i class="pnp-f-green" style="width:18%"></i></span>
+ <span class="pnp-crow-v">18%</span><span class="pnp-crow-f">剩 4d 14h · Fable 1%</span></div></div><div class="pnp-shead"><span class="pnp-seclab">工作階段 <em>SESSIONS</em></span>
+ <span class="pnp-ssum"><b>1 等待</b> · 2 BUSY · 1 IDLE</span></div>
+<div class="pnp-blkwrap"><div class="pnp-blk">
+ <div class="pnp-blk-hd"><span class="pnp-sid">f1-e3</span><span class="pnp-path">~/Antigravity/F1</span>
+  <span class="pnp-wait">等待你回覆</span><span class="pnp-el">2m</span></div>
+ <div class="pnp-cons"><svg width="10" height="10" viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="5.1" fill="none" stroke="currentColor" stroke-width="1.05"/><path d="M4.7 4.2v3.6M7.3 4.2v3.6" stroke="currentColor" stroke-width="1.1" stroke-linecap="round"/></svg><span>1 個 agent 跟著停住 <em>— 這段時間都在空轉</em></span></div>
+ <div class="pnp-cmd"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><rect x="0.6" y="1.7" width="10.8" height="8.6" rx="2" fill="none" stroke="currentColor" stroke-width="1" opacity=".8"/><path d="M3.1 4.6 5.1 6l-2 1.4M6.5 8h2.5" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-tag">PERMISSION</span><code>Bash git push --force</code><span class="pnp-kbd">⌘⏎</span></div>
+ <div class="pnp-ag pnp-ag--stall"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">general-purpose</span>
+  <span class="pnp-ag-bar pnp-trk"><i style="width:26%"></i></span><span class="pnp-ag-t">1m20s</span></div>
+</div></div><div class="pnp-scroll"><div class="pnp-scin" style="margin-top:-0px"><div class="pnp-row"><i class="pnp-dot pnp-dot--busy"></i><span class="pnp-sid">usage-97</span>
+  <span class="pnp-path">~/Antigravity/usage</span><span class="pnp-pill pnp-pill--busy">BUSY</span><span class="pnp-el">12m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:34%"></i></span><b>34%</b></span></div>
+ <div class="pnp-wf"><svg class="pnp-tick" width="8" height="26" viewBox="0 0 8 26" aria-hidden="true"><path d="M1 0V26M1 13.0H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-wf-ph">Design</span><span class="pnp-tag">PHASE</span>
+  <span class="pnp-wf-id">wf_79e5d247</span>
+  <span class="pnp-pips"><i class="g"></i><i class="g"></i><i class="g"></i><i class="b"></i><i class="b"></i><i class="b"></i><i class="b"></i></span>
+  <span class="pnp-wf-n">3/7</span></div>
+ <div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:dynamic-island</span><span class="pnp-ag-bar pnp-trk"><i style="width:83%"></i></span><span class="pnp-ag-t">4m12s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:apple-hig-native</span><span class="pnp-ag-bar pnp-trk"><i style="width:75%"></i></span><span class="pnp-ag-t">3m48s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:max-density</span><span class="pnp-ag-bar pnp-trk"><i style="width:70%"></i></span><span class="pnp-ag-t">3m31s</span></div><div class="pnp-ag"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:creature-motif</span><span class="pnp-ag-bar pnp-trk"><i style="width:58%"></i></span><span class="pnp-ag-t">2m55s</span></div><div class="pnp-ag pnp-ag--done"><svg class="pnp-tick" width="8" height="19" viewBox="0 0 8 19" aria-hidden="true"><path d="M1 0V19M1 9.5H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span class="pnp-ag-n">design:state-machine-kinetic</span><svg class="pnp-ok" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.3 5.3 3.8 7.8 8.7 2.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-ag-bar pnp-trk"><i style="width:100%"></i></span><span class="pnp-ag-t">5m02s</span></div>
+ <div class="pnp-more"><svg class="pnp-tick" width="8" height="18" viewBox="0 0 8 18" aria-hidden="true"><path d="M1 0V9.0H7" fill="none" stroke="currentColor" stroke-width="1"/></svg><span>另有 2 個 agent 已完成</span></div>
+ <div class="pnp-gap"></div>
+ <div class="pnp-row"><i class="pnp-dot pnp-dot--idle"></i><span class="pnp-sid">obsidian-4a</span>
+  <span class="pnp-path">~/Obsidian</span><span class="pnp-pill">IDLE</span><span class="pnp-el">41m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:12%"></i></span><b>12%</b></span></div>
+ <div class="pnp-row"><i class="pnp-dot pnp-dot--busy"></i><span class="pnp-sid">wrapx-comsol</span>
+  <span class="pnp-path">~/wrapx-comsol</span><span class="pnp-pill pnp-pill--busy">BUSY</span><span class="pnp-el">3m</span>
+  <span class="pnp-ctx"><span>CTX</span><span class="pnp-trk"><i style="width:61%"></i></span><b>61%</b></span></div></div><div class="pnp-fade pnp-fade--b"></div><div class="pnp-sb"><i style="top:4px;height:64px"></i></div></div><div class="pnp-ftr">
+ <span class="pnp-ftr-a"><svg width="11" height="11" viewBox="0 0 12 12" aria-hidden="true"><path d="M10.3 6.3A4.3 4.3 0 1 1 8.4 2.6" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M7.1 0.5 10.7 2.2 7.5 4.4Z" fill="currentColor"/></svg>重新整理<span class="pnp-kbd">⌘R</span></span>
+ <span class="pnp-ftr-r"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M4.2 1.2h3.6l-.5 3 2 1.7v1H2.7v-1l2-1.7z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/><path d="M6 6.9v3.9" stroke="currentColor" stroke-width="1" stroke-linecap="round"/></svg><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M1 3.4h1.6M5.8 3.4h5.2M1 8.6h5.2M9.4 8.6h1.6" stroke="currentColor" stroke-width="1" stroke-linecap="round"/><circle cx="4.2" cy="3.4" r="1.6" fill="none" stroke="currentColor" stroke-width="1"/><circle cx="7.8" cy="8.6" r="1.6" fill="none" stroke="currentColor" stroke-width="1"/></svg><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M6 1.2v4.3" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/><path d="M3.2 3a4.2 4.2 0 1 0 5.6 0" fill="none" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span></div></div></div></div><figcaption class="pnp-cap"><b>淺色材質</b>　清單在頂端 — 只有下緣淡出</figcaption></figure></div><div class="pnp-mech">
+ <figure class="pnp-stage"><div class="pnp-wall pnp-wall--dark pnp-slabwrap"><div class="pnp-slab">
+   <div class="pnp-crow"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.4 1.6 6.8 5 3.4 8.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-crow-t">5 小時視窗</span>
+ <span class="pnp-crow-bar pnp-trk"><i class="pnp-f-blue" style="width:28%"></i></span>
+ <span class="pnp-crow-v">28%</span><span class="pnp-crow-w"><i></i>47 分鐘後用盡</span></div><div class="pnp-crow" style="margin-top:6px"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M3.4 1.6 6.8 5 3.4 8.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-crow-t">7 天 · 全模型</span>
+ <span class="pnp-crow-bar pnp-trk"><i class="pnp-f-green" style="width:18%"></i></span>
+ <span class="pnp-crow-v">18%</span><span class="pnp-crow-f">剩 4d 14h · Fable 1%</span></div>
+   </div></div>
+  <figcaption class="pnp-cap"><b>收合</b>　兩張卡的預設樣式 — 共 68pt，把 112pt 還給下方清單<br>（5 小時卡此刻因燃燒警戒自動展開，所以面板裡看不到上面這一列）</figcaption></figure>
+ <figure class="pnp-stage"><div class="pnp-wall pnp-wall--dark pnp-slabwrap"><div class="pnp-slab">
+   <div class="pnp-card">
+ <div class="pnp-card-hd"><svg class="pnp-chev" width="9" height="9" viewBox="0 0 10 10" aria-hidden="true"><path d="M1.6 3.4 5 6.8 8.4 3.4" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="pnp-card-t">7 天視窗</span><span class="pnp-card-sub">7-day window</span>
+  <span class="pnp-card-rst">週六 13:59 重置</span></div>
+ <div class="pnp-cbody">
+  <div class="pnp-keys">
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--green"></i><span class="pnp-key-l">全模型 <em>all models</em></span><span class="pnp-key-v">18%</span></div>
+   <div class="pnp-key"><i class="pnp-sw pnp-sw--purple"></i><span class="pnp-key-l">Fable <em>Opus 5</em></span><span class="pnp-key-v">1%</span></div>
+  </div>
+  <div class="pnp-chart"><svg class="pnp-svg" width="176" height="32" viewBox="0 0 176 32" aria-hidden="true"><rect class="pnp-col-g" x="3.0" y="17.2" width="18.0" height="12.8" rx="1"/><rect class="pnp-col-g" x="28.0" y="9.3" width="18.0" height="20.7" rx="1"/><rect class="pnp-col-g" x="53.0" y="22.7" width="18.0" height="7.3" rx="1"/><rect class="pnp-col-g" x="78.0" y="14.6" width="18.0" height="15.4" rx="1"/><rect class="pnp-col-p" x="78.0" y="13.0" width="18.0" height="1.6" rx="1"/><rect class="pnp-col-g" x="103.0" y="6.6" width="18.0" height="23.4" rx="1"/><rect class="pnp-col-p" x="103.0" y="5.0" width="18.0" height="1.6" rx="1"/><rect class="pnp-col-g" x="128.0" y="19.7" width="18.0" height="10.3" rx="1"/><rect class="pnp-col-p" x="128.0" y="17.8" width="18.0" height="1.8" rx="1"/><rect class="pnp-col-g" x="153.0" y="17.8" width="18.0" height="12.2" rx="1"/><rect class="pnp-col-p" x="153.0" y="15.4" width="18.0" height="2.4" rx="1"/><line class="pnp-base" x1="0" y1="30.5" x2="173" y2="30.5"/></svg><div class="pnp-ccap">近 7 天每日用量 %</div></div>
+ </div>
+ <div class="pnp-bigbar pnp-bigbar--g"><i style="width:18%"></i><span class="pnp-pace" style="left:34.5%"></span></div>
+ <div class="pnp-fline"><span>剩 82% · 4d 14h 後重置 · 每日均量 2.6%</span><b>18%</b></div>
+</div>
+   </div></div>
+  <figcaption class="pnp-cap"><b>展開</b>　點一下標題列 — 7 天卡的完整 Stats 樣式（圖表／進度條／footline）</figcaption></figure>
+</div><div class="pnp-notes">
+ <div class="pnp-note"><h4>Auto-expand rule</h4>
+  <p><b>5 小時卡</b>：當「預測用盡時刻 &lt; 重置時刻」時自動展開，並保持展開直到燃燒率回落。現在 <code>47m &lt; 2h12m</code>，早了 1h 25m，所以它是展開的。</p>
+  <p><b>7 天卡</b>：永遠收合，只有手動點擊才展開 — 4d 14h 的窗格不需要每天盯著看。</p>
+  <p>收合／展開只影響額度區；header 的三格 roll-up 永遠在，所以收合狀態下 28 / 18 / 1 仍然看得到。</p><p>7 天卡進度條上的中性刻度＝<b>時間已過 35%</b>；用量 18% 遠在它左邊，代表這週用得比時間慢。</p></div>
+ <div class="pnp-note"><h4>Height budget — 620pt</h4>
+  <p>釘住不動：header 131 · 額度區 197 · SESSIONS 標題 25 · blocked 卡 108 · footer 31 ＝ <b>492pt</b>（實測值）。</p>
+  <p>剩下 <b>128pt</b> 給工作階段清單捲動（內容 249pt，約可見一半）。5 小時卡收合後額度區從 197 縮到 85pt，捲動區回到 <b>240pt</b>。</p>
+  <p>第五個 session 只會加長捲動內容，面板高度永遠是 620。</p></div>
+ <div class="pnp-note"><h4>One axis, one unit</h4>
+  <p>鏡像 sparkline 拆掉了。現在只畫<b>累計用量 %</b>：單一單位、單一基線。燃燒率＝曲線斜率，最後那段 92%/h 自己陡起來。</p>
+  <p>虛線是用當前斜率外推，撞到 100% 就是用盡點；<span class="pnp-amb">琥珀標尺</span>量的就是用盡點到重置線之間的 1h 25m。</p></div>
+ <div class="pnp-note"><h4>Amber has one owner</h4>
+  <p>只有兩件事可以是琥珀色：<b>被卡住的 session</b>（BLOCKED 格、左側軌、等待你回覆、跟著停住的 agent、選單列圓點）與 <b>燃燒警告</b>（燃燒率色塊、外推虛線、1h 25m 標尺、警告條）。</p>
+  <p>CTX 條、斜線餘量、停住 agent 的進度條、IDLE、時長條、pip 完成格全部中性灰或藍綠。<code>3 分鐘前</code>只出現在 header。</p></div>
+</div></div>

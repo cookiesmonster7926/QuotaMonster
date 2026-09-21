@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>完成訊號 · 回來時的摘要</title>
+<style>
+/* ═══════════════════════════════════════════════════════════════════════
+   QuotaMonster — 「session 工作完成了」的顯示方式，方向：回來時的摘要
+   全部選擇器掛在 .fd 底下（沿用 alert-mockups / panel-mockups 的檔案慣例）。
+   標準：沒有網路、沒有 CDN、CSS 與 SVG 全部內嵌、沒有 emoji。
+   1 CSS px == 1 pt。每一扇窗、每一列面板都以真實尺寸渲染。
+   深色是預設也是唯一要拿來做判斷的那一版；淺色只附一份、只附一個情況。
+   ═══════════════════════════════════════════════════════════════════ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:#0b0d11}
+.fd{background:#0b0d11;color:#E4E8EE;padding:36px 24px 96px;
+  font:13px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang TC","Noto Sans CJK TC",sans-serif;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+.fd .wrap{max-width:1180px;margin:0 auto}
+.fd h1{font-size:21px;font-weight:650;letter-spacing:-.018em;margin-bottom:7px}
+.fd h1 span{color:#8C94A1;font-weight:400}
+.fd .lede{color:#9AA3B0;font-size:13.5px;max-width:78ch}
+.fd .lede b{color:#D7DCE4;font-weight:600}
+.fd .lede i{font-style:normal;color:#FF9E0A}
+.fd h2{font-size:10.5px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:#69727F;
+  margin:52px 0 4px;border-top:1px solid #1B1F27;padding-top:17px}
+.fd h3{font-size:14px;font-weight:650;letter-spacing:-.012em;margin:26px 0 8px;color:#D7DCE4}
+.fd .h2n{font-size:13px;color:#8F98A5;margin-bottom:18px;max-width:82ch}
+.fd .h2n b{color:#D2D8E0;font-weight:600}
+.fd .h2n code,.fd code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:#9FC9E8}
+.fd p.n{font-size:12.8px;line-height:1.72;color:#8F98A5;max-width:82ch;margin-top:9px}
+.fd p.n b{color:#D2D8E0;font-weight:600}
+.fd .cap{font:500 10.5px/1.6 ui-monospace,"SF Mono",Menlo,monospace;color:#68707D;letter-spacing:.015em;margin-top:10px}
+.fd .cap b{color:#C3CAD4;font-weight:600}
+.fd .cap i{font-style:normal;color:#FF9E0A}
+.fd .cap u{text-decoration:none;color:#9AE6C0}
+
+/* ───────── 桌面舞台 ───────── */
+.fd .stage{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 0 0 1px #1E222A}
+.fd .stage__wall{position:absolute;inset:0;
+  background:
+    radial-gradient(120% 90% at 78% 120%,rgba(120,72,140,.42) 0%,rgba(120,72,140,0) 62%),
+    radial-gradient(90% 70% at 12% 0%,rgba(30,74,110,.55) 0%,rgba(30,74,110,0) 70%),
+    linear-gradient(155deg,#12182a 0%,#161d30 30%,#1d2138 55%,#2a2340 78%,#37283f 100%)}
+.fd .stage__wall::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(0,0,0,.30) 0%,rgba(0,0,0,0) 14%)}
+.fd .stage--light .stage__wall{
+  background:
+    radial-gradient(110% 80% at 85% 110%,rgba(255,222,180,.85) 0%,rgba(255,222,180,0) 64%),
+    linear-gradient(150deg,#c8d4e2 0%,#d9dee6 34%,#e6e0da 64%,#f0e4d6 100%)}
+.fd .stage--light .stage__wall::after{background:linear-gradient(180deg,rgba(255,255,255,.40) 0%,rgba(255,255,255,0) 14%)}
+
+/* 選單列 */
+.fd .mb{position:relative;height:25px;display:flex;align-items:center;gap:15px;padding:0 9px 0 13px;
+  font-size:12.5px;line-height:1;white-space:nowrap}
+.fd .mb--dark{background:rgba(16,16,20,.62);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(255,255,255,.90);
+  box-shadow:inset 0 -.5px 0 rgba(255,255,255,.13)}
+.fd .mb--light{background:rgba(250,250,252,.72);-webkit-backdrop-filter:blur(26px) saturate(180%);
+  backdrop-filter:blur(26px) saturate(180%);color:rgba(0,0,0,.84);
+  box-shadow:inset 0 -.5px 0 rgba(0,0,0,.14)}
+.fd .mb b{font-weight:600}
+.fd .mb__sp{flex:1;min-width:0}
+.fd .mb__r{display:flex;align-items:center;gap:11px;flex:none}
+.fd .mb__clock{font-variant-numeric:tabular-nums;font-size:12.5px;opacity:.92}
+.fd .mb__ico{opacity:.78;display:flex}
+.fd .mb__slot{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  border-radius:5px;flex:none}
+
+/* 使用者離開前留著的編輯器 */
+.fd .win{position:absolute;border-radius:9px;overflow:hidden;background:rgba(13,14,18,.95);
+  box-shadow:0 26px 64px rgba(0,0,0,.52),0 0 0 .5px rgba(255,255,255,.10)}
+.fd .win__bar{height:26px;display:flex;align-items:center;gap:6px;padding:0 11px;overflow:hidden;
+  background:rgba(40,42,49,.92);box-shadow:inset 0 -.5px 0 rgba(0,0,0,.4)}
+.fd .win__bar span.dot{width:10px;height:10px;border-radius:50%;flex:none}
+.fd .win__t{margin-left:8px;font:500 10.5px/1 -apple-system,sans-serif;color:rgba(255,255,255,.44);
+  letter-spacing:.01em;white-space:nowrap;flex:none}
+.fd .win__b{padding:11px 13px;font:11px/1.62 ui-monospace,"SF Mono",Menlo,monospace;color:#5F6875;
+  white-space:pre;overflow:hidden}
+.fd .win__b .g{color:#4E7D5E}.fd .win__b .b{color:#4E6E8E}.fd .win__b .w{color:#8892A0}
+.fd .win__b .dim{color:#3D444E}
+
+/* ═════════ 摘要視窗本體 ═════════ */
+/* 設計的核心決定：**它沒有色相。**
+   這個 app 裡每一個色相都已經被指派了意義 ——
+   琥珀＝有人在等你、藍/綠/紅＝額度還剩多少。
+   所以「完成」唯一還沒被佔走的顏色，就是「沒有顏色」。
+   它靠的是**版式**（收據式的細線與右對齊等寬數字）而不是顏色被認出來。 */
+.fd .dg{position:relative;width:300px;padding-top:7px}
+.fd .dg--dark{
+  --mat:rgba(29,29,34,.92);
+  --fg:rgba(255,255,255,.96);--fg2:rgba(255,255,255,.62);--fg3:rgba(255,255,255,.42);
+  --fg4:rgba(255,255,255,.24);--fg5:rgba(255,255,255,.14);
+  --rule:rgba(255,255,255,.10);--edge:rgba(255,255,255,.14);
+  --sh:0 18px 40px rgba(0,0,0,.52),0 3px 11px rgba(0,0,0,.40)}
+.fd .dg--light{
+  --mat:rgba(247,247,250,.94);
+  --fg:rgba(0,0,0,.90);--fg2:rgba(0,0,0,.58);--fg3:rgba(0,0,0,.40);
+  --fg4:rgba(0,0,0,.22);--fg5:rgba(0,0,0,.12);
+  --rule:rgba(0,0,0,.10);--edge:rgba(0,0,0,.16);
+  --sh:0 18px 38px rgba(42,32,20,.24),0 3px 11px rgba(42,32,20,.16)}
+
+/* 8pt 尖角，指回選單列上那顆圖示 —— 與 T1 用**同一個**歸屬手法。
+   歸屬可以共用，語氣不可以。 */
+.fd .dg__notch{position:absolute;top:0;right:34px;width:18px;height:8px;background:var(--mat);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fd .d{position:relative;width:300px;border-radius:13px;overflow:hidden;background:var(--mat);
+  -webkit-backdrop-filter:blur(30px) saturate(180%);backdrop-filter:blur(30px) saturate(180%);
+  box-shadow:var(--sh),inset 0 0 0 .5px var(--edge)}
+/* ⚠️ 這裡**沒有** .w__rail。T1 左邊那條 3pt 的琥珀實心軌是餘光認出它的關鍵，
+   完成摘要刻意不要有任何等價物：兩扇窗的剪影必須在看清楚文字之前就已經不同。 */
+.fd .d__in{padding:10px 14px 9px}
+
+/* 第一列：你離開了多久 · 這份摘要在講幾件事 */
+.fd .d__hd{height:13px;display:flex;align-items:center;gap:8px}
+.fd .d__hd .l{font-size:9.5px;font-weight:600;letter-spacing:.06em;color:var(--fg3);white-space:nowrap}
+.fd .d__hd .l b{color:var(--fg2);font-weight:700;font-variant-numeric:tabular-nums}
+.fd .d__hd .sp{flex:1;min-width:4px}
+.fd .d__hd .r{font-size:9.5px;font-weight:500;letter-spacing:.04em;color:var(--fg4);white-space:nowrap}
+.fd .d__rule{height:.5px;background:var(--rule);margin:8px 0 2px}
+
+/* 每一列 = 一個 session。24pt。整列可點，但不點也不會有任何後果。 */
+.fd .row{height:24px;display:flex;align-items:center;gap:8px;border-radius:5px;
+  margin:0 -5px;padding:0 5px}
+.fd .row:hover{background:rgba(255,255,255,.055)}
+.fd .dg--light .row:hover{background:rgba(0,0,0,.045)}
+.fd .row__m{width:11px;height:11px;flex:none;display:block;color:var(--fg)}
+.fd .row--run .row__m{color:var(--fg4)}
+.fd .row__n{flex:none;font-size:13px;font-weight:500;letter-spacing:-.008em;color:var(--fg);
+  white-space:nowrap;max-width:118px;overflow:hidden;text-overflow:ellipsis}
+.fd .row--run .row__n{color:var(--fg2);font-weight:400}
+/* 路徑從尾端截斷，不用 middle —— session 名字那一欄已經把「是哪一個」講完了，
+   這一欄只負責回答「在哪個資料夾」，而那個答案在字串的前半段。 */
+.fd .row__p{flex:1;min-width:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10px;
+  color:var(--fg4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fd .row__t{flex:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:9.5px;
+  color:var(--fg4);font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.fd .row__d{flex:none;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;
+  font-weight:500;color:var(--fg2);font-variant-numeric:tabular-nums;letter-spacing:-.01em;
+  min-width:52px;text-align:right}
+.fd .row--run .row__d{color:var(--fg3);font-weight:400}
+/* 還在跑的那一列刻意比完成的暗。
+   這份摘要是「我現在可以接手哪一個」的清單，所以**可接手的要亮**。
+   它跟一般 UI 把完成的灰掉正好相反，而且是故意的。 */
+.fd .row__more{height:18px;display:flex;align-items:center;font-size:10px;color:var(--fg4);
+  padding-left:19px;letter-spacing:.02em}
+
+/* 唯一的一行說明文字。這扇窗沒有任何按鈕，所以要有一句話說它可以點。 */
+.fd .d__hint{margin-top:7px;padding-top:7px;border-top:.5px solid var(--rule);
+  font-size:8.5px;letter-spacing:.06em;color:var(--fg4);display:flex;align-items:center;gap:6px}
+.fd .d__hint .sp{flex:1}
+
+/* ═════════ T1 複製品（只為了並排比較） ═════════ */
+.fd .t1{position:relative;width:320px;padding-top:7px;
+  --amber:#FF9E0A;--mat:rgba(29,29,34,.92);
+  --fg:rgba(255,255,255,.96);--fg2:rgba(255,255,255,.62);--fg3:rgba(255,255,255,.42);
+  --fg4:rgba(255,255,255,.24);--rule:rgba(255,255,255,.11)}
+.fd .t1__notch{position:absolute;top:0;right:34px;width:18px;height:8px;background:var(--mat);
+  -webkit-clip-path:polygon(50% 0,100% 100%,0 100%);clip-path:polygon(50% 0,100% 100%,0 100%)}
+.fd .t1 .w{position:relative;width:320px;border-radius:13px;overflow:hidden;background:var(--mat);
+  -webkit-backdrop-filter:blur(32px) saturate(180%);backdrop-filter:blur(32px) saturate(180%);
+  box-shadow:0 20px 46px rgba(0,0,0,.58),inset 0 0 0 .5px rgba(255,158,10,.30)}
+.fd .t1 .w__rail{position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--amber)}
+.fd .t1 .w__in{padding:8px 12px 9px 16px}
+.fd .t1 .r0{height:16px;display:flex;align-items:center;gap:8px}
+.fd .t1 .r0 svg{width:16px;height:16px;flex:none;display:block;color:var(--amber)}
+.fd .t1 .r0 .n{font-size:9.5px;font-weight:600;letter-spacing:.07em;color:var(--fg3)}
+.fd .t1 .r0 .sp{flex:1}
+.fd .t1 .r0 .age{font-size:9.5px;color:var(--fg3)}
+.fd .t1 .r0 .age b{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:12px;font-weight:500;
+  color:var(--amber);font-variant-numeric:tabular-nums;margin-left:3px}
+.fd .t1 .hero{margin-top:6px;height:25px;font-size:19px;line-height:25px;font-weight:600;
+  letter-spacing:-.014em;color:var(--fg);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fd .t1 .hero code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:16.5px;font-weight:500}
+.fd .t1 .r2{margin-top:3px;height:15px;display:flex;align-items:center;gap:8px}
+.fd .t1 .path{flex:1;min-width:0;font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10.5px;
+  color:var(--fg2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fd .t1 .chip{flex:none;font-size:10px;font-weight:500;line-height:15px;height:15px;padding:0 6px;
+  border-radius:4px;color:var(--amber);background:rgba(255,158,10,.17)}
+.fd .t1 .acts{margin-top:11px;height:25px;display:flex;align-items:center;gap:8px}
+.fd .t1 .go{height:25px;display:inline-flex;align-items:center;gap:6px;padding:0 13px;border:0;
+  border-radius:6px;background:var(--amber);color:#2B1A00;font:600 12.5px/1 inherit;cursor:pointer}
+.fd .t1 .no{height:25px;display:inline-flex;align-items:center;padding:0 11px;border-radius:6px;
+  border:.5px solid var(--fg4);background:transparent;color:var(--fg2);font:500 12px/1 inherit;cursor:pointer}
+.fd .t1 .acts .sp{flex:1}
+/* 碰撞情況用的那一行註腳 —— 完成訊號在 T1 面前降級成一行小字，不另開一扇窗。 */
+.fd .t1 .foot{margin-top:9px;padding-top:8px;border-top:.5px solid var(--rule);
+  height:14px;display:flex;align-items:center;gap:7px;font-size:10px;color:var(--fg3)}
+.fd .t1 .foot svg{width:10px;height:10px;flex:none;color:var(--fg3)}
+.fd .t1 .foot b{color:var(--fg2);font-weight:600}
+
+/* ═════════ 下拉面板片段（380pt，與 PanelView.width 一致） ═════════ */
+.fd .pn{width:380px;border-radius:11px;overflow:hidden;background:rgba(30,30,35,.96);
+  box-shadow:0 16px 36px rgba(0,0,0,.5),inset 0 0 0 .5px rgba(255,255,255,.11);
+  --fg:rgba(255,255,255,.95);--fg2:rgba(255,255,255,.60);--fg3:rgba(255,255,255,.40);
+  --fg4:rgba(255,255,255,.24);--rule:rgba(255,255,255,.10)}
+.fd .pn__hd{height:36px;display:flex;align-items:center;gap:9px;padding:0 14px;color:var(--fg2)}
+.fd .pn__hd .t{font-size:13px;font-weight:600;color:var(--fg)}
+.fd .pn__hd .sp{flex:1}
+.fd .pn__hd .st{display:flex;flex-direction:column;align-items:center;min-width:46px}
+.fd .pn__hd .st u{text-decoration:none;font:600 15px/1.1 ui-rounded,-apple-system,sans-serif;
+  color:var(--fg);font-variant-numeric:tabular-nums}
+.fd .pn__hd .st i{font-style:normal;font-size:8.5px;font-weight:500;letter-spacing:.06em;color:var(--fg4)}
+.fd .pn__div{height:.5px;background:var(--rule)}
+/* 追補條：長時間離開時，摘要不自己跳出來，改成面板頂端這一行。
+   19pt，而且**看過一次就消失** —— 面板高度是使用者親自守住的東西。 */
+.fd .pn__cu{height:19px;display:flex;align-items:center;gap:7px;padding:0 14px;
+  background:rgba(255,255,255,.045)}
+.fd .pn__cu svg{width:10px;height:10px;flex:none;color:var(--fg3)}
+.fd .pn__cu .t{font-size:10.5px;color:var(--fg2)}
+.fd .pn__cu .t b{color:var(--fg);font-weight:600}
+.fd .pn__cu .sp{flex:1}
+.fd .pn__cu .x{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:9.5px;color:var(--fg4)}
+.fd .pn__body{padding:9px 10px 10px;display:flex;flex-direction:column;gap:6px}
+.fd .prow{padding:9px;border-radius:7px;background:rgba(255,255,255,.055)}
+.fd .prow__h{height:16px;display:flex;align-items:center;gap:7px}
+.fd .prow__dot{width:6px;height:6px;border-radius:50%;flex:none;background:rgba(255,255,255,.30)}
+.fd .prow__dot.is-busy{background:#3C7DF2}
+.fd .prow__n{font-size:12px;font-weight:500;color:var(--fg);white-space:nowrap}
+.fd .prow__p{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10px;color:var(--fg2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0;flex:1}
+.fd .prow__st{flex:none;display:flex;align-items:center;gap:6px}
+.fd .prow__k{font-size:8.5px;font-weight:600;letter-spacing:.05em;color:var(--fg4);display:flex;
+  align-items:center;gap:3px}
+.fd .prow__k svg{width:9px;height:9px;display:block}
+.fd .prow__k.is-fresh{color:var(--fg)}
+.fd .prow__k.is-aged{color:var(--fg3)}
+.fd .prow__k.is-busy{color:#5C93F5}
+.fd .prow__e{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:10px;color:var(--fg3);
+  font-variant-numeric:tabular-nums}
+.fd .prow__ctx{margin-top:5px;height:9px;display:flex;align-items:center;gap:6px}
+.fd .prow__ctx span.k{font:500 9px/1 ui-monospace,Menlo,monospace;color:var(--fg4)}
+.fd .prow__ctx .bar{flex:1;height:3px;border-radius:2px;background:rgba(255,255,255,.14);overflow:hidden}
+.fd .prow__ctx .bar i{display:block;height:3px;border-radius:2px;background:#3FBF6B}
+.fd .prow__ctx span.v{font:9.5px/1 ui-monospace,Menlo,monospace;color:var(--fg2);font-variant-numeric:tabular-nums}
+
+/* ───────── 版面小工具 ───────── */
+.fd .rail{display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start;margin-top:16px}
+.fd .cell{display:flex;flex-direction:column}
+.fd .cell__t{font-size:11px;font-weight:650;letter-spacing:.02em;color:#C3CAD4;margin-bottom:3px}
+.fd .cell__s{font-size:11.5px;color:#79818E;margin-bottom:11px;max-width:34ch;min-height:2.6em;line-height:1.45}
+.fd .plate{background:#0F1218;border:1px solid #1B1F27;border-radius:12px;padding:20px 22px 22px;
+  display:inline-flex;flex-direction:column;align-items:flex-start}
+.fd .plate--wide{display:block}
+
+/* 時間軸 */
+.fd .tl{position:relative;margin:20px 0 6px;padding:0 0 0 0}
+.fd .tl__line{position:relative;height:4px;background:#191E26;border-radius:2px;margin:44px 0 0}
+.fd .tl__seg{position:absolute;top:0;height:4px;border-radius:2px}
+.fd .tl__tick{position:absolute;top:-40px;transform:translateX(-50%);text-align:center;white-space:nowrap}
+.fd .tl__tick b{display:block;font:600 10px/1.2 ui-monospace,Menlo,monospace;color:#C3CAD4;letter-spacing:.01em}
+.fd .tl__tick i{display:block;font-style:normal;font-size:10px;color:#6C7581;margin-top:2px}
+.fd .tl__tick::after{content:"";position:absolute;left:50%;bottom:-9px;width:1px;height:9px;
+  background:#39414D;transform:translateX(-50%)}
+.fd .tl__lab{position:absolute;top:10px;transform:translateX(-50%);font:10px/1.4 ui-monospace,Menlo,monospace;
+  color:#5D6672;white-space:nowrap}
+
+/* 表格 */
+.fd table{border-collapse:collapse;width:100%;margin-top:14px;font-size:12.3px}
+.fd th,.fd td{text-align:left;vertical-align:top;padding:9px 12px 9px 0;border-bottom:1px solid #191D25}
+.fd th{font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:#69727F;
+  border-bottom:1px solid #242A34;padding-bottom:7px;white-space:nowrap}
+.fd td b{color:#E4E8EE;font-weight:600}
+.fd td{color:#98A1AE}
+.fd td.k{color:#C3CAD4;font-weight:600;white-space:nowrap;width:150px}
+.fd td.amber{color:#FFB13C}
+.fd td.mono,.fd .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px}
+.fd td em,.fd li em{font-style:normal;color:#9AE6C0}
+
+/* 筆記 */
+.fd .notes{display:grid;grid-template-columns:1fr 1fr;gap:26px;margin-top:18px}
+.fd .notes h3{margin-top:0}
+.fd .notes ol,.fd .notes ul{margin:0;padding-left:19px}
+.fd .notes li{font-size:12.6px;line-height:1.66;color:#8F98A5;margin-bottom:9px}
+.fd .notes li b{color:#D7DCE4;font-weight:600}
+.fd .notes li code{font-size:11px}
+.fd .warn{margin-top:16px;border:1px solid #2A2015;border-left:2.5px solid rgba(255,158,10,.62);
+  border-radius:0 9px 9px 0;background:#15120C;padding:14px 16px 15px}
+.fd .warn b{color:#E4E8EE;font-weight:600}
+.fd .warn p{font-size:12.6px;line-height:1.72;color:#9AA3B0}
+.fd .warn p+p{margin-top:9px}
+.fd .warn .lb{display:block;font:700 9.5px/1 ui-monospace,Menlo,monospace;letter-spacing:.14em;
+  text-transform:uppercase;color:#FFB13C;margin-bottom:9px}
+
+/* 生物點頭的示範。1.2pt 的位移，真的就是 1.2px。 */
+@keyframes fd-nod{
+  0%{transform:translateY(0)}
+  22%{transform:translateY(-1.2px)}
+  55%{transform:translateY(-1.2px)}
+  100%{transform:translateY(0)}
+}
+.fd .nod{animation:fd-nod 1.6s cubic-bezier(.32,.72,.3,1) 1 both}
+.fd .nod--loop{animation-iteration-count:infinite;animation-duration:4.6s}
+@media (prefers-reduced-motion:reduce){.fd .nod{animation:none}}
+.fd .frames{display:flex;gap:0;align-items:flex-end}
+.fd .frame{width:96px;display:flex;flex-direction:column;align-items:center;gap:9px}
+.fd .frame .chip{width:22px;height:22px;display:flex;align-items:center;justify-content:center;
+  background:rgba(16,16,20,.62);border-radius:5px}
+.fd .frame .lb{font:10px/1.3 ui-monospace,Menlo,monospace;color:#6C7581;text-align:center}
+.fd .frame .lb b{display:block;color:#C3CAD4;font-weight:600;margin-bottom:2px}
+</style>
+</head>
+
+<body class="fd">
+<div class="wrap">
+
+<h1>完成訊號 · <span>回來時的摘要</span></h1>
+<p class="lede">
+「session 工作完成了」是<b>好消息</b>，而好消息在你正盯著它的時候打斷你，是純噪音 ——
+噪音會把眼睛訓練成忽略琥珀色，那是這個 app 裡<i>唯一有時限</i>的訊號。
+實測：<b>61% 的完成發生在兩分鐘內</b>，也就是你幾乎一定還在看的時候。
+所以這個方向<b>在你在場時一次都不出聲</b>；它把完成的事件累積起來，
+在你<b>回到鍵盤前</b>的那一刻，一次給一份摘要。
+賭注只有一句話：完成唯一真正有價值的時刻，就是你回來、要決定<b>接下來看哪一個</b>的那一刻。<br>
+本頁所有視窗與面板皆為 <b>1 : 1 實際尺寸</b>（1 CSS px = 1 pt）。深色為主，淺色只附一份。
+</p>
+
+<!-- ══════════════ 1 · 它在螢幕上長這樣 ══════════════ -->
+<h2>1 · 它在螢幕上長這樣</h2>
+<p class="h2n">你離開 23 分鐘，回來動了一下滑鼠。摘要在你把注意力交給任何一個視窗<b>之前</b>就到了 ——
+那是整天唯一一個「螢幕上沒有東西正在被你使用」的時刻，也是這個方向唯一願意花掉的那塊矩形。
+它貼在選單列下方 8pt，尖角指回那顆圖示，<b>不搶前景、不搶鍵盤焦點、沒有任何按鈕</b>，8 秒後自己收起來。</p>
+
+<div class="stage" style="height:452px">
+  <div class="stage__wall"></div>
+
+  <div class="mb mb--dark">
+    <b>Visual Studio Code</b><span>File</span><span>Edit</span><span>Selection</span><span>View</span><span>Go</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2.6 4.4 5.4H2.4v5.2h2L8 13.4V2.6Z" fill="currentColor"/><path d="M10.6 5.9a3 3 0 0 1 0 4.2M12.6 4a5.6 5.6 0 0 1 0 8" stroke="currentColor" stroke-width="1.15" stroke-linecap="round"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><rect x="1.4" y="5.6" width="10.6" height="5.2" rx="1.6" stroke="currentColor" stroke-width="1.1"/><rect x="2.8" y="7" width="6" height="2.4" rx=".7" fill="currentColor"/><path d="M13.4 7.6v1.2" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg></span>
+      <!-- QuotaMonster，一般狀態：雙弧 + 生物 + agent 軌。幾何完全凍結。
+           完成訊號在這顆圖示上只是「生物點一次頭」，1.6 秒後結束。 -->
+      <span class="mb__slot">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:rgba(255,255,255,.92)">
+          <g stroke="currentColor" fill="none" stroke-linecap="round">
+            <path d="M5.447 15.660 A7.25 7.25 0 1 1 16.553 15.660" stroke-width="1.5" opacity=".40"/>
+            <path d="M5.447 15.660 A7.25 7.25 0 0 1 14.755 4.798" stroke-width="1.5" stroke="#3C7DF2"/>
+            <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".40"/>
+            <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.964 9.773" stroke-width="1.4" stroke="#3C7DF2"/>
+            <path d="M13.758 17.705 A7.25 7.25 0 0 1 8.242 17.705" stroke-width="1.5" opacity=".48"/>
+          </g>
+          <circle cx="11" cy="3.75" r=".75" fill="#3C7DF2" opacity=".42"/>
+          <circle cx="11" cy="6.85" r=".70" fill="#3C7DF2" opacity=".42"/>
+          <circle cx="12.750" cy="18.035" r=".75" fill="currentColor"/>
+          <circle cx="9.250" cy="18.035" r=".75" fill="currentColor"/>
+          <g class="nod nod--loop">
+            <rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95" fill="currentColor"/>
+            <circle cx="9.90" cy="10.35" r=".95" fill="currentColor"/>
+            <circle cx="12.10" cy="10.35" r=".95" fill="currentColor"/>
+          </g>
+        </svg>
+      </span>
+      <span class="mb__clock">週六 14:41</span>
+    </span>
+  </div>
+
+  <div class="win" style="left:48px;top:76px;width:548px;height:342px">
+    <div class="win__bar"><span class="dot" style="background:#FF5F57"></span><span class="dot" style="background:#FEBC2E"></span><span class="dot" style="background:#28C840"></span><span class="win__t">usage — QuotaMonster — claude</span></div>
+    <div class="win__b"><span class="b">●</span> <span class="w">Bash</span>(bash scripts/test.sh 2>&amp;1 | tail -5)
+  <span class="g">⎿</span>  <span class="dim">✔ 362 tests passed in 31 suites</span>
+
+<span class="b">●</span> <span class="w">Edit</span>(Sources/QuotaMonsterCore/Notify/NotificationEngine.swift)
+  <span class="g">⎿</span>  <span class="dim">Updated with 31 additions and 4 removals</span>
+
+<span class="b">●</span> 完成訊號的偵測層已經接上去了。
+  三個閘都有測試釘住，`ranFor` 用的是
+  statusUpdatedAt 不是 now —— 三秒輪詢
+  會讓每一次都少算最多三秒。
+
+  <span class="dim">下一步要決定的是顯示方式。</span>
+
+<span class="dim">&gt; </span><span style="opacity:.3">▌</span>                       <span class="dim">14:29</span></div>
+  </div>
+
+  <!-- ── 摘要視窗，情況 C：兩個完成 + 一個還在跑 ── -->
+  <div class="dg dg--dark" style="position:absolute;right:52px;top:25px" data-measure="mC">
+    <span class="dg__notch"></span>
+    <div class="d">
+      <div class="d__in">
+        <div class="d__hd">
+          <span class="l">你離開的 <b>23 分鐘</b>裡</span>
+          <span class="sp"></span>
+          <span class="r">2 完成 · 1 還在跑</span>
+        </div>
+        <div class="d__rule"></div>
+
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">usage</span>
+          <span class="row__p">~/Antigravity/usage</span>
+          <span class="row__t">14:29</span>
+          <span class="row__d">12m 04s</span>
+        </div>
+
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">F1</span>
+          <span class="row__p">~/Antigravity/F1</span>
+          <span class="row__t">14:36</span>
+          <span class="row__d">4m 11s</span>
+        </div>
+
+        <div class="row row--run">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="3.4" stroke="currentColor" stroke-width="1.2"/></svg>
+          <span class="row__n">PEO</span>
+          <span class="row__p">~/PEO</span>
+          <span class="row__t"></span>
+          <span class="row__d">已 23m</span>
+        </div>
+
+        <div class="d__hint">
+          <span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="cap">摘要視窗 <b id="mC">—</b>　·　T1 是 320 × 123–141pt　·　<u>沒有任何色相</u>　·　沒有按鈕　·　不搶焦點（與 T1 同一套 NSPanel，已實機量過：<b>NSApp.isActive false · keyWindow nil</b>）</p>
+
+<p class="n"><b>為什麼是這一刻。</b><code>HIDIdleTime</code> 給的是「距離上一次碰鍵盤滑鼠幾秒」，
+所以它掉回門檻以下的那一拍，就是你回到鍵盤前的那一拍 —— 不需要多存任何東西，
+<b>掉下去之前最後一次讀到的值，就是你離開了多久</b>（誤差 ≤ 3 秒，等於一次輪詢）。
+這也是為什麼標題可以說得出「23 分鐘」這個數字，而不是含糊的「剛剛」。</p>
+
+<!-- ══════════════ 2 · 三種內容 ══════════════ -->
+<h2>2 · 三種內容</h2>
+<p class="h2n">高度跟著內容走，一列 24pt。最多列四個，再多就收成一行「另有 N 個」——
+一份需要捲動的摘要已經不是摘要了。</p>
+
+<div class="rail">
+  <div class="cell">
+    <div class="cell__t">A · 一個完成</div>
+    <div class="cell__s">最常見的形狀。沒有標題句、沒有動詞，只有「哪一個、跑多久、幾點結束」。</div>
+    <div class="dg dg--dark" data-measure="mA">
+      <span class="dg__notch"></span>
+      <div class="d"><div class="d__in">
+        <div class="d__hd"><span class="l">你離開的 <b>8 分鐘</b>裡</span><span class="sp"></span><span class="r">1 完成</span></div>
+        <div class="d__rule"></div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__t">14:29</span><span class="row__d">6m 38s</span>
+        </div>
+        <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+      </div></div>
+    </div>
+    <p class="cap"><b id="mA">—</b></p>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">B · 兩個完成</div>
+    <div class="cell__s">兩件一起講，不是兩扇窗。合併門檻是 <b>2</b> 不是 T1 的 3 —— 兩個問題各自要一個答案，兩個完成只有一個位元。</div>
+    <div class="dg dg--dark" data-measure="mB">
+      <span class="dg__notch"></span>
+      <div class="d"><div class="d__in">
+        <div class="d__hd"><span class="l">你離開的 <b>41 分鐘</b>裡</span><span class="sp"></span><span class="r">2 完成</span></div>
+        <div class="d__rule"></div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span>
+          <span class="row__t">14:12</span><span class="row__d">18m 51s</span>
+        </div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">Equipment_Bor…</span><span class="row__p">~/Antigravity/Equipment_Borrowing_System</span>
+          <span class="row__t">14:33</span><span class="row__d">5m 02s</span>
+        </div>
+        <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+      </div></div>
+    </div>
+    <p class="cap"><b id="mB">—</b></p>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">D · 四個以上</div>
+    <div class="cell__s">硬上限四列。第五個之後只給數量 —— 確切清單在下拉面板裡，那裡本來就有捲軸。</div>
+    <div class="dg dg--dark" data-measure="mD">
+      <span class="dg__notch"></span>
+      <div class="d"><div class="d__in">
+        <div class="d__hd"><span class="l">你離開的 <b>1 小時 06 分</b>裡</span><span class="sp"></span><span class="r">6 完成</span></div>
+        <div class="d__rule"></div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span><span class="row__t">13:48</span><span class="row__d">21m 17s</span>
+        </div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">PEO</span><span class="row__p">~/PEO</span><span class="row__t">14:02</span><span class="row__d">9m 44s</span>
+        </div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">F1</span><span class="row__p">~/Antigravity/F1</span><span class="row__t">14:19</span><span class="row__d">7m 03s</span>
+        </div>
+        <div class="row">
+          <svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="row__n">zen-dial</span><span class="row__p">~/zen-dial</span><span class="row__t">14:31</span><span class="row__d">3m 55s</span>
+        </div>
+        <div class="row__more">另有 2 個完成 · 清單在面板裡</div>
+        <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+      </div></div>
+    </div>
+    <p class="cap"><b id="mD">—</b></p>
+  </div>
+</div>
+
+<!-- ══════════════ 3 · 兩個必須先回答的問題 ══════════════ -->
+<h2>3 · 兩個必須先回答的問題</h2>
+
+<h3>3.1　離開五分鐘與離開五小時，要不要一樣處理？</h3>
+<p class="n">不一樣，而且分界不是「多久算久」，是<b>這份摘要還能不能改變你接下來做什麼</b>。
+五分鐘後你回來，你還記得自己派了什麼出去，摘要是在回答一個你心裡已經開著的問題；
+五小時後你回來，那個問題早就關掉了，同一份清單就從「決策依據」變成「歷史」——
+而歷史沒有理由自己跳出來。所以分三段，而且只有中間那一段會主動出現：</p>
+
+<table>
+  <tr><th style="width:150px">離開多久</th><th style="width:160px">行為</th><th>為什麼</th></tr>
+  <tr>
+    <td class="k">&lt; 5 分鐘<br><span class="mono" style="color:#5D6672">沒跨過門檻</span></td>
+    <td><b>沒有摘要。</b>一個字都不出現</td>
+    <td>你根本沒離開。<code>ScreenPresence.idleThreshold</code> 已經是 300 秒，<b>不新增第四個常數</b> ——
+        「離開」在這個 app 裡只能有一個意思。完成的事實只走被動通道：面板那一列變了、生物點了一次頭。</td>
+  </tr>
+  <tr>
+    <td class="k">5 分鐘 – 90 分鐘<br><span class="mono" style="color:#5D6672">上面那扇窗</span></td>
+    <td><b>摘要自己出現</b>，8 秒後自己收起</td>
+    <td>這是「去倒杯水 / 去開個會」的區間。你派出去的東西還在你的工作記憶裡，
+        「接下來看哪一個」是一個真的、現在就要做的決定。這一段是這個方向的全部價值。</td>
+  </tr>
+  <tr>
+    <td class="k">&gt; 90 分鐘<br><span class="mono" style="color:#5D6672">或期間螢幕鎖過</span></td>
+    <td><b>不主動出現。</b>降級成面板頂端一行追補條（右邊那個）</td>
+    <td>三個理由：① 清單會長到變成一面牆；② 每一件都一樣冷，沒有一件比另一件急，所以它不再是決策依據；
+        ③ 久別回來的第一件事本來就是「看螢幕、讀東西」，這時候自己跳出來的東西是在跟你要注意力，不是給你注意力。
+        <b>資訊一點都沒少</b> —— 面板本來就記得一切。</td>
+  </tr>
+</table>
+
+<div class="rail" style="align-items:flex-start">
+  <div class="cell">
+    <div class="cell__t">&gt; 90 分鐘：摘要降級成面板裡的一行</div>
+    <div class="cell__s">19pt，貼在表頭底下。<b>看過一次就消失</b>，不會變成常駐列 ——
+      面板高度是使用者親自守住的東西（他為了保住高度拒絕過一張額度卡）。</div>
+    <div class="plate">
+      <div class="pn">
+        <div class="pn__hd">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" style="color:rgba(255,255,255,.6)"><rect x="2" y="7" width="3" height="7" rx=".8" fill="currentColor"/><rect x="6.5" y="4" width="3" height="10" rx=".8" fill="currentColor"/><rect x="11" y="9" width="3" height="5" rx=".8" fill="currentColor"/></svg>
+          <span class="t">QuotaMonster</span>
+          <span class="sp"></span>
+          <span class="st"><u>3</u><i>SESSIONS</i></span>
+          <span class="st"><u>0</u><i>AGENTS</i></span>
+          <span class="st"><u>0</u><i>BLOCKED</i></span>
+        </div>
+        <div class="pn__div"></div>
+        <div class="pn__cu">
+          <svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span class="t">你離開的 <b>4 小時 12 分</b>裡完成了 <b>3</b> 件</span>
+          <span class="sp"></span>
+          <span class="x">最後一件 11:58</span>
+        </div>
+        <div class="pn__div"></div>
+        <div class="pn__body">
+          <div class="prow">
+            <div class="prow__h">
+              <span class="prow__dot"></span>
+              <span class="prow__n">usage</span>
+              <span class="prow__p">~/Antigravity/usage</span>
+              <span class="prow__st">
+                <span class="prow__k is-aged">
+                  <svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>完成</span>
+                <span class="prow__e">4h 12m</span>
+              </span>
+            </div>
+            <div class="prow__ctx"><span class="k">ctx</span><span class="bar"><i style="width:46%"></i></span><span class="v">46%</span><span class="k">1M</span></div>
+          </div>
+          <div class="prow">
+            <div class="prow__h">
+              <span class="prow__dot"></span>
+              <span class="prow__n">PEO</span>
+              <span class="prow__p">~/PEO</span>
+              <span class="prow__st">
+                <span class="prow__k is-aged">
+                  <svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>完成</span>
+                <span class="prow__e">3h 40m</span>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap">追補條 <b id="mCU">—</b>　·　面板寬度 380pt（= <code>PanelView.width</code>）　·　永久高度成本 <b>0pt</b></p>
+  </div>
+
+  <div class="cell" style="max-width:420px">
+    <div class="cell__t">為什麼是 90 分鐘，以及這個數字有多可靠</div>
+    <p class="n" style="max-width:none">本頁所有其他門檻都是量出來的：<code>180s</code> 來自本機 324 個 turn 的回覆間隔中位數 174 秒、
+      <code>300s</code> 直接沿用已經上線的 <code>ScreenPresence.idleThreshold</code>、
+      <code>90s</code> 的沉澱窗來自「25.0% 的候選會在 90 秒內自己被取消」。</p>
+    <p class="n" style="max-width:none"><b>90 分鐘不是量出來的，是判斷。</b>誠實記一筆。
+      它想逼近的真東西是「離開時長分布的雙峰之間的谷底」——
+      短暫離座是一群，真正走開是另一群，門檻應該落在兩群中間。
+      要驗證它只需要一件事：影子模式跑兩週，把每一次 <code>HIDIdleTime</code> 跨過 300 秒的離開長度記成一行，
+      然後去看那個谷底在哪裡。<b>在那之前，90 分鐘只是一個還沒被打臉的猜測。</b></p>
+    <p class="n" style="max-width:none">同樣誠實的一點：「期間螢幕鎖過」是一個<b>更硬</b>的證據 ——
+      鎖螢幕是使用者親手宣告「我要離開了」，比任何秒數都準。
+      所以它直接把整段離開歸到第三段，不管長短。</p>
+  </div>
+</div>
+
+<h3>3.2　它出現時使用者已經在看螢幕了，會不會變成擋路的東西？</h3>
+<p class="n">會，如果它做錯任何一件事。所以它同時做到下面六件 ——
+其中前四件是結構性的（做不到就不是這個設計），後兩件是把最壞情況收掉：</p>
+
+<table>
+  <tr><th style="width:150px">擋路的來源</th><th>這裡怎麼處理</th></tr>
+  <tr><td class="k">① 出現在你要用的地方</td>
+      <td>錨在選單列圖示下方 8pt、螢幕右上。那是整個桌面上<b>唯一一塊你不會把工作放上去</b>的區域，
+          也是你本來就會為了看時間而掃過去的地方。它<b>不出現在滑鼠附近、不出現在畫面中央</b>。</td></tr>
+  <tr><td class="k">② 要你動手才會走</td>
+      <td>沒有任何按鈕。<b>完全無視它的成本是零次按鍵、零次點擊。</b>8 秒後自己淡出；滑鼠移進去則停住不淡，
+          讓你讀完。這是它與 T1 最大的性格差異：T1 有一個必須被回答的問題，它沒有。</td></tr>
+  <tr><td class="k">③ 搶走焦點 / 打斷輸入</td>
+      <td>與 T1 共用同一套已經實機量過的 NSPanel 設定：<code>NSApp.isActive false</code>、<code>keyWindow nil</code>、
+          <code>level 25</code>、<code>isFloatingPanel</code> 先於 <code>level</code>。你打到一半的字不會掉。</td></tr>
+  <tr><td class="k">④ 挑錯時機</td>
+      <td>它只在「<code>HIDIdleTime</code> 剛掉回門檻以下」那一刻出現 —— 你已經醒了但還沒把注意力交給任何一個視窗。
+          再加兩個保險：必須 <code>!isLocked &amp;&amp; !screensAsleep</code>，而且要<b>連續兩拍（6 秒）都成立</b>。
+          原因很具體：<b>解鎖要打密碼，那會在你還在鎖定畫面上的時候就把 HIDIdleTime 歸零</b>。</td></tr>
+  <tr><td class="k">⑤ 跟更急的事搶畫面</td>
+      <td>回來的那一刻只要<b>有任何一個 session 在 <code>waiting</code></b>，摘要<b>整份不出現</b> ——
+          改成 T1 視窗底下多一行 10pt 的註腳（見第 5 節）。琥珀已經被指派給「有人在等你」，
+          完成訊號不去跟它搶那 20×20pt，也不排在它後面再出現一次。</td></tr>
+  <tr><td class="k">⑥ 被路過的滑鼠誤觸發</td>
+      <td>有人走過去碰了一下滑鼠又走開 —— 這會把一份摘要放給空椅子看。
+          解法是<b>樂觀顯示、保守清除</b>：摘要立刻出現，但待講清單要等<b>連續 60 秒真的在場</b>才會被清掉。
+          假回來只浪費一次 8 秒的顯示，<b>真的回來時那份摘要還在</b>。</td></tr>
+</table>
+
+<p class="n"><b>最強的那一條理由其實不在表裡：</b>這個方向<b>在你在場時的打擾次數是 0</b>。
+即時版每天會在你正在做事的時候講 1.6 次；這一版是 0 次。
+所以「它會不會擋路」這個問題，要跟「它替掉了什麼」一起問 ——
+它花掉的是每次回座的 8 秒，換掉的是每天 1.6 次的中途打斷。</p>
+
+<table>
+  <tr><th style="width:230px">每天（本機實測 21.6 turn／天）</th><th style="width:150px">即時版</th><th>回來時的摘要</th></tr>
+  <tr><td class="k">發聲次數</td><td class="mono">1.6</td><td class="mono"><b>~1.5</b>（每次回座最多一次）</td></tr>
+  <tr><td class="k">其中打斷你正在做的事</td><td class="mono amber">1.6</td><td class="mono"><b>0</b></td></tr>
+  <tr><td class="k">真正被講到的完成件數</td><td class="mono">1.6</td><td class="mono"><b>2.2</b></td></tr>
+  <tr><td class="k">你在場時完成的（3.2 件／天）</td><td class="mono">講 1.6 件</td><td class="mono">一件都不講<br><span style="color:#5D6672">只有面板與生物點頭</span></td></tr>
+  <tr><td class="k">你不在時完成的（2.2 件／天）</td><td class="mono amber">全部丟掉</td><td class="mono"><b>全部講</b></td></tr>
+</table>
+<p class="cap">推導：21.6 × 0.340（<code style="color:#68707D">ranFor ≥ 180s</code>）× 0.750（90 秒後仍 idle）× 0.979（真的 end_turn）= <b>5.4 件/天</b>。
+其中約 40% 完成時你不在（G5 存活率 0.60 的補數）= <b>2.2 件/天</b>，聚成約 1.5 次回座。</p>
+
+<!-- ══════════════ 4 · 衰減 ══════════════ -->
+<h2>4 · 衰減 —— 一個不會褪色的「剛完成」就是一個永久的謊</h2>
+<p class="h2n">摘要本身活 8 秒。但「剛完成」這件事會留在下拉面板那一列上，而它<b>必須自己老掉</b>：
+一個永遠亮著的「完成」標記，在你第二次打開面板的時候就已經在說謊了。三段，然後徹底消失。</p>
+
+<div class="tl">
+  <div class="tl__line">
+    <div class="tl__seg" style="left:0;width:30%;background:#2B333F"></div>
+    <div class="tl__seg" style="left:30%;width:10%;background:rgba(255,255,255,.85)"></div>
+    <div class="tl__seg" style="left:40%;width:15%;background:rgba(255,255,255,.55)"></div>
+    <div class="tl__seg" style="left:55%;width:30%;background:rgba(255,255,255,.22)"></div>
+    <div class="tl__seg" style="left:85%;width:15%;background:#2B333F"></div>
+
+    <div class="tl__tick" style="left:0%"><b>−23m</b><i>你離開</i></div>
+    <div class="tl__tick" style="left:30%"><b>0s</b><i>你回來</i></div>
+    <div class="tl__tick" style="left:40%"><b>+8s</b><i>摘要收起</i></div>
+    <div class="tl__tick" style="left:55%"><b>+60s</b><i>標記轉暗</i></div>
+    <div class="tl__tick" style="left:85%"><b>+10m</b><i>標記消失</i></div>
+
+    <div class="tl__lab" style="left:15%">累積，不出聲</div>
+    <div class="tl__lab" style="left:35%">摘要 + 點頭</div>
+    <div class="tl__lab" style="left:47.5%">面板：完成（亮）</div>
+    <div class="tl__lab" style="left:70%">面板：完成（暗）</div>
+    <div class="tl__lab" style="left:92.5%">面板：IDLE</div>
+  </div>
+</div>
+
+<div class="rail" style="margin-top:58px">
+  <div class="cell">
+    <div class="cell__t">+0s　摘要在</div>
+    <div class="cell__s">第 1 節那扇窗。同時，選單列上的生物點一次頭。</div>
+    <div class="plate"><div class="dg dg--dark" style="width:300px">
+      <div class="d"><div class="d__in">
+        <div class="d__hd"><span class="l">你離開的 <b>23 分鐘</b>裡</span><span class="sp"></span><span class="r">2 完成 · 1 還在跑</span></div>
+        <div class="d__rule"></div>
+        <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span><span class="row__t">14:29</span><span class="row__d">12m 04s</span></div>
+        <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">F1</span><span class="row__p">~/Antigravity/F1</span><span class="row__t">14:36</span><span class="row__d">4m 11s</span></div>
+        <div class="row row--run"><svg class="row__m" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="3.4" stroke="currentColor" stroke-width="1.2"/></svg><span class="row__n">PEO</span><span class="row__p">~/PEO</span><span class="row__t"></span><span class="row__d">已 23m</span></div>
+        <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+      </div></div>
+    </div></div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">+30s　摘要已經不在了</div>
+    <div class="cell__s">螢幕上關於「完成」的東西<b>一個都沒有</b>，除非你自己打開面板。
+      面板裡那一列的狀態字從 <code>IDLE</code> 換成「完成」，<b>不多佔一個 pt</b>。</div>
+    <div class="plate">
+      <div class="pn">
+        <div class="pn__body" style="padding:10px">
+          <div class="prow">
+            <div class="prow__h">
+              <span class="prow__dot"></span><span class="prow__n">usage</span>
+              <span class="prow__p">~/Antigravity/usage</span>
+              <span class="prow__st">
+                <span class="prow__k is-fresh"><svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>完成 12m04s</span>
+                <span class="prow__e">30s</span>
+              </span>
+            </div>
+            <div class="prow__ctx"><span class="k">ctx</span><span class="bar"><i style="width:46%"></i></span><span class="v">46%</span><span class="k">1M</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="cap" style="margin-top:12px">0–60 秒：勾 + 「完成」+ 跑了多久，<b>全不透明</b></p>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">+4m　同一列，轉暗</div>
+    <div class="cell__s">還看得到，但已經退到三級文字的亮度。它還在說「這件事剛結束」，只是不再堅持。</div>
+    <div class="plate">
+      <div class="pn">
+        <div class="pn__body" style="padding:10px">
+          <div class="prow">
+            <div class="prow__h">
+              <span class="prow__dot"></span><span class="prow__n">usage</span>
+              <span class="prow__p">~/Antigravity/usage</span>
+              <span class="prow__st">
+                <span class="prow__k is-aged"><svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>完成</span>
+                <span class="prow__e">4m</span>
+              </span>
+            </div>
+            <div class="prow__ctx"><span class="k">ctx</span><span class="bar"><i style="width:46%"></i></span><span class="v">46%</span><span class="k">1M</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="cap" style="margin-top:12px">60s–10m：勾還在，<b>「12m04s」先掉</b>，亮度降到 40%</p>
+    </div>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">+10m　標記消失</div>
+    <div class="cell__s">回到一列普通的 idle。<b>這一列不再宣稱任何事情剛發生。</b>
+      跑了多久仍然查得到（面板的 agent 樹），但它不再是頭條。</div>
+    <div class="plate">
+      <div class="pn">
+        <div class="pn__body" style="padding:10px">
+          <div class="prow">
+            <div class="prow__h">
+              <span class="prow__dot"></span><span class="prow__n">usage</span>
+              <span class="prow__p">~/Antigravity/usage</span>
+              <span class="prow__st">
+                <span class="prow__k">IDLE</span>
+                <span class="prow__e">14m</span>
+              </span>
+            </div>
+            <div class="prow__ctx"><span class="k">ctx</span><span class="bar"><i style="width:46%"></i></span><span class="v">46%</span><span class="k">1M</span></div>
+          </div>
+        </div>
+      </div>
+      <p class="cap" style="margin-top:12px">&gt; 600 秒：與「本來就閒著」的 session <b>長得一模一樣</b></p>
+    </div>
+  </div>
+</div>
+
+<p class="n"><b>為什麼是 600 秒。</b>本機量到的回覆間隔中位數是 <b>174 秒</b>、300 秒內回覆的比例是 <b>60.1%</b>。
+600 秒 = 中位數的 3.4 倍，也等於 <code>minUnattendedRun</code>（180s）的三倍多一點 ——
+到這個時候，「我本來就要回去看」那一群已經幾乎全部解決了。
+再留著只會讓「完成」這兩個字變成面板上的裝飾。</p>
+
+<p class="n"><b>那個時鐘量的是「沒有人看著」的時間，不是牆上的時間 —— 與偵測層的 <code>ranFor</code> 同一條原則。</b>
+你不在的時候標記不老化；<b>你回來的那一刻它才開始走</b>。
+所以第 3.1 節那張久別回來的面板，兩列 4 小時前就結束的 session <b>仍然帶著標記</b> —— 你還沒有機會看過它。
+但<b>亮度只給「你在場時完成的」那一群</b>：你不在時完成的一律從<b>暗</b>的那一段起跳，
+因為旁邊白紙黑字寫著 <code>4h 12m</code>，一個全亮的標記會去否認那個數字。
+兩者一樣在你回來後 600 秒內褪光。</p>
+
+<h3>選單列圖示上的那一下：生物點一次頭</h3>
+<p class="n">幾何是凍結的，所以不能加新形狀；琥珀是被指派的，所以不能用顏色。剩下的只有<b>瞬時的動作</b>。
+生物本來就有姿態系統（<code>still / awake / driving / asleep</code>），<code>rise</code> 這個位移已經在裡面了 ——
+所以「點一次頭」不是新機制，只是把既有的位移做成一次性的。
+1.6 秒，做完就沒了，不重複、不留痕跡，<b>符合「這個 app 沒有常駐計時器」</b>。</p>
+
+<div class="frames">
+  <div class="frame">
+    <div class="chip"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:rgba(255,255,255,.92)">
+      <g stroke="currentColor" fill="none" stroke-linecap="round">
+        <path d="M5.447 15.660 A7.25 7.25 0 1 1 16.553 15.660" stroke-width="1.5" opacity=".40"/>
+        <path d="M5.447 15.660 A7.25 7.25 0 0 1 14.755 4.798" stroke-width="1.5" stroke="#3C7DF2"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".40"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.964 9.773" stroke-width="1.4" stroke="#3C7DF2"/>
+        <path d="M13.758 17.705 A7.25 7.25 0 0 1 8.242 17.705" stroke-width="1.5" opacity=".48"/></g>
+      <circle cx="8.539" cy="17.819" r=".75" fill="currentColor"/><circle cx="11" cy="18.25" r=".75" fill="currentColor"/><circle cx="13.461" cy="17.819" r=".75" fill="currentColor"/>
+      <rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95" fill="currentColor"/>
+      <circle cx="9.90" cy="10.35" r=".95" fill="currentColor"/><circle cx="12.10" cy="10.35" r=".95" fill="currentColor"/>
+    </svg></div>
+    <div class="lb"><b>t−1s</b>3 隻 agent 在跑<br>生物 driving</div>
+  </div>
+  <div class="frame">
+    <div class="chip"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:rgba(255,255,255,.92)">
+      <g stroke="currentColor" fill="none" stroke-linecap="round">
+        <path d="M5.447 15.660 A7.25 7.25 0 1 1 16.553 15.660" stroke-width="1.5" opacity=".40"/>
+        <path d="M5.447 15.660 A7.25 7.25 0 0 1 14.755 4.798" stroke-width="1.5" stroke="#3C7DF2"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".40"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.964 9.773" stroke-width="1.4" stroke="#3C7DF2"/>
+        <path d="M13.758 17.705 A7.25 7.25 0 0 1 8.242 17.705" stroke-width="1.5" opacity=".48"/></g>
+      <g transform="translate(0,-1.2)">
+        <rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95" fill="currentColor"/>
+        <circle cx="9.90" cy="10.35" r=".95" fill="currentColor"/><circle cx="12.10" cy="10.35" r=".95" fill="currentColor"/></g>
+    </svg></div>
+    <div class="lb"><b>t+0.35s</b>抬起 1.2pt<br>agent 軌已經空了</div>
+  </div>
+  <div class="frame">
+    <div class="chip"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:rgba(255,255,255,.92)">
+      <g stroke="currentColor" fill="none" stroke-linecap="round">
+        <path d="M5.447 15.660 A7.25 7.25 0 1 1 16.553 15.660" stroke-width="1.5" opacity=".40"/>
+        <path d="M5.447 15.660 A7.25 7.25 0 0 1 14.755 4.798" stroke-width="1.5" stroke="#3C7DF2"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".40"/>
+        <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.964 9.773" stroke-width="1.4" stroke="#3C7DF2"/>
+        <path d="M13.758 17.705 A7.25 7.25 0 0 1 8.242 17.705" stroke-width="1.5" opacity=".48"/></g>
+      <rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95" fill="currentColor"/>
+      <circle cx="9.90" cy="10.35" r=".95" fill="currentColor"/><circle cx="12.10" cy="10.35" r=".95" fill="currentColor"/>
+    </svg></div>
+    <div class="lb"><b>t+1.6s</b>落回原位<br>與平常完全相同</div>
+  </div>
+  <div class="frame">
+    <div class="chip"><svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:#FF9E0A">
+      <circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/>
+      <g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g>
+    </svg></div>
+    <div class="lb"><b>對照：T1</b>完全不同的<br>形狀 + 琥珀 + 一直呼吸</div>
+  </div>
+</div>
+<p class="cap" style="margin-top:14px">上面第一顆的生物有在動（1.2pt，真的就是 1.2px）。<i>誠實記一筆：</i>1.2pt 是猜的 ——
+既有的 <code style="color:#68707D">awake.rise</code> 只有 0.30pt，對「只做一次」的動作太小。真正的數字要在真的選單列上看過才算數。</p>
+
+<!-- ══════════════ 5 · 與 T1 並排 ══════════════ -->
+<h2>5 · 與 T1「有人在等你」並排</h2>
+<p class="h2n">兩扇窗會在同一個位置出現，所以它們必須在你讀到任何一個字<b>之前</b>就已經分開。
+下面兩扇是同一時刻、同一位置、同一材質的對照。</p>
+
+<div class="rail" style="gap:34px;align-items:flex-start">
+  <div class="cell">
+    <div class="cell__t" style="color:#FFB13C">T1 · 有人在等你</div>
+    <div class="cell__s">左邊 3pt 琥珀實心軌。19pt 的問句是全窗最大的東西。兩個按鈕。一直呼吸到你處理它。</div>
+    <div class="t1" data-measure="mT1">
+      <span class="t1__notch"></span>
+      <div class="w">
+        <span class="w__rail"></span>
+        <div class="w__in">
+          <div class="r0">
+            <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+            <span class="n">在等你</span><span class="sp"></span>
+            <span class="age">已等<b>1:24</b></span>
+          </div>
+          <div class="hero">要我繼續改 <code>SessionRow</code> 嗎？</div>
+          <div class="r2"><span class="path">~/Antigravity/usage</span><span class="chip">在問你問題</span></div>
+          <div class="acts">
+            <button class="go"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6h7M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>跳過去 ⏎</button>
+            <button class="no">稍後 ⎋</button>
+            <span class="sp"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap"><b id="mT1">—</b></p>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">完成摘要</div>
+    <div class="cell__s">沒有軌、沒有色相、沒有按鈕、沒有 19pt 的東西。最大的字是 13pt 的 session 名字。不呼吸。</div>
+    <div class="dg dg--dark" data-measure="mSide">
+      <span class="dg__notch"></span>
+      <div class="d"><div class="d__in">
+        <div class="d__hd"><span class="l">你離開的 <b>23 分鐘</b>裡</span><span class="sp"></span><span class="r">2 完成 · 1 還在跑</span></div>
+        <div class="d__rule"></div>
+        <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span><span class="row__t">14:29</span><span class="row__d">12m 04s</span></div>
+        <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">F1</span><span class="row__p">~/Antigravity/F1</span><span class="row__t">14:36</span><span class="row__d">4m 11s</span></div>
+        <div class="row row--run"><svg class="row__m" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="3.4" stroke="currentColor" stroke-width="1.2"/></svg><span class="row__n">PEO</span><span class="row__p">~/PEO</span><span class="row__t"></span><span class="row__d">已 23m</span></div>
+        <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+      </div></div>
+    </div>
+    <p class="cap"><b id="mSide">—</b></p>
+  </div>
+
+  <div class="cell">
+    <div class="cell__t">碰撞：兩件事同時成立</div>
+    <div class="cell__s">回來時有人在等你，<b>同時</b>有兩件在你離開時完成了。
+      完成訊號<b>不另開窗、不排隊</b>，它降級成 T1 底下的一行 10pt 註腳。</div>
+    <div class="t1" data-measure="mT1b">
+      <span class="t1__notch"></span>
+      <div class="w">
+        <span class="w__rail"></span>
+        <div class="w__in">
+          <div class="r0">
+            <svg viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="7.25" stroke="currentColor" stroke-width="1.5"/><g stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7.6 7.8 10 11l-2.4 3.2"/><path d="M10.2 7.8 12.6 11l-2.4 3.2"/><path d="M12.8 7.8 15.2 11l-2.4 3.2"/></g></svg>
+            <span class="n">在等你</span><span class="sp"></span>
+            <span class="age">已等<b>6:02</b></span>
+          </div>
+          <div class="hero">要我把 tee 裝進去嗎？</div>
+          <div class="r2"><span class="path">~/PEO</span><span class="chip">要你批准工具</span></div>
+          <div class="acts">
+            <button class="go"><svg width="11" height="11" viewBox="0 0 12 12" fill="none"><path d="M2 6h7M6 3l3 3-3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>跳過去 ⏎</button>
+            <button class="no">稍後 ⎋</button>
+            <span class="sp"></span>
+          </div>
+          <div class="foot">
+            <svg viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>另有 <b>2 個</b>在你離開時完成 · usage · F1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="cap"><b id="mT1b">—</b>　·　比單純的 T1 高 <b id="mDelta">—</b></p>
+  </div>
+</div>
+
+<table>
+  <tr><th style="width:130px"></th><th style="width:300px">T1 · 有人在等你</th><th>完成摘要</th></tr>
+  <tr><td class="k">顏色</td><td class="amber">琥珀 <code style="color:#FFB13C">#FF9E0A</code>，左側 3pt 實心軌 + 琥珀描邊</td><td><b>沒有色相。</b>純墨水分四階，描邊是中性白 14%</td></tr>
+  <tr><td class="k">剪影</td><td>320pt 寬，左邊一條亮色豎條</td><td><b>300pt 寬，左邊什麼都沒有。</b>寬度差 20pt，餘光就分得開</td></tr>
+  <tr><td class="k">最大的字</td><td>19pt —— 那個 session 真正問出口的句子</td><td>13pt —— session 名字。<b>刻意沒有任何標題句</b></td></tr>
+  <tr><td class="k">版式</td><td>一句話 + 一條路徑 + 一個分類 chip</td><td><b>收據。</b>細線分隔、右對齊等寬數字、每列一樣高</td></tr>
+  <tr><td class="k">動作</td><td>三個 chevron 以 2.1s 呼吸，直到狀態解除</td><td><b>不動。</b>只有出現與淡出</td></tr>
+  <tr><td class="k">按鈕</td><td>填滿的琥珀「跳過去 ⏎」+「稍後 ⎋」</td><td><b>沒有按鈕。</b>整列可點，不點也不會有事</td></tr>
+  <tr><td class="k">聲音</td><td><code>Submarine</code></td><td><b>無聲。</b>若之後要加，必須是不同的音，而且只有一次</td></tr>
+  <tr><td class="k">壽命</td><td>直到你處理它；5 分鐘後恰好再推一次</td><td><b>8 秒，一次，不重推。</b>滑鼠移進去則暫停</td></tr>
+  <tr><td class="k">通知中心</td><td>你不在時另發一份 osascript 副本</td><td><b>永遠不發。</b>好消息留成永久歷史是垃圾</td></tr>
+  <tr><td class="k">選單列圖示</td><td>整顆換成滿環 + 三個呼吸 chevron，琥珀</td><td>幾何一個 pt 都不動。生物點一次頭，1.6 秒</td></tr>
+  <tr><td class="k">兩者相遇時</td><td colspan="2"><b>T1 全贏。</b>完成摘要整份不出現，降級成 T1 底下一行 10pt 註腳（右上那扇窗）</td></tr>
+</table>
+
+<!-- ══════════════ 6 · 淺色一份 ══════════════ -->
+<h2>6 · 淺色一份（只附一個情況）</h2>
+<p class="h2n">深色是使用者實際在用的、也是唯一拿來做判斷的那一版。淺色附在這裡只為了驗一件事：
+<b>一扇沒有色相的窗，在白底上還認得出來嗎</b>。答案靠的是那條細線與右對齊的等寬數字，不是顏色。</p>
+
+<div class="stage stage--light" style="height:214px">
+  <div class="stage__wall"></div>
+  <div class="mb mb--light">
+    <b>Ghostty</b><span>File</span><span>Edit</span><span>View</span><span>Window</span>
+    <span class="mb__sp"></span>
+    <span class="mb__r">
+      <span class="mb__ico"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M2 5.8a9.5 9.5 0 0 1 12 0M4.2 8.4a6.3 6.3 0 0 1 7.6 0M6.4 11a3 3 0 0 1 3.2 0" stroke="currentColor" stroke-width="1.25" stroke-linecap="round"/><circle cx="8" cy="13.4" r=".95" fill="currentColor"/></svg></span>
+      <span class="mb__slot">
+        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" style="color:rgba(0,0,0,.84)">
+          <g stroke="currentColor" fill="none" stroke-linecap="round">
+            <path d="M5.447 15.660 A7.25 7.25 0 1 1 16.553 15.660" stroke-width="1.5" opacity=".24"/>
+            <path d="M5.447 15.660 A7.25 7.25 0 0 1 14.755 4.798" stroke-width="1.5" stroke="#004DBF"/>
+            <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".24"/>
+            <path d="M7.821 13.668 A4.15 4.15 0 1 1 14.964 9.773" stroke-width="1.4" stroke="#004DBF"/>
+            <path d="M13.758 17.705 A7.25 7.25 0 0 1 8.242 17.705" stroke-width="1.5" opacity=".32"/></g>
+          <rect x="8.95" y="9.858" width="4.10" height="3.042" rx=".95" fill="currentColor"/>
+          <circle cx="9.90" cy="10.35" r=".95" fill="currentColor"/><circle cx="12.10" cy="10.35" r=".95" fill="currentColor"/>
+        </svg>
+      </span>
+      <span class="mb__clock">週六 14:41</span>
+    </span>
+  </div>
+
+  <div class="dg dg--light" style="position:absolute;right:52px;top:25px" data-measure="mL">
+    <span class="dg__notch"></span>
+    <div class="d"><div class="d__in">
+      <div class="d__hd"><span class="l">你離開的 <b>23 分鐘</b>裡</span><span class="sp"></span><span class="r">2 完成 · 1 還在跑</span></div>
+      <div class="d__rule"></div>
+      <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">usage</span><span class="row__p">~/Antigravity/usage</span><span class="row__t">14:29</span><span class="row__d">12m 04s</span></div>
+      <div class="row"><svg class="row__m" viewBox="0 0 11 11" fill="none"><path d="M1.9 5.7 4.3 8.1 9.1 3.1" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="row__n">F1</span><span class="row__p">~/Antigravity/F1</span><span class="row__t">14:36</span><span class="row__d">4m 11s</span></div>
+      <div class="row row--run"><svg class="row__m" viewBox="0 0 11 11" fill="none"><circle cx="5.5" cy="5.5" r="3.4" stroke="currentColor" stroke-width="1.2"/></svg><span class="row__n">PEO</span><span class="row__p">~/PEO</span><span class="row__t"></span><span class="row__d">已 23m</span></div>
+      <div class="d__hint"><span>點一列跳過去</span><span class="sp"></span><span>8 秒後自己收起</span></div>
+    </div></div>
+  </div>
+</div>
+<p class="cap">淺色版 <b id="mL">—</b>　·　與深色版<b>尺寸完全相同</b>，只換四階墨水與材質</p>
+
+<!-- ══════════════ 7 · 筆記 ══════════════ -->
+<h2>7 · 選了什麼 · 拒絕了什麼 · 誠實的弱點</h2>
+
+<div class="notes">
+  <div>
+    <h3>選了什麼</h3>
+    <ol>
+      <li><b>完成沒有顏色。</b>這個 app 裡每一個色相都已經被指派了意義（琥珀＝有人在等你，藍/綠/紅＝額度）。
+        所以「完成」唯一還沒被佔走的顏色，就是<b>沒有顏色</b>。它靠版式被認出來，不靠色塊。</li>
+      <li><b>在場時一次都不出聲。</b>61% 的完成發生在兩分鐘內，那時候你幾乎一定還在看。
+        對正在看的人喊話，正是把眼睛訓練成忽略琥珀的那件事。</li>
+      <li><b>觸發點是「回到鍵盤前」，不是「完成」。</b><code>HIDIdleTime</code> 掉回 300 秒門檻以下的那一拍。
+        它同時給出「你離開了多久」——<b>掉下去之前最後讀到的那個值</b>，不必額外記帳。</li>
+      <li><b>一次回座最多一份摘要。</b>不是一個完成一則。合併門檻是 2（T1 是 3）：
+        兩個問題要兩個答案，兩個完成只有一個位元。</li>
+      <li><b>摘要裡放「還在跑的」。</b>這是它從「通知」變成「決策依據」的那一行 ——
+        你要決定接下來看哪一個，就必須知道哪些還不能看。</li>
+      <li><b>還在跑的那一列比完成的暗。</b>與一般 UI 相反，故意的：可以接手的東西要亮。</li>
+      <li><b>樂觀顯示、保守清除。</b>摘要立刻出現，但待講清單要等連續 60 秒真的在場才清掉。
+        路過碰一下滑鼠只浪費一次 8 秒的顯示，<b>真的回來時摘要還在</b>。</li>
+      <li><b>三段離開時長。</b>&lt;5 分鐘不講、5–90 分鐘主動講、&gt;90 分鐘降級成面板一行。</li>
+      <li><b>衰減三段，終點是完全消失。</b>0–60s 亮、60s–10m 暗、10 分鐘後與一列普通 idle 完全相同。</li>
+      <li><b>選單列只做瞬時訊號。</b>生物點一次頭，1.6 秒。幾何一個 pt 都不動，
+        沒有新形狀、沒有顏色、做完就沒了，<b>沒有常駐計時器</b>。</li>
+      <li><b>T1 全贏。</b>回來時只要有人在等你，摘要整份不出現，降級成 T1 底下一行 10pt 註腳。</li>
+      <li><b>app 重啟時待講清單直接丟掉，不存磁碟。</b>從磁碟重建等於宣稱見證過我們沒見證的事，
+        與 <code>witnessedWorking</code> 是同一條原則。代價：午餐時間 crash 一次，你少一份摘要。</li>
+    </ol>
+  </div>
+
+  <div>
+    <h3>刻意拒絕</h3>
+    <ul>
+      <li><b>完成時立刻發一則通知。</b>整個方向就是為了拒絕這件事。即時版每天 1.6 次全部落在你正在做事的時候。</li>
+      <li><b>任何顏色。</b>包含青、紫這種「還沒被用到」的色相。多一個色相就多一條要背的規則，
+        而這個 app 的色彩語彙已經滿了。</li>
+      <li><b>「✓ 完成！」這種標題句。</b>它是轉述，不是內容。一列裡真正有用的是<b>哪一個、跑多久、幾點結束</b>。</li>
+      <li><b>聲音。</b>完成是好消息，好消息不值得一個聲音。留了一條路：真的要加，必須與 <code>Submarine</code> 不同、且只響一次。</li>
+      <li><b>osascript 副本。</b>它會以「指令碼編輯器」的身分<b>永久留在通知中心</b>。
+        好消息的永久歷史是垃圾，而且署名還是錯的。</li>
+      <li><b>把摘要排隊、之後再出現。</b>沒被看到的摘要不重發，只在下一次真正回座時重建。
+        一份重播的舊摘要必然是過期的。</li>
+      <li><b>面板上多一張卡。</b>使用者為了保住面板高度已經拒絕過一張額度卡。
+        追補條 19pt、看過一次就消失，永久高度成本 <b>0pt</b>。</li>
+      <li><b>在選單列上加常駐的完成計數。</b>幾何凍結，而且「有 3 件完成了」沒有時限，不配佔用那 22×22pt。</li>
+      <li><b>用 <code>peakFinished</code> 那種扇出訊號當完成。</b>T2 比 session 真的結束早 5–60 秒
+        （協調者還在寫總結）。那是「批次排空」，不是「工作完成了」。</li>
+      <li><b>滑入 / 彈跳 / 進度動畫。</b>只有淡入淡出。<code>prefers-reduced-motion</code> 下連生物點頭都停。</li>
+      <li><b>emoji。</b>全部 inline SVG，照 SF Symbols 的筆重（1.35–1.5pt stroke、round cap）。</li>
+    </ul>
+  </div>
+</div>
+
+<div class="warn">
+  <span class="lb">這個方向誠實的弱點</span>
+  <p><b>如果你不離開座位，這個設計一整天不會說任何話。</b>
+  它處理「61% 的完成發生在兩分鐘內」的方式，不是解決它，而是<b>拒絕回答</b>：
+  那 3.2 件／天在你在場時完成的事，它一件都不主動講，只留下面板那一列與生物點的那一下頭。
+  一個坐著不動、開著三個長時間 session 的人，會覺得這個功能<b>根本沒做</b>。
+  這到底是「克制」還是「一個不會觸發的功能」，這份 mockup 判不了 ——
+  只有真的裝上去用兩週才判得了。</p>
+
+  <p><b>第二個弱點，比第一個具體：90 分鐘那條線是猜的。</b>
+  本頁其他每一個門檻都指得出量測來源（180s ← 中位數 174s、300s ← 已上線的 <code>idleThreshold</code>、
+  90s ← 25.0% 的自我取消率、600s ← 中位數的 3.4 倍），只有 90 分鐘沒有。
+  它想逼近的是「離開時長分布的雙峰谷底」，而那個分布<b>目前沒有人量過</b>。
+  在影子模式把它量出來之前，這條線隨時可能整個搬家 —— 而它一搬家，
+  「什麼時候會有一扇窗自己跳出來」就跟著變。</p>
+
+  <p><b>第三個，最小但最容易被忽略：</b>被動通道完全依賴你<b>會去看選單列</b>。
+  生物點頭只有 1.6 秒、1.2pt，若你當時正盯著螢幕另一邊，它就等於沒發生 ——
+  而這個方向又剛好把「你在場時」的全部責任都交給了它。
+  最小的補救不是加大動作，是<b>讓面板那一列的完成標記留久一點</b>（600s → 1800s）：
+  代價是面板上多一段時間的舊消息，但那是你自己打開才看到的，不是被丟到臉上的。</p>
+</div>
+
+</div>
+
+<script>
+/* 量測真實尺寸寫回頁面 —— 紙上標的數字必須是渲染出來的數字，不是我算出來的。 */
+(function(){
+  function box(el){var r=el.getBoundingClientRect();
+    return Math.round(r.width)+' × '+Math.round(r.height)+' pt';}
+  document.querySelectorAll('[data-measure]').forEach(function(el){
+    var inner=el.querySelector('.d')||el.querySelector('.w');
+    var t=document.getElementById(el.dataset.measure);
+    if(inner&&t)t.textContent=box(inner);
+  });
+  var cu=document.querySelector('.pn__cu');
+  if(cu)document.getElementById('mCU').textContent=box(cu);
+  var a=document.querySelector('[data-measure="mT1"] .w');
+  var b=document.querySelector('[data-measure="mT1b"] .w');
+  if(a&&b)document.getElementById('mDelta').textContent=
+    Math.round(b.getBoundingClientRect().height-a.getBoundingClientRect().height)+'pt';
+})();
+</script>
+</body>
+</html>

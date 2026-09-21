@@ -1,0 +1,535 @@
+<div class="fm-core">
+<style>
+.fm-core{--bg:#0e1013;--pnl:#15181d;--ln:#262b33;--fg:#e8ecf2;--dim:#8b93a1;--acc:#7fd1c8;--alert:#ff9500;--grid:#1c2027;
+ background:var(--bg);color:var(--fg);font:13px/1.55 ui-sans-serif,-apple-system,"SF Pro Text",Segoe UI,sans-serif;
+ padding:28px 20px 56px;box-sizing:border-box;-webkit-font-smoothing:antialiased}
+.fm-core *{box-sizing:border-box}
+.fm-core .wrap{max-width:1040px;margin:0 auto}
+.fm-core h1{font-size:22px;letter-spacing:-.02em;margin:0 0 4px;font-weight:650}
+.fm-core h2{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--acc);margin:0 0 14px;font-weight:650}
+.fm-core h3{font-size:12.5px;margin:20px 0 8px;font-weight:650;color:var(--fg)}
+.fm-core p{margin:0 0 10px;color:var(--dim);max-width:72ch}
+.fm-core .lede{color:var(--fg);font-size:14px;max-width:74ch}
+.fm-core section{border-top:1px solid var(--ln);padding:26px 0 6px;margin-top:6px}
+.fm-core .num,.fm-core code{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11.5px;color:var(--acc)}
+.fm-core .panel{background:var(--pnl);border:1px solid var(--ln);border-radius:10px;padding:16px}
+.fm-core .row{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.fm-core table{border-collapse:collapse;width:100%;font-size:11.5px;font-family:ui-monospace,"SF Mono",Menlo,monospace}
+.fm-core th{text-align:left;color:var(--acc);font-weight:600;padding:5px 10px 5px 0;border-bottom:1px solid var(--ln);white-space:nowrap}
+.fm-core td{padding:4px 10px 4px 0;border-bottom:1px solid #1b1f26;color:var(--dim);vertical-align:top}
+.fm-core td b{color:var(--fg);font-weight:600}
+.fm-core .ok{color:#6fcf8f}.fm-core .no{color:#ff7b6b}.fm-core .mid{color:#e5c76b}
+.fm-core ul{margin:0 0 10px;padding-left:18px;color:var(--dim);max-width:72ch}
+.fm-core li{margin:0 0 5px}
+.fm-core .cap{font-size:10.5px;color:var(--dim);letter-spacing:.04em;text-align:center;margin-top:6px;font-family:ui-monospace,Menlo,monospace}
+
+/* ---- the mark ---- */
+.fm-core .bl{font:10px ui-monospace,Menlo,monospace;fill:#8b93a1}
+.fm-core .bv{font:10px ui-monospace,Menlo,monospace;fill:#e8ecf2}
+.fm-core .tr{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;opacity:.32}
+.fm-core .tr.ti{stroke-width:1.4}
+.fm-core .mk50{fill:currentColor}
+.fm-core .lv{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-dasharray:0 200}
+.fm-core .lv.li{stroke-width:1.4}
+.fm-core .cr{fill:currentColor}
+.fm-core .rail{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.fm-core .rdot{fill:currentColor}
+.fm-core .ring{fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round}
+.fm-core .chev{fill:none;stroke:currentColor;stroke-width:1.25;stroke-linecap:round}
+.fm-core .alert{color:var(--alert)}
+</style>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+ <g id="fmTks" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke-width="1.5" opacity=".32"/>
+  <path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" opacity=".32"/>
+  <path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705" stroke-width="1.5" opacity=".32"/>
+  <circle cx="11" cy="3.75" r=".75" fill="currentColor" stroke="none"/>
+  <circle cx="11" cy="6.85" r=".7" fill="currentColor" stroke="none"/>
+ </g>
+ <g id="fmA7282" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke-width="1.5" stroke-dasharray="23.688 200"/>
+  <path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" stroke-dasharray="15.442 200"/>
+ </g>
+ <g id="fmA1840" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke-width="1.5" stroke-dasharray="5.922 200"/>
+  <path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" stroke-dasharray="7.533 200"/>
+ </g>
+ <g id="fmA0022" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" stroke-dasharray="4.143 200"/>
+ </g>
+ <g id="fmA5050" fill="none" stroke="currentColor" stroke-linecap="round">
+  <path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke-width="1.5" stroke-dasharray="16.45 200"/>
+  <path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke-width="1.4" stroke-dasharray="9.416 200"/>
+ </g>
+ <path id="fmCrP" fill="currentColor" d="M10.574 9.681A.95 .95 0 0 0 8.961 10.497L9.211 12.097A.95 .95 0 0 0 10.15 12.9L11.85 12.9A.95 .95 0 0 0 12.789 12.097L13.039 10.497A.95 .95 0 0 0 11.426 9.681A.6 .6 0 0 1 10.574 9.681Z"/>
+ <g id="fmCrStill"><use href="#fmCrP"/></g>
+ <g id="fmCrAwake"><g transform="translate(0,-0.3)"><use href="#fmCrP"/></g></g>
+ <g id="fmCrDrive"><g transform="rotate(5,11,12.9) translate(0,-0.3)"><use href="#fmCrP"/></g></g>
+ <g id="fmCrSleep"><path fill="currentColor" fill-rule="evenodd" d="M10.574 10.132A.95 .817 0 0 0 8.961 10.834L9.211 12.209A.95 .817 0 0 0 10.15 12.9L11.85 12.9A.95 .817 0 0 0 12.789 12.209L13.039 10.834A.95 .817 0 0 0 11.426 10.132A.6 .516 0 0 1 10.574 10.132ZM10.05 11.5A.95 .5 0 0 1 11.95 11.5A.95 .5 0 0 1 10.05 11.5Z"/></g>
+ <g id="fmRail1" fill="currentColor"><circle cx="11" cy="18.25" r=".75"/></g>
+ <g id="fmRail2" fill="currentColor"><circle cx="9.25" cy="18.036" r=".75"/><circle cx="12.75" cy="18.036" r=".75"/></g>
+ <g id="fmRail3" fill="currentColor"><circle cx="8.537" cy="17.819" r=".75"/><circle cx="11" cy="18.25" r=".75"/><circle cx="13.463" cy="17.819" r=".75"/></g>
+ <g id="fmRailSat" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705"/></g>
+ <g id="fmRing1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="11" cy="11" r="7.25"/></g>
+ <g id="fmRing2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.964 9.25A7.25 7.25 0 0 1 18.036 9.25"/><path d="M18.036 12.75A7.25 7.25 0 0 1 3.964 12.75"/></g>
+ <g id="fmRing3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4.032 13.002A7.25 7.25 0 0 1 9.25 3.964"/><path d="M16.218 16.033A7.25 7.25 0 0 1 5.782 16.033"/><path d="M12.75 3.964A7.25 7.25 0 0 1 17.968 13.002"/></g>
+ <g id="fmRing5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4.85 7.162A7.25 7.25 0 0 1 9.25 3.964"/><path d="M5.449 15.663A7.25 7.25 0 0 1 3.768 10.49"/><path d="M13.72 17.721A7.25 7.25 0 0 1 8.28 17.721"/><path d="M18.232 10.49A7.25 7.25 0 0 1 16.551 15.663"/><path d="M12.75 3.964A7.25 7.25 0 0 1 17.15 7.162"/></g>
+ <g id="fmRing6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M8.998 4.032A7.25 7.25 0 0 1 13.002 4.032"/><path d="M3.964 9.25A7.25 7.25 0 0 1 5.967 5.782"/><path d="M5.967 16.218A7.25 7.25 0 0 1 3.964 12.75"/><path d="M13.002 17.968A7.25 7.25 0 0 1 8.998 17.968"/><path d="M18.036 12.75A7.25 7.25 0 0 1 16.033 16.218"/><path d="M16.033 5.782A7.25 7.25 0 0 1 18.036 9.25"/></g>
+ <g id="fmChev" fill="none" stroke="currentColor" stroke-width="1.25" stroke-linecap="round">
+  <path d="M6.525 9.125A2.1035 2.1035 0 0 1 6.525 12.875"/>
+  <path d="M10.425 9.125A2.1035 2.1035 0 0 1 10.425 12.875"/>
+  <path d="M14.325 9.125A2.1035 2.1035 0 0 1 14.325 12.875"/>
+ </g>
+</defs></svg>
+<div class="wrap">
+<h1>PARALLAX &mdash; a menu-bar quota mark</h1>
+<p class="lede">Two open arcs read remaining quota. A creature sits in the well. The bottom opening carries the agent tally. When something is blocked the whole mark turns amber and the outer ring divides into equal parts. One rule governs every count: <b style="color:var(--fg)">a ring cut into N equal pieces</b>. Ink is <span class="num">16.00 &times; 16.00pt</span> in every state; the item box is <span class="num">22 &times; 22pt</span> and never moves.</p>
+
+<section>
+<h2>1 &nbsp;Construction &mdash; 10&times;</h2>
+<style>
+.fm-core .cx{stroke:#2e3540;stroke-width:.7}
+.fm-core .cc{fill:none;stroke:#39424f;stroke-width:.7;stroke-dasharray:3 3}
+.fm-core .cl{stroke:var(--acc);stroke-width:.7}
+.fm-core .cw{stroke:#5a6472;stroke-width:.7}
+.fm-core .ct{font:8.5px ui-monospace,Menlo,monospace;fill:#8b93a1}
+.fm-core .ck{font:8.5px ui-monospace,Menlo,monospace;fill:var(--acc)}
+.fm-core .cb{font:8.5px ui-monospace,Menlo,monospace;fill:#e8ecf2}
+</style>
+<div class="row">
+<div class="panel" style="flex:1 1 560px">
+<svg viewBox="-56 -40 566 322" style="width:100%;height:auto" aria-label="Construction drawing at ten times scale">
+ <rect x="0" y="0" width="220" height="220" fill="none" stroke="#2e3540" stroke-width=".7" stroke-dasharray="2 3"/>
+ <text class="cb" x="0" y="-22">item box 22.00 &times; 22.00pt &mdash; identical in every state</text>
+ <text class="ct" x="0" y="-10">1pt = 1px &middot; centre (11,11) &middot; drawn at 10&times;</text>
+ <rect x="30" y="30" width="160" height="160" fill="none" stroke="#3d4855" stroke-width=".7"/>
+ <g class="cc"><circle cx="110" cy="110" r="80"/><circle cx="110" cy="110" r="72.5"/><circle cx="110" cy="110" r="65"/><circle cx="110" cy="110" r="48.5"/><circle cx="110" cy="110" r="41.5"/><circle cx="110" cy="110" r="34.5"/><circle cx="110" cy="110" r="21.5"/></g>
+ <line class="cx" x1="110" y1="16" x2="110" y2="208"/><line class="cx" x1="18" y1="110" x2="202" y2="110"/>
+ <g transform="scale(10)" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></g>
+ <g class="cw"><line x1="110" y1="110" x2="30.2" y2="177.0"/><line x1="110" y1="110" x2="189.8" y2="177.0"/></g>
+ <g class="cl"><line x1="110" y1="110" x2="70.3" y2="206.2"/><line x1="110" y1="110" x2="149.7" y2="206.2"/></g>
+ <text class="ct" x="-46" y="182">&phi; = 220&deg;</text><text class="ct" x="192" y="182">&phi; = &minus;40&deg;</text>
+ <text class="ck" x="60" y="230">rail span &plusmn;22.35&deg;</text>
+ <text class="cb" x="0" y="252">bottom opening 100&deg; &middot; each arc sweeps 260&deg; &middot; top dead centre is the midpoint of both</text>
+ <text class="ct" x="0" y="266">strokes 1.50 / 1.40 &middot; all terminals round cap R .75 / R .70 &middot; creature lean 5&deg;</text>
+ <g class="ct">
+  <line class="cw" x1="110" y1="30" x2="252" y2="30"/><text x="256" y="32.5">r 8.00 &mdash; ink edge, band outer</text>
+  <line class="cl" x1="110" y1="37.5" x2="252" y2="37.5"/><text class="ck" x="256" y="40">r 7.25 &mdash; outer centreline + rail</text>
+  <line class="cw" x1="110" y1="45" x2="252" y2="45"/><text x="256" y="47.5">r 6.50 &mdash; band inner</text>
+  <line class="cw" x1="110" y1="61.5" x2="252" y2="61.5"/><text x="256" y="64">r 4.85</text>
+  <line class="cl" x1="110" y1="68.5" x2="252" y2="68.5"/><text class="ck" x="256" y="71">r 4.15 &mdash; inner centreline</text>
+  <line class="cw" x1="110" y1="75.5" x2="252" y2="75.5"/><text x="256" y="78">r 3.45</text>
+  <line class="cw" x1="110" y1="88.5" x2="252" y2="88.5"/><text x="256" y="91">r 2.148 &mdash; creature envelope</text>
+ </g>
+ <g class="ck">
+  <line class="cl" x1="92" y1="30" x2="92" y2="45"/><line class="cl" x1="88" y1="30" x2="96" y2="30"/><line class="cl" x1="88" y1="45" x2="96" y2="45"/><text x="52" y="41">1.50</text>
+  <line class="cl" x1="92" y1="45" x2="92" y2="61.5"/><line class="cl" x1="88" y1="61.5" x2="96" y2="61.5"/><text x="52" y="57">1.60</text>
+  <line class="cl" x1="92" y1="61.5" x2="92" y2="75.5"/><line class="cl" x1="88" y1="75.5" x2="96" y2="75.5"/><text x="52" y="72">1.40</text>
+  <line class="cl" x1="92" y1="75.5" x2="92" y2="88.5"/><line class="cl" x1="88" y1="88.5" x2="96" y2="88.5"/><text x="52" y="86">1.30</text>
+ </g>
+ <circle cx="110" cy="37.5" r="12" fill="none" stroke="var(--alert)" stroke-width="1"/>
+ <line x1="122" y1="32" x2="256" y2="8" stroke="var(--alert)" stroke-width=".7"/>
+ <text class="ct" fill="var(--alert)" x="256" y="6">50% disc &empty;1.50 &mdash; tangent to</text>
+ <text class="ct" fill="var(--alert)" x="256" y="17">both band edges, protrudes neither way</text>
+ <circle cx="170.9" cy="70.7" r="2" fill="var(--acc)"/><line x1="172" y1="70" x2="252" y2="104" stroke="#5a6472" stroke-width=".6"/><text class="ck" x="256" y="106">72% remaining &rarr; &phi; 32.8&deg;</text>
+ <circle cx="151.2" cy="105.1" r="2" fill="var(--acc)"/><line x1="153" y1="106" x2="252" y2="119" stroke="#5a6472" stroke-width=".6"/><text class="ck" x="256" y="121">82% remaining &rarr; &phi; 6.8&deg;</text>
+ <line x1="130" y1="182" x2="252" y2="140" stroke="#5a6472" stroke-width=".6"/><text class="ck" x="256" y="136">tally, saturated: 44.7&deg; bar</text>
+ <text class="ct" x="256" y="148">units at &plusmn;13.968&deg; (N=2)</text>
+ <text class="ct" x="256" y="159">&plusmn;19.857&deg; and 0 (N=3)</text>
+ <line x1="120" y1="118" x2="252" y2="180" stroke="#5a6472" stroke-width=".6"/><text class="ck" x="256" y="182">creature 4.10 &times; 3.35</text>
+ <text class="ct" x="256" y="193">lobes R.95 &middot; valley R.60, 0.458 deep</text>
+ <text class="ct" x="256" y="204">base corners R.95 &middot; no vertex anywhere in it</text>
+ <text class="ct" x="256" y="222">alert ring: N segments, gap 27.936&deg;</text>
+ <text class="ct" x="256" y="233">= 2.00pt of ink at r 7.25</text>
+ <text class="ct" x="256" y="244">chevrons (alert): arc R 2.104, stroke 1.25</text>
+</svg>
+<div class="cap">construction &mdash; busy state, 5 agents, 72% / 82% remaining</div>
+</div>
+<div class="panel" style="flex:1 1 300px">
+<h3 style="margin-top:0">Radial budget &mdash; 8.00pt from centre to ink edge</h3>
+<svg viewBox="0 0 300 168" style="width:100%;height:auto" aria-label="Radial budget bar">
+ <g>
+  <rect x="8" y="10" width="76.5" height="20" rx="3" fill="#7fd1c8" opacity=".85"/><text class="bl" x="92" y="24">creature mass &mdash; radius <tspan fill="#e8ecf2">2.148</tspan></text>
+  <rect x="8" y="34" width="48.8" height="20" rx="3" fill="#3a4450"/><text class="bl" x="92" y="48">counter B <tspan fill="#e5c76b">1.30</tspan> &nbsp;fails 1&times;</text>
+  <rect x="8" y="58" width="52.5" height="20" rx="3" fill="#7fd1c8" opacity=".85"/><text class="bl" x="92" y="72">inner arc stroke <tspan fill="#e8ecf2">1.40</tspan></text>
+  <rect x="8" y="82" width="60" height="20" rx="3" fill="#3a4450"/><text class="bl" x="92" y="96">counter A <tspan fill="#e5c76b">1.60</tspan> &nbsp;fails 1&times;</text>
+  <rect x="8" y="106" width="56.3" height="20" rx="3" fill="#7fd1c8" opacity=".85"/><text class="bl" x="92" y="120">outer arc stroke <tspan fill="#e8ecf2">1.50</tspan></text>
+  <line x1="8" y1="136" x2="84.5" y2="136" stroke="#5a6472" stroke-width=".8"/>
+  <text class="bv" x="8" y="152">total 8.00pt &rarr; 16.00pt ink</text>
+ </g>
+</svg>
+<p style="font-size:11.5px;margin-top:6px"><b style="color:var(--fg)">What it sacrifices:</b> both counters. 1.60pt and 1.30pt are under the 2.0pt 1&times; counter floor, so at 1&times; the two arcs fuse into a banded double-line and the creature's crown touches the inner arc. I bought a <b style="color:var(--fg)">4.10pt-wide creature</b> and a <b style="color:var(--fg)">1.50pt outer stroke</b> with that money. The alternative &mdash; 2.0pt counters &mdash; leaves a 1.2pt creature, which is a speck.</p>
+</div>
+</div>
+</section>
+<section>
+<h2>2 &nbsp;Rounding audit &mdash; correction 1</h2>
+<p>Every vertex in the mark, and the radius applied to it. There is <b style="color:var(--fg)">no zero-radius vertex and no cusp</b>. The chevrons are the case worth noting: a two-legged chevron has an apex join whose <i>inner</i> side is a zero-radius corner no matter what line-join is set, so I did not draw one &mdash; each chevron is a single circular arc of radius 2.104pt with round caps. The user asked for &ldquo;rounded corners / arc edges&rdquo;; an arc has no corner to round.</p>
+<div class="row">
+<div class="panel" style="flex:1 1 440px">
+<table>
+<tr><th>Vertex</th><th>Kind</th><th>Radius</th><th>1&times;</th></tr>
+<tr><td><b>Outer arc, both terminals</b></td><td>round cap</td><td>0.750</td><td class="ok">resolves</td></tr>
+<tr><td><b>Outer track, both terminals</b></td><td>round cap</td><td>0.750</td><td class="ok">resolves</td></tr>
+<tr><td><b>Inner arc / track terminals</b> &times;4</td><td>round cap</td><td>0.700</td><td class="ok">resolves</td></tr>
+<tr><td><b>50% disc, outer</b></td><td>full circle</td><td>0.750</td><td class="ok">no vertex</td></tr>
+<tr><td><b>50% disc, inner</b></td><td>full circle</td><td>0.700</td><td class="ok">no vertex</td></tr>
+<tr><td><b>Creature crown lobes</b> &times;2</td><td>convex arc</td><td>0.950</td><td class="ok">resolves</td></tr>
+<tr><td><b>Creature crown valley</b></td><td>concave fillet</td><td>0.600</td><td class="mid">reads as a soft dip</td></tr>
+<tr><td><b>Creature flank &rarr; lobe</b> &times;2</td><td>tangent, G1</td><td>&mdash; straight</td><td class="ok">no vertex</td></tr>
+<tr><td><b>Creature base corners</b> &times;2</td><td>convex arc</td><td>0.950</td><td class="ok">resolves</td></tr>
+<tr><td><b>Sleeping eye</b></td><td>closed ellipse</td><td>0.950 / 0.500</td><td class="no">closes; see &sect;9</td></tr>
+<tr><td><b>Agent tally units</b></td><td>full circle</td><td>0.750</td><td class="ok">no vertex</td></tr>
+<tr><td><b>Tally saturated bar</b> &times;2</td><td>round cap</td><td>0.750</td><td class="ok">resolves</td></tr>
+<tr><td><b>Alert segment terminals</b></td><td>round cap</td><td>0.750</td><td class="ok">resolves</td></tr>
+<tr><td><b>Alert ring, N=1</b></td><td>closed circle</td><td>&mdash;</td><td class="ok">no vertex</td></tr>
+<tr><td><b>Chevron bodies</b> &times;3</td><td>circular arc</td><td>2.104</td><td class="ok">no vertex</td></tr>
+<tr><td><b>Chevron terminals</b> &times;6</td><td>round cap</td><td>0.625</td><td class="mid">sub-pixel curve</td></tr>
+</table>
+<p style="font-size:11.5px;margin-top:10px">Two radii sit below the ~0.75pt threshold at which a curve resolves as a curve on a 1&times; display: the crown valley (0.600) and the chevron caps (0.625). Neither becomes a <i>point</i> &mdash; they become slightly blunter curves. The complaint being answered was a sharp V between two peaks; the V is now a 0.600pt fillet only 0.458pt deep, so even when the fillet is unresolvable the crown reads as one dome, never as a spike.</p>
+</div>
+<div class="panel" style="flex:1 1 440px">
+<h3 style="margin-top:0">The two 50% marks at 16&times;</h3>
+<svg viewBox="0 0 516 250" style="width:100%;height:auto" aria-label="The fifty percent marks proved tangent, band developed flat at sixteen times">
+ <g style="font:9px ui-monospace,Menlo,monospace" fill="#8b93a1">
+  <text x="0" y="10" fill="#e8ecf2">OUTER BAND developed flat at top dead centre &mdash; 16&times;</text>
+  <rect x="40" y="22" width="380" height="24" fill="#e8ecf2" opacity=".32"/>
+  <path d="M40 34h84" stroke="#e8ecf2" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <circle cx="240" cy="34" r="12" fill="#e8ecf2"/>
+  <line x1="40" y1="22" x2="440" y2="22" stroke="#ff9500" stroke-width=".8" stroke-dasharray="4 3"/>
+  <line x1="40" y1="46" x2="440" y2="46" stroke="#ff9500" stroke-width=".8" stroke-dasharray="4 3"/>
+  <line x1="40" y1="34" x2="440" y2="34" stroke="#7fd1c8" stroke-width=".6" stroke-dasharray="2 3"/>
+  <text x="444" y="24" fill="#ff9500">r 8.00</text><text x="444" y="37" fill="#7fd1c8">r 7.25</text><text x="444" y="49" fill="#ff9500">r 6.50</text>
+  <line x1="28" y1="22" x2="28" y2="46" stroke="#7fd1c8" stroke-width=".8"/><line x1="24" y1="22" x2="32" y2="22" stroke="#7fd1c8" stroke-width=".8"/><line x1="24" y1="46" x2="32" y2="46" stroke="#7fd1c8" stroke-width=".8"/>
+  <text x="0" y="37" fill="#7fd1c8">1.50</text>
+  <text x="60" y="62">live arc, round cap</text><text x="206" y="62" fill="#e8ecf2">&empty;1.50 disc</text><text x="300" y="62">dim track, 0.32&alpha;</text>
+
+  <text x="0" y="96" fill="#e8ecf2">INNER BAND &mdash; 16&times;</text>
+  <rect x="40" y="108" width="380" height="22.4" fill="#e8ecf2" opacity=".32"/>
+  <path d="M40 119.2h72" stroke="#e8ecf2" stroke-width="22.4" stroke-linecap="round" fill="none"/>
+  <circle cx="240" cy="119.2" r="11.2" fill="#e8ecf2"/>
+  <line x1="40" y1="108" x2="440" y2="108" stroke="#ff9500" stroke-width=".8" stroke-dasharray="4 3"/>
+  <line x1="40" y1="130.4" x2="440" y2="130.4" stroke="#ff9500" stroke-width=".8" stroke-dasharray="4 3"/>
+  <line x1="40" y1="119.2" x2="440" y2="119.2" stroke="#7fd1c8" stroke-width=".6" stroke-dasharray="2 3"/>
+  <text x="444" y="110" fill="#ff9500">r 4.85</text><text x="444" y="122" fill="#7fd1c8">r 4.15</text><text x="444" y="133" fill="#ff9500">r 3.45</text>
+  <line x1="28" y1="108" x2="28" y2="130.4" stroke="#7fd1c8" stroke-width=".8"/><line x1="24" y1="108" x2="32" y2="108" stroke="#7fd1c8" stroke-width=".8"/><line x1="24" y1="130.4" x2="32" y2="130.4" stroke="#7fd1c8" stroke-width=".8"/>
+  <text x="0" y="122" fill="#7fd1c8">1.40</text>
+  <text x="206" y="147" fill="#e8ecf2">&empty;1.40 disc</text>
+
+  <text x="0" y="182" fill="#ff7b6b">REJECTED &mdash; the notch that would clear the 1&times; floor</text>
+  <rect x="40" y="194" width="184" height="24" fill="#e8ecf2" opacity=".32"/>
+  <rect x="256" y="194" width="164" height="24" fill="#e8ecf2" opacity=".32"/>
+  <path d="M40 206h84" stroke="#e8ecf2" stroke-width="24" stroke-linecap="round" fill="none"/>
+  <line x1="224" y1="188" x2="224" y2="230" stroke="#ff7b6b" stroke-width=".8"/><line x1="256" y1="188" x2="256" y2="230" stroke="#ff7b6b" stroke-width=".8"/>
+  <path d="M224 234h32" stroke="#ff7b6b" stroke-width=".8"/>
+  <text x="140" y="246" fill="#ff7b6b">2.00pt = 32px at 16&times; = 15.81&deg; of arc &mdash; a break, not a tick</text>
+ </g>
+</svg>
+<div class="cap">the band unrolled, so the tangency can be read against a straight edge</div>
+<p style="font-size:11.5px;margin-top:10px"><b style="color:var(--fg)">Why a circle and not a notch.</b> A notch is a counter, so it is governed by the 2.0pt floor. On the outer arc a 2.0pt gap subtends <span class="num">2.0 / 7.25 = 15.81&deg;</span>; on the inner arc <span class="num">27.61&deg;</span>. Those are not ticks, they are breaks &mdash; wider than the alert ring's own segmentation gaps, and on a <i>remaining-quota</i> arc a break is ambiguous with the arc simply ending there. A notch that stays under 6&deg; measures 0.76pt and closes up at 1&times;. The notch cannot be made to work, so I took the circle.</p>
+<p style="font-size:11.5px"><b style="color:var(--fg)">How the circle avoids being a counter.</b> The disc is not punched through and it is not oversized. Its diameter equals the band width exactly &mdash; 1.50pt on the outer arc, 1.40pt on the inner &mdash; and it is centred on the arc centreline, so it is tangent to both band edges and protrudes in neither direction. Its visibility comes from an <b style="color:var(--fg)">alpha step, not from geometry</b>: the disc is drawn in the track layer at full ink while the track itself is at 0.32, a step of 0.68 across a 1.5pt filled mass, which is well above any floor. When remaining is above 50% the live arc passes over the disc and subsumes it; the arc reaching past top dead centre <i>is</i> the above-half reading. The disc appearing is the below-half signal. At exactly 50% the arc's round cap lands concentric with the disc and the terminus reads as a single dot.</p>
+<p style="font-size:11.5px"><b style="color:var(--fg)">Read in true geometry:</b> the band is unrolled above so tangency can be checked against a straight edge. On the real circle the band curves away from the disc's flanks, so the disc touches r&nbsp;8.00 at exactly one point and r&nbsp;6.50 at exactly one point and lies strictly inside the band everywhere else. That is stricter than tangency, not looser.</p>
+</div>
+</div>
+</section>
+<section>
+<h2>3 &nbsp;Width invariance &mdash; correction 2</h2>
+<p>Eleven states. The item box is <span class="num">22 &times; 22pt</span> in all eleven and the ink box is <span class="num">16.00 &times; 16.00pt</span> in all eleven. Nothing the agent count does reaches outside the silhouette, so no neighbouring menu-bar item ever moves. Shown at 3.45&times; against a shared ruler that marks the item box and the ink box.</p>
+<style>
+.fm-core .wi{position:relative;background:var(--pnl);border:1px solid var(--ln);border-radius:10px;padding:26px 12px 8px;overflow-x:auto}
+.fm-core .wi-track{display:flex;gap:8px;min-width:max-content;position:relative}
+.fm-core .wi-cell{width:76px;flex:0 0 76px}
+.fm-core .wi-cell svg{width:76px;height:76px;display:block}
+.fm-core .wi-lab{font:9.5px ui-monospace,Menlo,monospace;color:var(--dim);text-align:center;margin-top:6px;white-space:pre-line}
+.fm-core .wi-rule{position:absolute;left:0;right:0;height:0;border-top:1px dashed #4a5563;pointer-events:none}
+.fm-core .wi-rule.k{border-top-color:var(--acc)}
+.fm-core .wi-tag{position:absolute;right:2px;font:9px ui-monospace,Menlo,monospace;color:var(--acc);transform:translateY(-12px)}
+.fm-core .wi-box{outline:1px dashed #333c47;outline-offset:0}
+</style>
+<div class="wi">
+ <div class="wi-track">
+  <div class="wi-rule" style="top:0"></div>
+  <div class="wi-rule k" style="top:10.36px"><span class="wi-tag">ink top &mdash; y 3.00</span></div>
+  <div class="wi-rule k" style="top:65.64px"><span class="wi-tag">ink bottom &mdash; y 19.00</span></div>
+  <div class="wi-rule" style="top:76px"></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrStill"/></svg><div class="wi-lab">0 agents
+idle</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail1"/></svg><div class="wi-lab">1 agent
+awake</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail3"/></svg><div class="wi-lab">3 agents
+awake</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg><div class="wi-lab">5 agents
+driving</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg><div class="wi-lab">10 agents
+identical</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg><div class="wi-lab">15 agents
+identical</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#ff9500"><use href="#fmRing1"/><use href="#fmChev"/></svg><div class="wi-lab">blocked 1
+closed ring</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#ff9500"><use href="#fmRing2"/><use href="#fmChev"/></svg><div class="wi-lab">blocked 2
+2 segments</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#ff9500"><use href="#fmRing3"/><use href="#fmChev"/></svg><div class="wi-lab">blocked 3
+3 segments</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#ff9500"><use href="#fmRing5"/><use href="#fmChev"/></svg><div class="wi-lab">blocked 5
+5 segments</div></div>
+  <div class="wi-cell"><svg class="wi-box" viewBox="0 0 22 22" style="color:#e8ecf2"><use href="#fmTks"/><use href="#fmA0022"/><use href="#fmCrSleep"/></svg><div class="wi-lab">asleep
+5h window 0%</div></div>
+ </div>
+</div>
+<p style="margin-top:12px"><b style="color:var(--fg)">What holds the bottom edge.</b> The tally rail has a dim track behind it exactly as the two arcs do, present in every gauge state including idle. That track runs to <span class="num">y 19.00</span>, so the ink box closes at 16.00pt tall whether or not any agent is running, and a depleted tally never reads as a rendering fault. In the alert states the closed or segmented ring reaches the same edge. The segmentation phase is chosen for this: for even N the segments are centred on top and bottom dead centre, for odd N the <i>gaps</i> are centred on top dead centre &mdash; which puts bottom dead centre at least 25&deg; from the nearest gap at every N &le; 7. Both poles carry ink at every count.</p>
+</section>
+
+<section>
+<h2>4 &nbsp;Silhouette test</h2>
+<p>Pure black on white, no colour information at all. This is what AppKit derives from the alpha channel for every state but needs-input.</p>
+<div class="row">
+<div class="panel" style="background:#fff;border-color:#d8dde4;flex:1 1 100%;display:flex;gap:26px;align-items:center;flex-wrap:wrap">
+ <div style="display:flex;gap:10px;align-items:center">
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrStill"/></svg>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail2"/></svg>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmTks"/><use href="#fmA1840"/><use href="#fmCrAwake"/><use href="#fmRail1"/></svg>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmTks"/><use href="#fmA0022"/><use href="#fmCrSleep"/></svg>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#000"><use href="#fmRing3"/><use href="#fmChev"/></svg>
+  <span style="font:10px ui-monospace,Menlo,monospace;color:#5a6472">real size, 22pt box</span>
+ </div>
+ <div style="display:flex;gap:14px;align-items:center">
+  <svg viewBox="0 0 22 22" width="88" height="88" style="color:#000"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg>
+  <svg viewBox="0 0 22 22" width="88" height="88" style="color:#000"><use href="#fmTks"/><use href="#fmA0022"/><use href="#fmCrSleep"/></svg>
+  <svg viewBox="0 0 22 22" width="88" height="88" style="color:#000"><use href="#fmRing3"/><use href="#fmChev"/></svg>
+  <span style="font:10px ui-monospace,Menlo,monospace;color:#5a6472">4&times;</span>
+ </div>
+</div>
+</div>
+<p style="margin-top:10px">The two windows are told apart by <b style="color:var(--fg)">radius, not colour</b>. The user's white and green are a preference layer over a mark that is already complete in one ink; the amber is reserved for needs-input, where the icon is deliberately not a template image.</p>
+</section>
+<section>
+<h2>5 &nbsp;In a menu bar &mdash; real size</h2>
+<style>
+.fm-core .wall{border-radius:12px;overflow:hidden;border:1px solid var(--ln);margin-bottom:14px}
+.fm-core .wall.a{background:radial-gradient(120% 90% at 20% 0%,#ffd9a8 0%,#f08a6a 34%,#8e4f9e 68%,#2b2b6e 100%)}
+.fm-core .wall.b{background:radial-gradient(110% 100% at 78% 8%,#1d3a5c 0%,#123049 38%,#0a1622 72%,#05090e 100%)}
+.fm-core .wall .inner{padding:0 0 40px}
+.fm-core .mbar{height:33px;display:flex;align-items:center;padding:0 10px 0 14px;font:12.5px -apple-system,"SF Pro Text",sans-serif;-webkit-backdrop-filter:blur(18px) saturate(160%);backdrop-filter:blur(18px) saturate(160%)}
+.fm-core .mbar.lt{background:rgba(255,255,255,.62);color:#111}
+.fm-core .mbar.dk{background:rgba(8,10,14,.55);color:#f2f4f8}
+.fm-core .mbar .lhs{display:flex;gap:15px;align-items:center;opacity:.9}
+.fm-core .mbar .lhs b{font-weight:650}
+.fm-core .mbar .rhs{margin-left:auto;display:flex;gap:11px;align-items:center}
+.fm-core .mbar .rhs svg{display:block}
+.fm-core .mbar .clk{font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.fm-core .sel{background:rgba(120,140,255,.28);border-radius:5px;padding:2px 5px;margin:0 -5px}
+</style>
+<div class="wall a"><div class="mbar lt">
+ <div class="lhs"><b>Terminal</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span></div>
+ <div class="rhs">
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#111"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg>
+  <span class="sel"><svg viewBox="0 0 22 22" width="22" height="22" style="color:#ff9500;vertical-align:middle"><use href="#fmRing1"/><use href="#fmChev"/></svg></span>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#111"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4.778 9.778A8.8 8.8 0 0 1 17.222 9.778"/><path d="M6.757 11.757A6 6 0 0 1 15.243 11.757"/><path d="M8.737 13.737A3.2 3.2 0 0 1 13.263 13.737"/></g><circle cx="11" cy="16" r="1.15" fill="currentColor"/></svg>
+  <svg viewBox="0 0 28 22" width="28" height="22" style="color:#111"><rect x="1.6" y="6.9" width="21" height="9.2" rx="2.7" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="3.1" y="8.4" width="12.8" height="6.2" rx="1.6" fill="currentColor"/><path d="M24.3 9.9a3 3 0 0 1 0 4.2" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity=".5"/></svg>
+  <span class="clk">Thu 18 Sep&nbsp; 14:06</span>
+ </div>
+</div><div class="inner"></div></div>
+<div class="wall b"><div class="mbar dk">
+ <div class="lhs"><b>Terminal</b><span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span></div>
+ <div class="rhs">
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#f2f4f8"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg>
+  <span class="sel"><svg viewBox="0 0 22 22" width="22" height="22" style="color:#ff9f0a;vertical-align:middle"><use href="#fmRing1"/><use href="#fmChev"/></svg></span>
+  <svg viewBox="0 0 22 22" width="22" height="22" style="color:#f2f4f8"><g fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M4.778 9.778A8.8 8.8 0 0 1 17.222 9.778"/><path d="M6.757 11.757A6 6 0 0 1 15.243 11.757"/><path d="M8.737 13.737A3.2 3.2 0 0 1 13.263 13.737"/></g><circle cx="11" cy="16" r="1.15" fill="currentColor"/></svg>
+  <svg viewBox="0 0 28 22" width="28" height="22" style="color:#f2f4f8"><rect x="1.6" y="6.9" width="21" height="9.2" rx="2.7" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".5"/><rect x="3.1" y="8.4" width="12.8" height="6.2" rx="1.6" fill="currentColor"/><path d="M24.3 9.9a3 3 0 0 1 0 4.2" fill="none" stroke="currentColor" stroke-width="1.1" stroke-linecap="round" opacity=".5"/></svg>
+  <span class="clk">Thu 18 Sep&nbsp; 14:06</span>
+ </div>
+</div><div class="inner"></div></div>
+<p>Both marks are shown together only to compare weight against the system glyphs; in use one session shows one item. The gauge mark is a template image and takes the bar's own ink. The amber one is not, because needs-input is the single state that must not be mistaken for a quiet icon.</p>
+</section>
+<section>
+<h2>6 &nbsp;State gallery &mdash; real size and 4&times;</h2>
+<style>
+.fm-core .gal{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:12px}
+.fm-core .gc{background:var(--pnl);border:1px solid var(--ln);border-radius:10px;padding:12px}
+.fm-core .gp{display:flex;align-items:center;gap:14px;min-height:88px}
+.fm-core .gp .rs{outline:1px dashed #333c47}
+.fm-core .gl{font:10px ui-monospace,Menlo,monospace;color:var(--fg);margin-top:8px}
+.fm-core .gs{font:9.5px ui-monospace,Menlo,monospace;color:var(--dim);margin-top:2px}
+</style>
+<div class="gal">
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrStill"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrStill"/></svg></div><div class="gl">IDLE</div><div class="gs">72% / 82% &middot; 0 agents<br>creature still, tally track only</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail1"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail1"/></svg></div><div class="gl">1 AGENT</div><div class="gs">one unit at bottom dead centre<br>creature awake, rocks &plusmn;2.5&deg;</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail2"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail2"/></svg></div><div class="gl">2 AGENTS</div><div class="gs">&plusmn;13.968&deg; &middot; 2.00pt ink gap<br>the only multi-count exact at 1&times;</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail3"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrAwake"/><use href="#fmRail3"/></svg></div><div class="gl">3 AGENTS</div><div class="gs">&plusmn;19.857&deg; &middot; 1.00pt ink gap<br>exact at 2&times; only</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA7282"/><use href="#fmCrDrive"/><use href="#fmRailSat"/></svg></div><div class="gl">4+ AGENTS &mdash; SATURATED</div><div class="gs">the live data: 5 running<br>bar 44.7&deg; + creature leans 5&deg;</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA1840"/><use href="#fmCrAwake"/><use href="#fmRail2"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA1840"/><use href="#fmCrAwake"/><use href="#fmRail2"/></svg></div><div class="gl">LOW QUOTA</div><div class="gs">18% / 40% remaining<br>both 50% discs now exposed</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA5050"/><use href="#fmCrStill"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA5050"/><use href="#fmCrStill"/></svg></div><div class="gl">AT THE THRESHOLD</div><div class="gs">both windows exactly 50%<br>each cap lands on its own disc</div></div>
+ <div class="gc"><div class="gp" style="color:#e8ecf2"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmTks"/><use href="#fmA0022"/><use href="#fmCrSleep"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmTks"/><use href="#fmA0022"/><use href="#fmCrSleep"/></svg></div><div class="gl">ASLEEP</div><div class="gs">5h window exhausted, 7d at 22%<br>crown drops 0.47, body to 0.86, one eye</div></div>
+ <div class="gc"><div class="gp" style="color:#ff9500"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmRing1"/><use href="#fmChev"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmRing1"/><use href="#fmChev"/></svg></div><div class="gl">NEEDS INPUT &times;1</div><div class="gs">the live data: 1 blocked, 2 min<br>continuous ring, no gaps</div></div>
+ <div class="gc"><div class="gp" style="color:#ff9500"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmRing2"/><use href="#fmChev"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmRing2"/><use href="#fmChev"/></svg></div><div class="gl">NEEDS INPUT &times;2</div><div class="gs">segments 152.064&deg; &middot; gaps 27.936&deg;<br>ink gap 2.00pt</div></div>
+ <div class="gc"><div class="gp" style="color:#ff9500"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmRing3"/><use href="#fmChev"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmRing3"/><use href="#fmChev"/></svg></div><div class="gl">NEEDS INPUT &times;3</div><div class="gs">segments 92.064&deg;<br>gap centred on top dead centre</div></div>
+ <div class="gc"><div class="gp" style="color:#ff9500"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmRing5"/><use href="#fmChev"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmRing5"/><use href="#fmChev"/></svg></div><div class="gl">NEEDS INPUT &times;5</div><div class="gs">segments 44.064&deg; &middot; ink 7.08pt<br>3.5:1 segment-to-gap</div></div>
+ <div class="gc"><div class="gp" style="color:#ff9500"><svg class="rs" viewBox="0 0 22 22" width="22" height="22"><use href="#fmRing6"/><use href="#fmChev"/></svg><svg viewBox="0 0 22 22" width="88" height="88"><use href="#fmRing6"/><use href="#fmChev"/></svg></div><div class="gl">NEEDS INPUT &times;6 &mdash; CEILING</div><div class="gs">segments 32.064&deg; &middot; ink 5.56pt<br>2.8:1 &mdash; N&ge;7 holds at six</div></div>
+ <div class="gc"><div class="gp" style="background:#2a2f37;border-radius:6px;padding:0 8px">
+  <svg class="rs" viewBox="0 0 22 22" width="22" height="22"><g fill="none" stroke-linecap="round"><path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke="#fff" stroke-width="1.5" opacity=".3"/><path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke="#34c759" stroke-width="1.4" opacity=".3"/><path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705" stroke="#0a84ff" stroke-width="1.5" opacity=".3"/><path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke="#fff" stroke-width="1.5" stroke-dasharray="23.688 200"/><path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke="#34c759" stroke-width="1.4" stroke-dasharray="15.442 200"/><path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705" stroke="#0a84ff" stroke-width="1.5"/></g><circle cx="11" cy="3.75" r=".75" fill="#fff"/><circle cx="11" cy="6.85" r=".7" fill="#34c759"/><g transform="rotate(5,11,12.9) translate(0,-0.3)"><path fill="#0a84ff" d="M10.574 9.681A.95 .95 0 0 0 8.961 10.497L9.211 12.097A.95 .95 0 0 0 10.15 12.9L11.85 12.9A.95 .95 0 0 0 12.789 12.097L13.039 10.497A.95 .95 0 0 0 11.426 9.681A.6 .6 0 0 1 10.574 9.681Z"/></g></svg>
+  <svg viewBox="0 0 22 22" width="88" height="88"><g fill="none" stroke-linecap="round"><path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke="#fff" stroke-width="1.5" opacity=".3"/><path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke="#34c759" stroke-width="1.4" opacity=".3"/><path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705" stroke="#0a84ff" stroke-width="1.5" opacity=".3"/><path d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66" stroke="#fff" stroke-width="1.5" stroke-dasharray="23.688 200"/><path d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668" stroke="#34c759" stroke-width="1.4" stroke-dasharray="15.442 200"/><path d="M13.757 17.705A7.25 7.25 0 0 1 8.243 17.705" stroke="#0a84ff" stroke-width="1.5"/></g><circle cx="11" cy="3.75" r=".75" fill="#fff"/><circle cx="11" cy="6.85" r=".7" fill="#34c759"/><g transform="rotate(5,11,12.9) translate(0,-0.3)"><path fill="#0a84ff" d="M10.574 9.681A.95 .95 0 0 0 8.961 10.497L9.211 12.097A.95 .95 0 0 0 10.15 12.9L11.85 12.9A.95 .95 0 0 0 12.789 12.097L13.039 10.497A.95 .95 0 0 0 11.426 9.681A.6 .6 0 0 1 10.574 9.681Z"/></g></svg>
+ </div><div class="gl">COLOUR PREFERENCE LAYER</div><div class="gs">white 5h &middot; green 7d &middot; blue creature<br>strippable; template is the default</div></div>
+</div>
+</section>
+<section>
+<h2>7 &nbsp;Live scenario &mdash; 18s loop, CSS only</h2>
+<style>
+.fm-core .sc-wrap{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+.fm-core .sc svg{display:block}
+@keyframes fmNorm{0%,44.24%{opacity:1}44.44%,72.02%{opacity:0}72.22%,100%{opacity:1}}
+@keyframes fmAlrt{0%,44.24%{opacity:0}44.44%,72.02%{opacity:1}72.22%,100%{opacity:0}}
+@keyframes fmStill{0%,10.9%{opacity:1}11.11%,100%{opacity:0}}
+@keyframes fmAwake{0%,10.9%{opacity:0}11.11%,35.9%{opacity:1}36.11%,72.02%{opacity:0}72.22%,88.69%{opacity:1}88.89%,100%{opacity:0}}
+@keyframes fmDrive{0%,35.9%{opacity:0}36.11%,44.24%{opacity:1}44.44%,100%{opacity:0}}
+@keyframes fmSleep{0%,88.69%{opacity:0}88.89%,100%{opacity:1}}
+@keyframes fmT1{0%,10.9%{opacity:0}11.11%,19.24%{opacity:1}19.44%,100%{opacity:0}}
+@keyframes fmT2{0%,19.24%{opacity:0}19.44%,27.58%{opacity:1}27.78%,100%{opacity:0}}
+@keyframes fmT3{0%,27.58%{opacity:0}27.78%,35.9%{opacity:1}36.11%,72.02%{opacity:0}72.22%,88.69%{opacity:1}88.89%,100%{opacity:0}}
+@keyframes fmTS{0%,35.9%{opacity:0}36.11%,44.24%{opacity:1}44.44%,100%{opacity:0}}
+@keyframes fmG1{0%,58.13%{opacity:1}58.33%,100%{opacity:0}}
+@keyframes fmG2{0%,58.13%{opacity:0}58.33%,100%{opacity:1}}
+@keyframes fmArcO{0%,80.56%{stroke-dasharray:23.688 200;opacity:1}88.4%{stroke-dasharray:.2 200;opacity:1}88.89%,100%{stroke-dasharray:.2 200;opacity:0}}
+@keyframes fmArcI{0%,80.56%{stroke-dasharray:15.442 200}88.89%,100%{stroke-dasharray:4.143 200}}
+@keyframes fmRock{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+@keyframes fmRock2{0%,100%{transform:rotate(-3.5deg)}50%{transform:rotate(3.5deg)}}
+@keyframes fmPulse{0%,100%{opacity:1}50%{opacity:.72}}
+.fm-core .sc .nrm{animation:fmNorm 18s infinite}
+.fm-core .sc .alr{animation:fmAlrt 18s infinite}
+.fm-core .sc .c1{animation:fmStill 18s infinite}
+.fm-core .sc .c2{animation:fmAwake 18s infinite}
+.fm-core .sc .c3{animation:fmDrive 18s infinite}
+.fm-core .sc .c4{animation:fmSleep 18s infinite}
+.fm-core .sc .t1{animation:fmT1 18s infinite}
+.fm-core .sc .t2{animation:fmT2 18s infinite}
+.fm-core .sc .t3{animation:fmT3 18s infinite}
+.fm-core .sc .ts{animation:fmTS 18s infinite}
+.fm-core .sc .g1{animation:fmG1 18s infinite}
+.fm-core .sc .g2{animation:fmG2 18s infinite}
+.fm-core .sc .ao{animation:fmArcO 18s infinite}
+.fm-core .sc .ai{animation:fmArcI 18s infinite}
+.fm-core .sc .rk{transform-box:view-box;transform-origin:11px 12.6px;animation:fmRock 1.1s ease-in-out infinite}
+.fm-core .sc .rk2{transform-box:view-box;transform-origin:11px 12.9px;animation:fmRock2 .62s ease-in-out infinite}
+.fm-core .sc .pl{animation:fmPulse 1.4s ease-in-out infinite}
+.fm-core .tl{display:flex;margin-top:16px;border:1px solid var(--ln);border-radius:7px;overflow:hidden;font:9.5px ui-monospace,Menlo,monospace}
+.fm-core .tl div{padding:6px 5px;text-align:center;color:var(--dim);border-right:1px solid var(--ln);line-height:1.35}
+.fm-core .tl div:last-child{border-right:0}
+.fm-core .tl div.a{background:rgba(255,149,0,.14);color:#ffb84d}
+@media (prefers-reduced-motion:reduce){
+ .fm-core .sc *{animation:none!important}
+ .fm-core .sc .c1,.fm-core .sc .c2,.fm-core .sc .c4,.fm-core .sc .t1,.fm-core .sc .t2,.fm-core .sc .t3,.fm-core .sc .alr{opacity:0}
+ .fm-core .sc .c3,.fm-core .sc .ts,.fm-core .sc .nrm{opacity:1}
+ .fm-core .rmn{display:block}
+}
+.fm-core .rmn{display:none;margin-top:10px;color:#e5c76b;font-size:11.5px}
+</style>
+<div class="panel">
+<div class="sc-wrap sc">
+ <div><svg viewBox="0 0 22 22" width="176" height="176" style="color:#e8ecf2">
+  <g class="nrm"><use href="#fmTks"/>
+   <path class="lv ao" d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66"/>
+   <path class="lv li ai" d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668"/>
+   <g class="c1"><use href="#fmCrStill"/></g>
+   <g class="c2"><g class="rk"><use href="#fmCrAwake"/></g></g>
+   <g class="c3"><g class="rk2"><use href="#fmCrDrive"/></g></g>
+   <g class="c4"><use href="#fmCrSleep"/></g>
+   <g class="t1"><use href="#fmRail1"/></g><g class="t2"><use href="#fmRail2"/></g>
+   <g class="t3"><use href="#fmRail3"/></g><g class="ts"><use href="#fmRailSat"/></g>
+  </g>
+  <g class="alr" style="color:#ff9500"><g class="pl"><g class="g1"><use href="#fmRing1"/></g><g class="g2"><use href="#fmRing2"/></g></g><use href="#fmChev"/></g>
+ </svg><div class="cap">8&times;</div></div>
+ <div><svg viewBox="0 0 22 22" width="22" height="22" style="color:#e8ecf2">
+  <g class="nrm"><use href="#fmTks"/>
+   <path class="lv ao" d="M5.446 15.66A7.25 7.25 0 1 1 16.554 15.66"/>
+   <path class="lv li ai" d="M7.821 13.668A4.15 4.15 0 1 1 14.179 13.668"/>
+   <g class="c1"><use href="#fmCrStill"/></g>
+   <g class="c2"><g class="rk"><use href="#fmCrAwake"/></g></g>
+   <g class="c3"><g class="rk2"><use href="#fmCrDrive"/></g></g>
+   <g class="c4"><use href="#fmCrSleep"/></g>
+   <g class="t1"><use href="#fmRail1"/></g><g class="t2"><use href="#fmRail2"/></g>
+   <g class="t3"><use href="#fmRail3"/></g><g class="ts"><use href="#fmRailSat"/></g>
+  </g>
+  <g class="alr" style="color:#ff9500"><g class="pl"><g class="g1"><use href="#fmRing1"/></g><g class="g2"><use href="#fmRing2"/></g></g><use href="#fmChev"/></g>
+ </svg><div class="cap">1&times;</div></div>
+ <div style="flex:1 1 260px;min-width:220px">
+  <p style="font-size:11.5px;margin:0">Nothing here animates permanently. Each motion is triggered by an event and ends with it: the rock stops when the last agent exits, the alert pulse stops when the prompt is answered. The gauge never animates at all &mdash; it steps when the number changes.</p>
+  <div class="rmn"><b>Reduce Motion is on.</b> The loop is frozen on the busy frame. Every state is carried by geometry &mdash; tally length, creature lean, ring segmentation, amber &mdash; so no information is lost and the alert state stays fully visible.</div>
+ </div>
+</div>
+<div class="tl">
+ <div style="flex:2">0&ndash;2s<br>idle</div>
+ <div style="flex:1.5">2s<br>1 agent</div>
+ <div style="flex:1.5">3.5s<br>2 agents</div>
+ <div style="flex:1.5">5s<br>3 agents</div>
+ <div style="flex:1.5">6.5s<br>5 &mdash; saturated</div>
+ <div class="a" style="flex:2.5">8s<br>blocked &times;1 &mdash; closed ring</div>
+ <div class="a" style="flex:2.5">10.5s<br>blocked &times;2 &mdash; two halves</div>
+ <div style="flex:1.5">13s<br>cleared, 3 agents</div>
+ <div style="flex:1.5">14.5s<br>5h quota drains</div>
+ <div style="flex:2">16&ndash;18s<br>asleep</div>
+</div>
+</div>
+</section>
+<section>
+<h2>8 &nbsp;One language, two counts</h2>
+<div class="row">
+<div class="panel" style="flex:1 1 470px">
+<h3 style="margin-top:0">The rule</h3>
+<p style="font-size:12px"><b style="color:var(--fg)">A ring is cut into N equal pieces, separated by a 2.00pt gap.</b> Needs-input cuts the whole 360&deg; outer ring. The agent tally cuts the 100&deg; opening that same outer ring already leaves at the bottom. Same circle, same radius 7.25, same 1.50pt stroke, same round caps, same gap. Nothing is bolted on.</p>
+<table style="margin-top:12px">
+<tr><th>N</th><th>Alert ring &mdash; 360&deg;</th><th>Agent tally &mdash; 44.7&deg;</th></tr>
+<tr><td><b>0</b></td><td>&mdash;</td><td>dim track only</td></tr>
+<tr><td><b>1</b></td><td>continuous ring, no gap</td><td>one unit at 270&deg;</td></tr>
+<tr><td><b>2</b></td><td>2 &times; 152.064&deg;</td><td>&plusmn;13.968&deg;, gap 2.00pt</td></tr>
+<tr><td><b>3</b></td><td>3 &times; 92.064&deg;</td><td>&plusmn;19.857&deg;, gap 1.00pt</td></tr>
+<tr><td><b>4</b></td><td>4 &times; 62.064&deg;</td><td class="no">will not fit &mdash; saturates</td></tr>
+<tr><td><b>5</b></td><td>5 &times; 44.064&deg;</td><td class="no">saturated bar</td></tr>
+<tr><td><b>6</b></td><td>6 &times; 32.064&deg; &mdash; ceiling</td><td class="no">saturated bar</td></tr>
+<tr><td><b>7+</b></td><td class="mid">holds at six</td><td class="no">saturated bar</td></tr>
+</table>
+<p style="font-size:11.5px;margin-top:10px"><b style="color:var(--fg)">The alert ceiling, derived.</b> A 2.00pt ink gap at r&nbsp;7.25 needs a 27.936&deg; centreline separation, because the chord is 2R&nbsp;sin(&Delta;/2) and 14.5&nbsp;sin(13.968&deg;)&nbsp;=&nbsp;3.500pt, less 0.75pt of cap at each end. A segment stops reading as a segment and starts reading as a dash below about 2.5&times; the gap, i.e. 5.0pt of ink. At N=6 the segment is 5.56pt &mdash; the last count that clears it. N=7 gives 4.55pt, which is a dash. So the ring holds at six and the exact number above six goes to the menu. Honest caveat: five and six already require deliberate counting rather than a glance; one, two and three are instant.</p>
+</div>
+<div class="panel" style="flex:1 1 380px">
+<h3 style="margin-top:0">Can the creature carry the count? No.</h3>
+<p style="font-size:12px">The method asked for the count to live in the creature's body. I built it and it fails, and the arithmetic says why: the creature is 4.10 &times; 3.35pt. Spreading fifteen steps across its available height gives <span class="num">0.22pt per agent</span> &mdash; a fifth of the stroke floor, five times finer than a 2&times; device pixel. Size, height and rhythm are all continuous magnitudes at a scale where the whole creature is four pixels tall at 1&times;. It can say <i>something is happening</i>. It cannot say <i>five</i>.</p>
+<p style="font-size:12px">So the creature keeps the job it can do, and does it as a genuine part of the code rather than decoration:</p>
+<table>
+<tr><th>Creature</th><th>Means</th></tr>
+<tr><td><b>still, low</b></td><td>0 agents</td></tr>
+<tr><td><b>awake</b> &mdash; up 0.30pt, rocks &plusmn;2.5&deg;</td><td>1&ndash;3 agents</td></tr>
+<tr><td><b>driving</b> &mdash; leans 5&deg;, rocks &plusmn;3.5&deg; at 0.62s</td><td>4+ agents</td></tr>
+<tr><td><b>asleep</b> &mdash; crown &minus;0.47, body &times;0.86, one eye</td><td>a window is exhausted</td></tr>
+</table>
+<p style="font-size:11.5px;margin-top:10px"><b style="color:var(--fg)">The minimum addition, and why it is the tally.</b> It stays inside the silhouette, it uses correction 3's own language, and it costs nothing in width. It is exact to three. At 1&times; the three-unit gaps close and the tally fuses, so <b style="color:var(--fg)">the creature's posture disambiguates</b>: a fused bar with an upright creature is three, a fused bar with a leaning creature is four or more. The two signals are redundant by design, which is the only reason the count survives 1&times; at all.</p>
+<p style="font-size:11.5px"><b class="no">Stated plainly:</b> 5, 10 and 15 agents render as the identical picture. The mark tops out at &ldquo;four or more&rdquo;. A unary code of fifteen needs roughly 45pt of arc at the 2.0pt counter floor; the bottom opening is 12.65pt. It is not a design failure, it is the medium &mdash; and the menu behind the icon carries the exact number.</p>
+</div>
+</div>
+</section>
+
+<section>
+<h2>9 &nbsp;Rasterisation &mdash; what actually survives 1&times;</h2>
+<p>Measured against the floors given: strokes 1.25pt practical, counters 2.0pt at 1&times; and 1.0pt at 2&times;, curves resolving as curves at about 0.75pt of radius. I am not claiming 1&times; survival I cannot support.</p>
+<table>
+<tr><th>Element</th><th>Size</th><th>1&times;</th><th>2&times;</th><th>What I did</th></tr>
+<tr><td><b>Outer arc stroke</b></td><td>1.50pt</td><td class="ok">clear</td><td class="ok">clear</td><td>20% over the practical floor; edges land on r 6.50 / 8.00</td></tr>
+<tr><td><b>Inner arc stroke</b></td><td>1.40pt</td><td class="ok">clear</td><td class="ok">clear</td><td>thinner than the outer on purpose &mdash; it is the slower window</td></tr>
+<tr><td><b>Tally stroke / units</b></td><td>1.50pt</td><td class="ok">clear</td><td class="ok">clear</td><td>same stroke as the ring it belongs to</td></tr>
+<tr><td><b>50% discs</b></td><td>&empty;1.50 / &empty;1.40</td><td class="ok">clear</td><td class="ok">clear</td><td>filled mass, not a counter; carried by a 0.68 alpha step, not by geometry</td></tr>
+<tr><td><b>Dim tracks</b></td><td>1.50pt @ 0.32&alpha;</td><td class="mid">grey, no opaque pixel</td><td class="mid">grey</td><td>accepted &mdash; the track only supplies context; every value is carried by full-ink elements</td></tr>
+<tr><td><b>Counter A</b> arc&harr;arc</td><td>1.60pt</td><td class="no">fails 2.0 floor</td><td class="ok">60% over</td><td>accepted; at 1&times; the pair reads as one banded double-line, which still reads as a gauge</td></tr>
+<tr><td><b>Counter B</b> arc&harr;creature</td><td>1.30pt typical, 1.16pt at the arc terminals</td><td class="no">fails</td><td class="ok">16&ndash;30% over</td><td>accepted; at 1&times; the crown touches the inner arc. Bought a 4.10pt creature with it</td></tr>
+<tr><td><b>Tally gap, N=2</b></td><td>2.00pt</td><td class="ok">at the floor</td><td class="ok">clear</td><td>the separation was set <i>from</i> the floor: chord 3.500pt, less two 0.75 caps</td></tr>
+<tr><td><b>Tally gap, N=3</b></td><td>1.00pt</td><td class="no">closes</td><td class="ok">at the 2&times; floor</td><td>degrades to the saturated bar, so the error is always &ldquo;more&rdquo;, never &ldquo;fewer&rdquo;; creature posture separates 3 from 4+</td></tr>
+<tr><td><b>Alert segment gaps</b></td><td>2.00pt, all N</td><td class="ok">clear</td><td class="ok">clear</td><td>the gap is fixed and the segment shrinks &mdash; that is what sets the N=6 ceiling</td></tr>
+<tr><td><b>Chevron stroke</b></td><td>1.25pt</td><td class="mid">exactly at the practical floor</td><td class="ok">clear</td><td>the only stroke at the floor. It is full-saturation amber, not template grey, so it has contrast headroom a grey stroke would not</td></tr>
+<tr><td><b>Chevron counters</b></td><td>1.50pt at the tails, 2.03pt at the apexes</td><td class="no">tails close</td><td class="ok">50% over</td><td>at 1&times; the three chevrons fuse into one right-pointing mass. The direction and the urgency survive; only the count of three is lost, and three was never the message</td></tr>
+<tr><td><b>Chevron &harr; ring</b></td><td>1.40pt</td><td class="no">fails</td><td class="ok">40% over</td><td>accepted</td></tr>
+<tr><td><b>Sleeping eye</b></td><td>1.90 &times; 1.00pt ellipse</td><td class="no">closes completely</td><td class="ok">at the 2&times; floor</td><td>accepted, because sleep is also carried by the dropped crown, the flattened body and the emptied arc. At 1&times; the creature is simply a settled mass</td></tr>
+<tr><td><b>Crown valley</b></td><td>R 0.600, depth 0.458pt</td><td class="mid">merges</td><td class="ok">visible dip</td><td>at 1&times; the crown is one dome. It is never a spike &mdash; there is no vertex to sharpen</td></tr>
+<tr><td><b>Chevron caps</b></td><td>R 0.625</td><td class="mid">sub-pixel curve</td><td class="ok">resolves</td><td>blunt, not pointed</td></tr>
+<tr><td><b>Pixel parity</b></td><td>&mdash;</td><td colspan="2" class="mid">exact at the four cardinal points only</td><td>1.5pt strokes on half-point centrelines put edges on whole device pixels at 0&deg;/90&deg;/180&deg;/270&deg; &mdash; including top dead centre, where both 50% discs sit. Everywhere else a circle is antialiased whatever you do, and claiming otherwise would be false</td></tr>
+</table>
+<p style="margin-top:14px"><b style="color:var(--fg)">The short version.</b> At 2&times; &mdash; every current Mac &mdash; everything in this mark clears its floor, most of it by 20&ndash;60%. At 1&times; the mark loses three things and keeps the rest: the counters between bands close, so the two arcs and the creature read as one nested mass; the three-unit tally fuses; and the sleeping eye disappears. In all three cases the information is carried redundantly somewhere that does survive. The one thing I will not claim is that the 0.32-alpha tracks render as anything but grey at 1&times;. They do not, and they were never asked to.</p>
+</section>
+</div>
+</div>

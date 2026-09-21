@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>The Ridge</title></head><body>
+<div class="cr-minimal">
+<style>
+.cr-minimal{--bg:#0c0d0f;--pa:#131519;--fg:#eceae6;--dim:#85878c;--ln:#24262b;--am:#e9a13b;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,-apple-system,"SF Pro Text",system-ui,sans-serif;padding:30px 18px 70px;-webkit-font-smoothing:antialiased;line-height:1.5}
+.cr-minimal *{box-sizing:border-box}
+.cr-minimal .wrap{max-width:1000px;margin:0 auto}
+.cr-minimal h1{font-size:30px;font-weight:600;letter-spacing:-.02em;margin:0 0 4px}
+.cr-minimal .sub{color:var(--dim);font-size:13.5px;max-width:62ch;margin:0 0 6px}
+.cr-minimal h2{font-size:11px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin:52px 0 14px;padding-bottom:8px;border-bottom:1px solid var(--ln)}
+.cr-minimal h2 span{color:#4d5056;margin-right:10px}
+.cr-minimal p.n{font-size:13px;color:var(--dim);max-width:68ch;margin:0 0 16px}
+.cr-minimal .mono{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;letter-spacing:.02em}
+.cr-minimal .card{background:var(--pa);border:1px solid var(--ln);border-radius:10px;padding:16px}
+.cr-minimal svg{display:block;overflow:visible}
+.cr-minimal .mk{fill:currentColor}
+.cr-minimal .bg1{opacity:.32}
+.cr-minimal .bg2{opacity:.44}
+.cr-minimal .nm{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:11px;font-weight:500;letter-spacing:-.02em}
+.cr-minimal .stop{fill:var(--am)}
+.cr-minimal .stale{opacity:.35}
+.cr-minimal .defs{position:absolute;width:0;height:0;overflow:hidden}
+/* construction */
+.cr-minimal .cx{stroke:currentColor;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .cgrid{stroke:#2e3238;stroke-width:.5}
+.cr-minimal .cgrid5{stroke:#3d434b;stroke-width:.5}
+.cr-minimal .ccirc{stroke:#5fb0d4;stroke-width:1;stroke-dasharray:4 3;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .ctan{stroke:#e9a13b;stroke-width:1;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .cbase{stroke:#d4605f;stroke-width:1;stroke-dasharray:6 4;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .cband{stroke:#4d5056;stroke-width:1;stroke-dasharray:2 3;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .cdot{fill:#5fb0d4}
+.cr-minimal .cshape{fill:#eceae6;opacity:.16}
+.cr-minimal .cedge{stroke:#eceae6;stroke-width:1.25;fill:none;vector-effect:non-scaling-stroke}
+.cr-minimal .cslot{fill:#e9a13b;opacity:.13}
+.cr-minimal text.lb{font-family:ui-monospace,"SF Mono",Menlo,monospace;font-size:1.05px;fill:#9aa0a8}
+.cr-minimal text.lb.b{fill:#5fb0d4}
+.cr-minimal text.lb.o{fill:#e9a13b}
+.cr-minimal text.lb.r{fill:#d4605f}
+.cr-minimal .legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:14px}
+.cr-minimal .legend i{display:inline-block;width:16px;height:0;border-top:2px solid;margin-right:6px;vertical-align:middle}
+.cr-minimal .legend span{color:var(--dim)}
+/* menu bar */
+.cr-minimal .wall{border-radius:10px;padding:0;overflow:hidden;border:1px solid var(--ln);margin-bottom:14px}
+.cr-minimal .wall.w1{background:linear-gradient(118deg,#cfd8e3 0%,#9fb4cc 34%,#c2a9bb 68%,#e2d3c4 100%)}
+.cr-minimal .wall.w2{background:linear-gradient(118deg,#1b2430 0%,#2a3547 36%,#3d3049 70%,#241f2c 100%)}
+.cr-minimal .bar{height:33px;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 12px}
+.cr-minimal .bar.lt{background:rgba(245,245,247,.62);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);color:#000;border-bottom:.5px solid rgba(0,0,0,.14)}
+.cr-minimal .bar.dk{background:rgba(24,24,26,.55);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);color:#fff;border-bottom:.5px solid rgba(255,255,255,.1)}
+.cr-minimal .bar .clk{font-size:13px;font-weight:400;letter-spacing:-.01em;opacity:.92}
+.cr-minimal .bar .sp{flex:1}
+.cr-minimal .wallbody{height:74px}
+/* gallery */
+.cr-minimal .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(224px,1fr));gap:12px}
+.cr-minimal .cell{background:var(--pa);border:1px solid var(--ln);border-radius:10px;padding:13px 13px 15px}
+.cr-minimal .cell .t{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;margin-bottom:3px}
+.cr-minimal .cell .d{font-size:11px;color:var(--dim);min-height:28px;margin-bottom:11px}
+.cr-minimal .cell .r1{background:#000;border-radius:5px;padding:7px 9px;color:#fff;display:flex;align-items:center;min-height:36px}
+.cr-minimal .cell .r3{margin-top:9px;color:var(--fg);overflow-x:auto}
+/* silhouette */
+.cr-minimal .siltrio{display:flex;align-items:flex-end;gap:34px;flex-wrap:wrap}
+.cr-minimal .silbox{background:#f2f0ec;border-radius:8px;padding:12px;color:#000}
+/* scenario */
+.cr-minimal .scene{background:linear-gradient(118deg,#1b2430,#31283f);border-radius:10px;border:1px solid var(--ln);overflow:hidden}
+.cr-minimal .scenebar{height:33px;display:flex;align-items:center;justify-content:flex-end;gap:14px;padding:0 12px;background:rgba(24,24,26,.55);-webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);color:#fff}
+.cr-minimal .scenebig{padding:20px 14px 16px;color:#eceae6;display:flex;justify-content:center}
+.cr-minimal .track{position:relative;height:30px;border-top:1px solid var(--ln);background:#0f1114}
+.cr-minimal .track .ph{position:absolute;top:0;bottom:0;width:1px;background:var(--am);animation:crm-play 18s linear infinite}
+.cr-minimal .track .lab{position:absolute;top:8px;font-family:ui-monospace,Menlo,monospace;font-size:9.5px;color:#6e7178;white-space:nowrap;border-left:1px solid #2d3036;padding-left:5px;height:15px}
+@keyframes crm-play{0%{left:0}100%{left:100%}}
+/* scenario animation */
+.cr-minimal .sq{transform-box:fill-box;transform-origin:50% 100%;transform:scaleY(0);opacity:0}
+.cr-minimal .sq1{animation:crm-q1 18s linear infinite}
+.cr-minimal .sq2{animation:crm-q2 18s linear infinite}
+.cr-minimal .sq3{animation:crm-q2 18s linear infinite;animation-delay:-.07s}
+.cr-minimal .sq4{animation:crm-q2 18s linear infinite;animation-delay:-.14s}
+.cr-minimal .sq5{animation:crm-q5 18s linear infinite}
+@keyframes crm-q1{0%,11.11%{transform:scaleY(0);opacity:0}12.11%,88.89%{transform:scaleY(1);opacity:1}89.56%{transform:scaleY(1.12) translateY(0);opacity:1}92.78%,100%{transform:scaleY(1) translateY(-5.2px);opacity:0}}
+@keyframes crm-q2{0%,16.67%{transform:scaleY(0);opacity:0}17.67%,88.89%{transform:scaleY(1);opacity:1}89.56%{transform:scaleY(1.12);opacity:1}92.78%,100%{transform:scaleY(1) translateY(-5.2px);opacity:0}}
+@keyframes crm-q5{0%,17.5%{transform:scaleY(0);opacity:0}18.5%,44.44%{transform:scaleY(1);opacity:1}45.11%{transform:scaleY(1.12);opacity:1}48.33%,100%{transform:scaleY(1) translateY(-5.2px);opacity:0}}
+.cr-minimal .sbody{animation:crm-rear 18s linear infinite}
+@keyframes crm-rear{0%,58.33%{transform:translateX(0) scaleY(1)}59.56%,83.33%{transform:translateX(-1.5px) scaleY(1)}84.56%,94.22%{transform:translateX(0) scaleY(1)}96%{transform:translateX(0) scaleY(.985)}97.5%,100%{transform:translateX(0) scaleY(1)}}
+.cr-minimal .sbody{transform-box:view-box;transform-origin:0 17.5px}
+.cr-minimal .sstop{opacity:0;animation:crm-stop 18s linear infinite}
+@keyframes crm-stop{0%,58.33%{opacity:0}59.56%,75%{opacity:1}76.44%{opacity:.3}77.5%,83.33%{opacity:1}84.56%,100%{opacity:0}}
+.cr-minimal .stk{opacity:0;animation:crm-tk 18s linear infinite}
+@keyframes crm-tk{0%,17.67%{opacity:0}18.67%,58.33%{opacity:1}59.56%,84.56%{opacity:0}85.5%,88.89%{opacity:1}89.56%,100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.cr-minimal *{animation:none!important}.cr-minimal .sq{transform:none;opacity:1}.cr-minimal .stk,.cr-minimal .sstop{opacity:1}.cr-minimal .track .ph{left:0}}
+</style>
+
+<div class="wrap">
+<h1>The Ridge</h1>
+<p class="sub">58 &times; 22pt menu-bar mark. Two circles, one baseline, one stroke weight, three opacity plateaus, no face. Built on the same grid discipline as a glyph, not scaled down from a logo.</p>
+<p class="mono" style="color:#5d6views;color:#5d6068">5h 28% used &middot; burn 92%/h &middot; empty in 47m &middot; 7d 18% used &middot; 4 sessions &middot; 5 agents &middot; 1 blocked 2m</p>
+
+<!-- ================= SHARED GEOMETRY ================= -->
+<svg class="defs" aria-hidden="true"><defs>
+<path id="mb" d="M7 17.5A5 5 0 0 0 7.45 7.52L18.41 8.52A4.5 4.5 0 0 1 20.89 9.55L26 13.83L26 15.92L18.92 17.4Z"/>
+<g id="q1"><rect x="3.5" y="2.97" width="1.5" height="5.38"/></g>
+<g id="q2"><use href="#q1"/><rect x="7" y="2.97" width="1.5" height="4.61"/></g>
+<g id="q3"><use href="#q2"/><rect x="10.5" y="2.97" width="1.5" height="4.93"/></g>
+<g id="q5"><use href="#q3"/><rect x="14" y="2.97" width="1.5" height="5.25"/><rect x="17.5" y="2.97" width="1.5" height="5.57"/></g>
+<g id="q6"><use href="#q5"/><rect x="21" y="2.97" width="1.5" height="7.33"/></g>
+<g id="q7"><use href="#q6"/><rect x="3.5" y="3" width="19" height="1.5"/></g>
+<g id="q10"><use href="#q7"/><rect x="22.5" y="3" width="3.5" height="1.5"/></g>
+<clipPath id="h1"><rect x="0" y="0" width="3.4" height="22"/></clipPath><clipPath id="m1"><rect x="3.4" y="0" width="1" height="22"/></clipPath>
+<clipPath id="h2"><rect x="0" y="0" width="4.9" height="22"/></clipPath><clipPath id="m2"><rect x="4.9" y="0" width="3.6" height="22"/></clipPath>
+<clipPath id="h3"><rect x="0" y="0" width="8.7" height="22"/></clipPath><clipPath id="m3"><rect x="8.7" y="0" width="17.3" height="22"/></clipPath>
+<clipPath id="h4"><rect x="0" y="0" width="11.8" height="22"/></clipPath><clipPath id="m4"><rect x="11.8" y="0" width="14.2" height="22"/></clipPath>
+<clipPath id="h5"><rect x="0" y="0" width="22.4" height="22"/></clipPath><clipPath id="m5"><rect x="22.4" y="0" width="3.6" height="22"/></clipPath>
+<clipPath id="h6"><rect x="0" y="0" width="9.9" height="22"/></clipPath><clipPath id="m6"><rect x="9.9" y="0" width="6.5" height="22"/></clipPath>
+<clipPath id="h8"><rect x="0" y="0" width="8.7" height="22"/></clipPath><clipPath id="m8"><rect x="8.7" y="0" width="5.2" height="22"/></clipPath>
+<g id="tick3"><rect x="27.5" y="13.5" width="1.5" height="3"/><rect x="31" y="13.5" width="1.5" height="3"/><rect x="34.5" y="13.5" width="1.5" height="3"/></g>
+<g id="tick1"><rect x="27.5" y="13.5" width="1.5" height="3"/></g>
+<!-- system glyphs -->
+<g id="sysbat"><path d="M1.25 6.25a2.5 2.5 0 0 1 2.5-2.5h17a2.5 2.5 0 0 1 2.5 2.5v4a2.5 2.5 0 0 1-2.5 2.5h-17a2.5 2.5 0 0 1-2.5-2.5z" fill="none" stroke="currentColor" stroke-width="1.1" opacity=".42"/><rect x="24.6" y="6.6" width="1.5" height="3.3" rx=".7" opacity=".42"/><rect x="2.9" y="5.4" width="11" height="5.7" rx="1.3"/></g>
+<g id="syswifi"><path d="M2.78 6.28a8.8 8.8 0 0 1 12.44 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt"/><path d="M4.76 8.26a6 6 0 0 1 8.48 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt"/><path d="M6.74 10.24a3.2 3.2 0 0 1 4.52 0" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="butt"/><circle cx="9" cy="12.5" r="1.15"/></g>
+<!-- STATES -->
+<g id="s-idle"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m1)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h1)"><use href="#mb"/></g><text x="56" y="16.2" class="nm" text-anchor="end">6</text></g>
+<g id="s-1ag"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m2)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h2)"><use href="#mb"/></g><use href="#q1"/><text x="56" y="16.2" class="nm" text-anchor="end">12</text></g>
+<g id="s-5ag"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m8)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h8)"><use href="#mb"/></g><use href="#q5"/><text x="56" y="16.2" class="nm" text-anchor="end">28</text></g>
+<g id="s-10ag"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="26" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m4)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h4)"><use href="#mb"/></g><use href="#q10"/><use href="#tick3"/><text x="56" y="16.2" class="nm" text-anchor="end">41</text></g>
+<g id="s-7ag"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="28" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m4)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h4)"><use href="#mb"/></g><use href="#q7"/><use href="#tick1"/><text x="56" y="16.2" class="nm" text-anchor="end">41</text></g>
+<g id="s-high"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="14.8" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m5)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h5)"><use href="#mb"/></g><use href="#q3"/><use href="#tick1"/><text x="56" y="16.2" class="nm" text-anchor="end">85</text></g>
+<g id="s-burn"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#m3)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h3)"><use href="#mb"/></g><use href="#q5"/><use href="#tick3"/><text x="56" y="16.2" class="nm" text-anchor="end">28</text></g>
+<g id="s-week"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="4.4" height="1.5"/><g transform="translate(0 17.5) scale(1 .87) translate(0 -17.5)"><use href="#mb" class="bg1"/><g clip-path="url(#m6)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h6)"><use href="#mb"/></g><use href="#q3"/></g><text x="56" y="16.2" class="nm" text-anchor="end">33</text></g>
+<g id="s-blk1"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><g transform="translate(-1.5 0)"><use href="#mb" class="bg1"/><g clip-path="url(#h3)"><use href="#mb"/></g><use href="#q5"/></g><rect x="27.5" y="8" width="1.5" height="9.5" class="stop"/><text x="56" y="16.2" class="nm" text-anchor="end">28</text></g>
+<g id="s-blk2"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><g transform="translate(-1.5 0)"><use href="#mb" class="bg1"/><g clip-path="url(#h3)"><use href="#mb"/></g><use href="#q5"/></g><rect x="27.5" y="8" width="1.5" height="9.5" class="stop"/><rect x="31" y="8" width="1.5" height="9.5" class="stop"/><text x="56" y="16.2" class="nm" text-anchor="end">28</text></g>
+<g id="s-stale" class="stale"><rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/><use href="#mb" class="bg1"/><g clip-path="url(#h3)"><use href="#mb"/></g><use href="#q5"/><rect x="50" y="14.5" width="6" height="1.5"/></g>
+<g id="s-sil"><rect x="1" y="17.5" width="37" height="1.5"/><use href="#mb"/><use href="#q5"/></g>
+</defs></svg>
+
+<!-- ================= 01 CONSTRUCTION ================= -->
+<h2><span>01</span>Construction &mdash; 8&times;</h2>
+<p class="n">Two circles tangent to one baseline, plus one truncated wedge. Every tangent point below was solved, not eyeballed: the A&ndash;B upper external tangent has centre distance 8.631 and radius difference 0.5, giving a normal angle of &minus;84.79&deg;. A third shoulder circle was drawn and discarded because it fell inside the hull and contributed nothing.</p>
+<div class="card" style="overflow-x:auto">
+<svg viewBox="-1 0 60 23" width="960" height="368" aria-label="construction drawing">
+<defs>
+<pattern id="cg1" width="1" height="1" patternUnits="userSpaceOnUse"><path d="M0 0V1M0 0H1" class="cgrid" vector-effect="non-scaling-stroke" fill="none"/></pattern>
+<pattern id="cg5" width="5" height="5" patternUnits="userSpaceOnUse"><path d="M0 0V5M0 0H5" class="cgrid5" vector-effect="non-scaling-stroke" fill="none"/></pattern>
+</defs>
+<rect x="0" y="0" width="58" height="22" fill="url(#cg1)"/>
+<rect x="0" y="0" width="58" height="22" fill="url(#cg5)"/>
+<rect x="0" y="0" width="58" height="22" fill="none" stroke="#4d5056" stroke-width="1" vector-effect="non-scaling-stroke"/>
+<!-- ink band -->
+<path d="M0 3H58M0 19H58" class="cband"/>
+<text class="lb" x="-0.6" y="2.6" text-anchor="start">y3 &mdash; ink band top</text>
+<text class="lb" x="-0.6" y="20.3">y19 &mdash; ink band bottom &middot; 16pt of ink in a 22pt canvas</text>
+<!-- baseline -->
+<path d="M0 17.5H44" class="cbase"/>
+<text class="lb r" x="39" y="17" text-anchor="start">baseline y17.5</text>
+<!-- circles -->
+<circle cx="7" cy="12.5" r="5" class="ccirc"/><circle cx="18" cy="13" r="4.5" class="ccirc"/>
+<path d="M7 12.5L7 17.5M18 13L22.5 13" class="ccirc" stroke-dasharray="2 2"/>
+<circle cx="7" cy="12.5" r=".35" class="cdot"/><circle cx="18" cy="13" r=".35" class="cdot"/>
+<text class="lb b" x="7.3" y="15.2">R 5.0</text><text class="lb b" x="19.4" y="12.6">R 4.5</text>
+<text class="lb b" x="1.2" y="12.2" text-anchor="start">A (7,12.5)</text><text class="lb b" x="13.6" y="16.9" text-anchor="start">B (18,13)</text>
+<!-- tangents -->
+<path d="M4.6 7.26L30.4 9.62" class="ctan"/>
+<path d="M20.89 9.55L31.2 18.18" class="ctan" stroke-dasharray="3 2.5"/>
+<path d="M17.4 17.48L31.4 14.5" class="ctan" stroke-dasharray="3 2.5"/>
+<circle cx="7.45" cy="7.52" r=".3" fill="#e9a13b"/><circle cx="18.41" cy="8.52" r=".3" fill="#e9a13b"/><circle cx="20.89" cy="9.55" r=".3" fill="#e9a13b"/>
+<text class="lb o" x="5.1" y="6.4">T1 (7.45, 7.52)</text>
+<text class="lb o" x="16.3" y="7.4">T2 (18.41, 8.52)</text>
+<text class="lb o" x="21.4" y="8.5">T3 (20.89, 9.55)</text>
+<!-- nose -->
+<path d="M26 12.6V17.2" class="cband"/>
+<text class="lb" x="26.6" y="12.3">nose truncated at x26</text>
+<text class="lb" x="26.6" y="13.6">face 13.83&ndash;15.92 = 2.09pt</text>
+<!-- shape -->
+<use href="#mb" class="cshape"/><use href="#mb" class="cedge"/>
+<!-- quill slots -->
+<rect x="3.5" y="2.97" width="1.5" height="5.38" class="cslot"/><rect x="7" y="2.97" width="1.5" height="4.61" class="cslot"/><rect x="10.5" y="2.97" width="1.5" height="4.93" class="cslot"/><rect x="14" y="2.97" width="1.5" height="5.25" class="cslot"/><rect x="17.5" y="2.97" width="1.5" height="5.57" class="cslot"/><rect x="21" y="2.97" width="1.5" height="7.33" class="cslot"/>
+<path d="M3.5 1.9H5M7 1.9H8.5M10.5 1.9H12M14 1.9H15.5M17.5 1.9H19M21 1.9H22.5" stroke="#e9a13b" stroke-width="1.6" vector-effect="non-scaling-stroke" fill="none"/>
+<path d="M5 1.9H7" stroke="#6e7178" stroke-width="1" vector-effect="non-scaling-stroke" fill="none"/>
+<text class="lb o" x="3.5" y="1.3" text-anchor="start">1.5 stroke &middot; 2.0 counter &middot; 3.5 pitch &middot; 6 slots max</text>
+<!-- rail -->
+<rect x="1" y="17.5" width="37" height="1.5" fill="#eceae6" opacity=".22"/>
+<rect x="1" y="17.5" width="30.5" height="1.5" fill="#eceae6" opacity=".6"/>
+<text class="lb" x="1" y="21.4" text-anchor="start">week rail x1&ndash;38, 1.5pt &middot; heavy run = remaining, ends in a cliff</text>
+<!-- numeral zone -->
+<path d="M43 3V19" class="cband"/>
+<text class="lb" x="43.6" y="4.2">numeral zone &mdash; always &ldquo;% of the 5h window used&rdquo;</text>
+<text class="lb" x="43.6" y="5.5">11pt tabular, baseline y16.2, end-anchored x56</text>
+<text x="56" y="16.2" class="nm" text-anchor="end" fill="#eceae6" opacity=".55">28</text>
+</svg>
+<div class="legend mono">
+<span><i style="border-color:#5fb0d4"></i>generating circles (R5.0 / R4.5)</span>
+<span><i style="border-color:#e9a13b"></i>computed external tangents</span>
+<span><i style="border-color:#d4605f"></i>shared baseline y17.5</span>
+<span><i style="border-color:#eceae6"></i>final silhouette</span>
+</div>
+</div>
+<p class="n mono" style="margin-top:12px">d&nbsp;M7 17.5 A5 5 0 0 0 7.45 7.52 L18.41 8.52 A4.5 4.5 0 0 1 20.89 9.55 L26 13.83 L26 15.92 L18.92 17.4 Z</p>
+
+<!-- ================= 02 SILHOUETTE ================= -->
+<h2><span>02</span>Silhouette test</h2>
+<p class="n">Solid black, no interior detail, no opacity plateaus, nothing knocked out. This is the pass/fail gate, and it passes: a low tapering mass with a heavy rear, a blunt nose and a countable crest, sitting on a line. It reads as a grazing animal and as an instrument at once. The body fills 62% of its own 24&times;10pt bounding box. Honest note: at 1&times; the quills are the first thing to soften, because a 1.5pt stroke accepts one antialiased edge &mdash; they remain countable, but they are not fully black.</p>
+<div class="siltrio">
+<div class="silbox"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-sil"/></svg><div class="mono" style="margin-top:8px;color:#6e7178">22pt &mdash; real size</div></div>
+<div class="silbox"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-sil"/></svg><div class="mono" style="margin-top:8px;color:#6e7178">3&times;</div></div>
+</div>
+
+<!-- ================= 03 MENU BAR ================= -->
+<h2><span>03</span>In the bar, at real size</h2>
+<p class="n">33pt translucent bar over a wallpaper, beside a drawn battery and wifi glyph. The mark is 16pt of ink in a 22pt box with 3pt of air top and bottom, which is why it sits at the same optical weight as the system items rather than shouting over them. Colour appears in one state only.</p>
+<div class="wall w1"><div class="bar lt"><span class="sp"></span><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-burn"/></svg><svg viewBox="0 0 18 22" width="18" height="22" class="mk"><use href="#syswifi"/></svg><svg viewBox="0 0 27 22" width="27" height="22" class="mk"><use href="#sysbat"/></svg><span class="clk">Thu 02:15</span></div><div class="wallbody"></div></div>
+<div class="wall w2"><div class="bar dk"><span class="sp"></span><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-burn"/></svg><svg viewBox="0 0 18 22" width="18" height="22" class="mk"><use href="#syswifi"/></svg><svg viewBox="0 0 27 22" width="27" height="22" class="mk"><use href="#sysbat"/></svg><span class="clk">Thu 02:15</span></div><div class="wallbody"></div></div>
+<div class="wall w2"><div class="bar dk"><span class="sp"></span><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-blk1"/></svg><svg viewBox="0 0 18 22" width="18" height="22" class="mk"><use href="#syswifi"/></svg><svg viewBox="0 0 27 22" width="27" height="22" class="mk"><use href="#sysbat"/></svg><span class="clk">Thu 02:17</span></div><div class="wallbody"></div></div>
+
+<!-- ================= 04 STATES ================= -->
+<h2><span>04</span>State gallery &mdash; real size and 3&times;</h2>
+<div class="grid">
+<div class="cell"><div class="t">Idle &middot; 0 agents</div><div class="d">Smooth back. No quills, no ticks, nothing moving. The stillness is the signal.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-idle"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-idle"/></svg></div></div>
+<div class="cell"><div class="t">1 agent</div><div class="d">One quill at the haunch. The comb fills rear to front, the same direction as the body fill.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-1ag"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-1ag"/></svg></div></div>
+<div class="cell"><div class="t">5 agents</div><div class="d">Five quills, exact. Ghost band shows the hour ahead landing mid-body.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-5ag"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-5ag"/></svg></div></div>
+<div class="cell"><div class="t">7&ndash;9 agents</div><div class="d">Six quills capped into a comb. Past six the count becomes a band, and the cap says so.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-7ag"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-7ag"/></svg></div></div>
+<div class="cell"><div class="t">10+ agents</div><div class="d">The cap runs 3.5pt forward over the nose. A silhouette change, not a subtlety.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-10ag"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-10ag"/></svg></div></div>
+<div class="cell"><div class="t">High quota &middot; 85%</div><div class="d">Body almost entirely solid, only the nose still pale. Week is down to 40%.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-high"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-high"/></svg></div></div>
+<div class="cell"><div class="t">Burn overrun &middot; real data</div><div class="d">28% used, 92%/h. The ghost pins at the snout and spills as three ticks &mdash; empty 1h25m before reset.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-burn"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-burn"/></svg></div></div>
+<div class="cell"><div class="t">7-day binding</div><div class="d">Ground ends in a cliff under the tail; the body scales 0.87 about the baseline and crouches.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-week"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-week"/></svg></div></div>
+<div class="cell"><div class="t">Needs input &middot; 1 blocked</div><div class="d">Amber bar in front of the nose. The body rears back 1.5pt and stops. Ticks vanish: nothing is being eaten.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-blk1"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-blk1"/></svg></div></div>
+<div class="cell"><div class="t">Needs input &middot; 2 blocked</div><div class="d">Two bars, 2pt counter. That is the pause glyph, not a pair of eyes &mdash; it is outside the body, and there is no head to put it in.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-blk2"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-blk2"/></svg></div></div>
+<div class="cell"><div class="t">Stale data</div><div class="d">Whole mark to 35%, Apple&rsquo;s disabled convention, and the numeral becomes a dash &mdash; absence of a value, never a different value.</div><div class="r1"><svg viewBox="0 0 58 22" width="58" height="22" class="mk"><use href="#s-stale"/></svg></div><div class="r3"><svg viewBox="0 0 58 22" width="174" height="66" class="mk"><use href="#s-stale"/></svg></div></div>
+</div>
+
+<!-- ================= 05 LIVE ================= -->
+<h2><span>05</span>Live scenario &mdash; 18s loop, honest timings</h2>
+<p class="n">Every transition below is event-triggered and terminates. Idle motion is zero: the first two seconds and the last second of this loop are completely static, and that is what the app looks like almost all the time. The only clock-driven animation in the whole design is the blink at 13.5s, which in production runs once per 60s while blocked and hard-stops at 10 minutes.</p>
+<div class="scene">
+<div class="scenebar"><span class="sp"></span>
+<svg viewBox="0 0 58 22" width="58" height="22" class="mk" style="color:#fff">
+<rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/>
+<g class="sbody"><use href="#mb" class="bg1"/><g clip-path="url(#m3)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h3)"><use href="#mb"/></g>
+<rect class="sq sq1" x="3.5" y="2.97" width="1.5" height="5.38"/><rect class="sq sq2" x="7" y="2.97" width="1.5" height="4.61"/><rect class="sq sq3" x="10.5" y="2.97" width="1.5" height="4.93"/><rect class="sq sq4" x="14" y="2.97" width="1.5" height="5.25"/><rect class="sq sq5" x="17.5" y="2.97" width="1.5" height="5.57"/></g>
+<g class="stk"><use href="#tick3"/></g>
+<rect class="sstop stop" x="27.5" y="8" width="1.5" height="9.5"/>
+<text x="56" y="16.2" class="nm" text-anchor="end">28</text></svg>
+<svg viewBox="0 0 18 22" width="18" height="22" class="mk" style="color:#fff"><use href="#syswifi"/></svg>
+<svg viewBox="0 0 27 22" width="27" height="22" class="mk" style="color:#fff"><use href="#sysbat"/></svg>
+<span class="clk" style="color:#fff">Thu 02:15</span></div>
+<div class="scenebig">
+<svg viewBox="0 0 58 22" width="232" height="88" class="mk">
+<rect x="1" y="17.5" width="37" height="1.5" class="bg1"/><rect x="1" y="17.5" width="30.5" height="1.5"/>
+<g class="sbody"><use href="#mb" class="bg1"/><g clip-path="url(#m3)"><use href="#mb" class="bg2"/></g><g clip-path="url(#h3)"><use href="#mb"/></g>
+<rect class="sq sq1" x="3.5" y="2.97" width="1.5" height="5.38"/><rect class="sq sq2" x="7" y="2.97" width="1.5" height="4.61"/><rect class="sq sq3" x="10.5" y="2.97" width="1.5" height="4.93"/><rect class="sq sq4" x="14" y="2.97" width="1.5" height="5.25"/><rect class="sq sq5" x="17.5" y="2.97" width="1.5" height="5.57"/></g>
+<g class="stk"><use href="#tick3"/></g>
+<rect class="sstop stop" x="27.5" y="8" width="1.5" height="9.5"/>
+<text x="56" y="16.2" class="nm" text-anchor="end">28</text></svg>
+</div>
+<div class="track">
+<div class="lab" style="left:0">0s still</div>
+<div class="lab" style="left:11.11%">2.0 first agent &middot; 180ms</div>
+<div class="lab" style="left:16.67%">3.0 fan-out</div>
+<div class="lab" style="left:44.44%">8.0 finish &middot; 120+580ms</div>
+<div class="lab" style="left:58.33%">10.5 block &middot; 220ms</div>
+<div class="lab" style="left:75%">13.5 blink</div>
+<div class="lab" style="left:83.33%">15.0 clear</div>
+<div class="lab" style="left:88.89%">16.0 drain &middot; settle 260ms</div>
+<div class="ph"></div>
+</div>
+</div>
+<p class="n" style="margin-top:14px">Reduced motion: every animation is disabled and the mark resolves to its static equivalent with all quills raised, the ticks present and the stop bar shown &mdash; no information is carried by motion alone.</p>
+
+<!-- ================= 06 NOTES ================= -->
+<h2><span>06</span>What changed, and what it cost</h2>
+<p class="n"><strong style="color:var(--fg)">Deleted:</strong> the front view, both eyes, the eye-slit, the morph, and every interior line. The old mark was an outlined animal with a meter inside it. This one is a filled mass whose own tone is the meter, so the drawing and the data are the same object.</p>
+<p class="n"><strong style="color:var(--fg)">Redrawn:</strong> the back dropped from y3.5 to y7.5. That single change is why the old quills read as stubble &mdash; there were only 1.4pt of air above the spine. They now get 4.6&ndash;7.3pt and are countable. The head shrank to a 2.09pt blunt nose and the mass moved onto the haunch, because head-dominance is the loudest cartoonishness signal there is.</p>
+<p class="n"><strong style="color:var(--fg)">One weight:</strong> the old week gauge used a hairline against a heavy line &mdash; two stroke weights in one mark, which Apple and Material both forbid in writing. The same information is now two opacity plateaus at a single 1.5pt weight.</p>
+<p class="n"><strong style="color:var(--fg)">Known limits:</strong> agent count is exact only to six &mdash; above that the comb reports a band, because a seventh quill will not fit the 2pt counter floor in 19pt of dorsal run. The 5-hour fill resolves in roughly 4% steps once snapped to whole pixels, so the numeral, not the fill, is what separates 28 from 34. And the numeral itself is a concession: it is two characters of text in a mark, permitted only because it is the sole exact channel and it now means exactly one thing, forever.</p>
+</div>
+</div>
+</body></html>
