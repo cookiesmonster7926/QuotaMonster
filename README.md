@@ -10,6 +10,13 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-lightgrey.svg)](#系統需求)
 [![Arch](https://img.shields.io/badge/arch-Apple%20Silicon-orange.svg)](#系統需求)
+[![Release](https://img.shields.io/github/v/release/cookiesmonster7926/QuotaMonster)](https://github.com/cookiesmonster7926/QuotaMonster/releases/latest)
+
+### [⬇️ 下載最新版](https://github.com/cookiesmonster7926/QuotaMonster/releases/latest)
+
+⚠️ 這顆按鈕**刻意**指向 Release 頁面，不是直接下載 .dmg。
+下載之前有三件事一定要先知道（沒公證、只支援 Apple Silicon、必須裝 statusline tee），
+那三件事寫在那一頁的最上面。跳過它們的人會拿到一個雙擊打不開的檔案。
 
 </div>
 
