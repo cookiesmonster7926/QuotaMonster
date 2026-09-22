@@ -68,10 +68,10 @@ enum RenderPanel {
     }
 
     static func run(path: String) {
+        // 偏好在 `DataStore.init` 就讀進來了 —— popover 會照偏好畫，
+        // 所以離線渲染也要照偏好畫，否則這張圖不是「它長什麼樣」，
+        // 是「它在預設值下長什麼樣」。
         let store = DataStore()
-        // popover 會照偏好畫，所以離線渲染也要照偏好畫 —— 否則這張圖不是
-        // 「它長什麼樣」，是「它在預設值下長什麼樣」。
-        store.loadPreferences()
         // `--chart daily|cumulative` 只覆寫記憶體，不碰使用者的偏好檔。
         if let i = CommandLine.arguments.firstIndex(of: "--chart"),
            CommandLine.arguments.count > i + 1,

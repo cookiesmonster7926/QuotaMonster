@@ -65,7 +65,19 @@ final class DataStore {
             .with(finishGlow: FinishGlow.menuBar(Array(finishes.values), now: lastRefresh))
     }
 
-    private let home = FileManager.default.homeDirectoryForCurrentUser
+    private let home: URL
+
+    /// - Parameter home: 家目錄。測試會傳一個假的進來；正式路徑一律用預設值。
+    ///
+    /// ⚠️ **偏好在這裡就讀完。** 原本讀在 `start()` 裡，於是三個不走 `start()`
+    /// 的建立點（`RenderPanel`、`RenderPreferences`、`ProbePopover`）全部看不到
+    /// 使用者的設定 —— 而那三個正是**用來驗證設定長什麼樣**的診斷。
+    /// 在那三處各補一行只是把同一個洞留給第四個建立點；讀在 init
+    /// 才能讓「建得出 DataStore 就一定有偏好」是結構上的事。
+    init(home: URL = FileManager.default.homeDirectoryForCurrentUser) {
+        self.home = home
+        loadPreferences()
+    }
     private let usageReader = ClaudeJSONUsageReader()
     private let statusLineReader = StatusLineCacheReader()
     private let pruner = StatusLineCachePruner()
@@ -263,7 +275,8 @@ final class DataStore {
     static let sampleWindow: TimeInterval = 24 * 3600
 
     func start() {
-        // 偏好要**最早**讀 —— 音效的選擇在第一次通知之前就要生效。
+        // 再讀一次：init 之後、start 之前有可能被另一個行程改過
+        // （例如使用者在上一次執行裡改了設定）。成本是一次小檔案讀取。
         loadPreferences()
         // 先把上一筆讀回來，重啟才不會又寫一次一模一樣的紀錄。
         lastRecorded = history.last(historyFile)

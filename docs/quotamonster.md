@@ -430,17 +430,26 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   Tests/QuotaMonsterAppTests/GlyphRendererTests.swift（`eachArcCarriesItsOwnColour`）、
   RenderStates 的 `21-arcs-differ` / `22-arcs-differ-flip`
 
-**44. 離線渲染必須走與真實 app 同一條設定路徑。**
+**44. 讀設定要發生在 `DataStore.init`，不可以發生在 `start()`。**
 
-- **為什麼**：〔實測 2026-09-22〕`RenderPanel.run` 只呼叫 `store.refresh()`，
-  而讀偏好檔在 `store.start()` 裡 —— 於是 `--render-panel` **從來沒有反映過任何偏好**，
-  畫出來的一直是預設值。「改了設定、渲染一張圖看看」這個驗證動作因此是空的：
-  它在偏好整個壞掉的時候照樣給綠燈。
-- 這是規矩 28（診斷不可以說謊）的一個新面向：前面講的是「畫的東西要跟註解說的一樣」，
-  這裡講的是「**輸入**要跟真實情況一樣」。兩者都會讓診斷變成安慰劑。
-- **修法**：抽出 `DataStore.loadPreferences()`，`start()` 與 `RenderPanel.run` 都呼叫；
-  另給 `--chart daily|cumulative` 只覆寫記憶體（`setPreferences(_:persist: false)`）——
-  **診斷指令不可以改掉使用者真正的設定檔**。渲染時把實際採用的樣式寫到 stderr。
+- **為什麼**：〔實測 2026-09-22〕四個 `DataStore` 建立點裡有**三個**不走 `start()`
+  —— `RenderPanel`、`RenderPreferences`、`ProbePopover` 都只呼叫 `refresh()`，
+  而讀偏好檔在 `start()` 裡。於是這三支診斷**從來沒有反映過任何偏好**。
+- **後果不是「少一個功能」，是驗證整個變成安慰劑。** 最糟的是 `--render-prefs`：
+  它的全部工作就是畫偏好視窗給人看，而它畫的一直是預設值 ——
+  它甚至在 stdout 印「⚠️ 這張圖用的是**目前實際的偏好檔**，不是合成資料」。
+  那同時踩到規矩 28：診斷**主張**了一件假的事。
+  〔驗證〕把偏好檔設成 `chartStyle: cumulative` + `morningHour: 10` 再渲染，
+  修好前畫出「每日長條 / 08:00」，修好後畫出「累計曲線 / 10:00」。
+- ⚠️ **修法不是在那三個地方各補一行** —— 那只是把同一個洞留給第四個建立點。
+  讀檔移進 `init`（`init(home:)`，測試傳假家目錄），
+  「建得出 `DataStore` 就一定有偏好」才是結構上的事。`start()` 仍然再讀一次，
+  因為 init 到 start 之間有可能被另一個行程改過。
+  〔突變驗證〕拿掉 init 裡那一行 → `chartStyle` 回 `.daily`，紅。
+- 規矩 28 講的是「畫的東西要跟註解說的一樣」，這一條講的是
+  「**輸入**要跟真實情況一樣」。兩者都會讓診斷變成安慰劑。
+- ⚠️ 診斷可以**覆寫**設定，但不可以**改掉**設定檔：`--chart daily|cumulative`
+  走 `setPreferences(_:persist: false)`，而且把實際採用的樣式寫到 stderr。
 
 **45. 單調性的前提壞掉時要**標出來**，不是夾成單調，也不是照畫。**
 
