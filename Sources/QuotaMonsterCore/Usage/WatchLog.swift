@@ -55,7 +55,22 @@ public struct WatchLog: Sendable {
     public struct Mark: Equatable, Sendable {
         public let at: Date
         public let kind: Kind
-        public init(at: Date, kind: Kind) { self.at = at; self.kind = kind }
+
+        /// 那一刻我們**看得到帳號的變化嗎**。
+        ///
+        /// ⚠️ **這不是「app 醒著嗎」。** 〔實測 2026-09-22〕18.8 小時裡有 16.1 小時
+        /// （**85%**）這台機器沒有渲染狀態列（含一段 11.5 小時的整夜空窗），
+        /// 而 QuotaMonster 在那段時間是醒著的。
+        ///
+        /// `7d` 是**帳號層級**的 —— 別人、別的裝置燒掉的都算在裡面 ——
+        /// 但我們只在這台機器渲染狀態列時才看得到那個數字。
+        /// 心跳原本只記「醒著」，於是「別人半夜燒掉 30%」那一天會被畫成
+        /// **0%、滿分信心**。那是這張圖最容易犯、最難發現的謊。
+        public let sawLiveReading: Bool
+
+        public init(at: Date, kind: Kind, sawLiveReading: Bool = false) {
+            self.at = at; self.kind = kind; self.sawLiveReading = sawLiveReading
+        }
     }
 
     public init() {}
@@ -98,7 +113,8 @@ public struct WatchLog: Sendable {
     }
 
     static func encode(_ m: Mark) -> String {
-        "{\"t\":\(Int(m.at.timeIntervalSince1970)),\"k\":\"\(m.kind.rawValue)\"}\n"
+        "{\"t\":\(Int(m.at.timeIntervalSince1970)),\"k\":\"\(m.kind.rawValue)\""
+            + ",\"v\":\(m.sawLiveReading ? 1 : 0)}\n"
     }
 
     static func decode(_ line: String) -> Mark? {
@@ -107,7 +123,10 @@ public struct WatchLog: Sendable {
               let t = (o["t"] as? NSNumber)?.doubleValue,
               let k = o["k"] as? String, let kind = Kind(rawValue: k)
         else { return nil }
-        return Mark(at: Date(timeIntervalSince1970: t), kind: kind)
+        // ⚠️ 舊格式沒有 `v`。**當成看不到**，不是當成看得到 ——
+        // 把一段我們其實是瞎的時間宣告成可信，正是這個欄位要防的那件事。
+        let saw = (o["v"] as? NSNumber)?.intValue == 1
+        return Mark(at: Date(timeIntervalSince1970: t), kind: kind, sawLiveReading: saw)
     }
 
     // ── 那一刻有沒有人在看 ─────────────────────────────────────
@@ -115,11 +134,13 @@ public struct WatchLog: Sendable {
     /// 一次漏寫不該讓整天作廢，所以容差給一個間隔的兩倍。
     public static let boundaryTolerance: TimeInterval = interval * 2
 
-    /// - Returns: `instant` 前後 `tolerance` 之內有沒有任何紀錄。
+    /// - Returns: `instant` 前後 `tolerance` 之內，有沒有一筆**看得到**的紀錄。
     ///   ⚠️ **沒有紀錄回 false。** 沒有紀錄不是「有在看」的證據。
+    ///   ⚠️ 只算 `sawLiveReading` 的那些 —— 醒著但看不到不算看著那個時刻，
+    ///   而開機標記從來就不是觀測證據。
     public static func covers(_ instant: Date, marks: [Mark],
                               tolerance: TimeInterval = boundaryTolerance) -> Bool {
-        marks.contains { abs($0.at.timeIntervalSince(instant)) <= tolerance }
+        marks.contains { $0.sawLiveReading && abs($0.at.timeIntervalSince(instant)) <= tolerance }
     }
 
     // ── 清理 ───────────────────────────────────────────────────

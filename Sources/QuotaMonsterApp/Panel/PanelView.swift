@@ -116,9 +116,21 @@ struct PanelView: View {
             }
             // 每日長條圖。⚠️ 沒有 7 天窗口的重置時間就**整個不畫** ——
             // 那不是「七根都是 0%」，是「這張圖畫不出來」（規矩 2）。
-            if let bars = store.dailyBars {
-                Divider().opacity(0.4).padding(.vertical, 1)
-                DailyBarChart(bars: bars)
+            // ⚠️ 兩種視圖回答**不同的問題**，不是同一張圖的兩種皮：
+            //   每日長條 → 哪一天燒了多少（日界附近看不到就會出錯）
+            //   累計曲線 → 到現在為止燒了多少（不需要分天，所以沒有歸屬問題）
+            // 使用者 2026-09-22 選擇兩種都做、在偏好設定切換。理由見 `ChartStyle`。
+            switch store.chartStyle {
+            case .daily:
+                if let bars = store.dailyBars {
+                    Divider().opacity(0.4).padding(.vertical, 1)
+                    DailyBarChart(bars: bars)
+                }
+            case .cumulative:
+                if let pts = store.cumulativePoints, let w = store.quotaWindow {
+                    Divider().opacity(0.4).padding(.vertical, 1)
+                    CumulativeChart(points: pts, windowStart: w.start, resetsAt: w.reset)
+                }
             }
         }
         .padding(.horizontal, 14).padding(.vertical, 11)

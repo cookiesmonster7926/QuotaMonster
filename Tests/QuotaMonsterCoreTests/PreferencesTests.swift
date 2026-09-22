@@ -129,3 +129,34 @@ struct PreferencesTests {
         #expect(p.contextYellow == nil)
     }
 }
+
+/// 圖表樣式 —— 使用者 2026-09-22 選的「兩種都做、可切換」。
+@Suite("偏好 — 圖表樣式")
+struct ChartStylePreferenceTests {
+    @Test("預設是長條圖 —— 使用者原本要的就是「每天多少」")
+    func defaultIsDaily() {
+        #expect(ChartStyle.standard == .daily)
+        #expect(Preferences().chartStyle == nil, "沒調過就不該出現在磁碟上（規矩 2）")
+    }
+
+    @Test("兩種都在，而且各自有名字")
+    func bothStylesExist() {
+        #expect(ChartStyle.allCases.count == 2)
+        #expect(ChartStyle.allCases.allSatisfy { !$0.label.isEmpty })
+    }
+
+    @Test("存得進去也讀得回來")
+    func roundTrips() throws {
+        var p = Preferences()
+        p.chartStyle = .cumulative
+        let data = try JSONEncoder().encode(p.sanitised())
+        #expect(try JSONDecoder().decode(Preferences.self, from: data).chartStyle == .cumulative)
+    }
+
+    @Test("⚠️ 沒調過的欄位不可以出現在 JSON 裡（規矩 2 的第二個條件）")
+    func untouchedFieldIsAbsentFromDisk() throws {
+        let json = String(decoding: try JSONEncoder().encode(Preferences().sanitised()), as: UTF8.self)
+        #expect(json.contains("chartStyle") == false,
+                "磁碟上出現預設值，新的量測改了預設他就不會跟著走")
+    }
+}

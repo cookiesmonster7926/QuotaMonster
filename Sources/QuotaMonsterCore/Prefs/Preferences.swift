@@ -1,6 +1,24 @@
 import Foundation
 
 /// 警示音效要放什麼。
+/// 額度區塊底下那張圖的兩種看法。
+public enum ChartStyle: String, Equatable, Sendable, Codable, CaseIterable {
+    /// 七根長條，一天一根。回答「哪一天燒了多少」。
+    case daily
+    /// 從窗口起點爬到現在的累計曲線。回答「到現在為止燒了多少」。
+    case cumulative
+
+    /// ⚠️ 預設是長條圖 —— 使用者原本要的就是「每天多少」。
+    public static let standard: ChartStyle = .daily
+
+    public var label: String {
+        switch self {
+        case .daily:      return "每日長條"
+        case .cumulative: return "累計曲線"
+        }
+    }
+}
+
 public enum AlertSoundChoice: Equatable, Sendable, Codable {
     /// `NSSound(named:)` 找得到的名字。`~/Library/Sounds` 裡使用者自己的 .wav 也算。
     case named(String)
@@ -61,6 +79,18 @@ public struct Preferences: Equatable, Sendable, Codable {
     public var quotaCritical: Double?
     public var quotaTight: Double?
 
+    /// 額度區塊底下那張圖要畫哪一種。
+    ///
+    /// ### ⚠️ 這一格通得過「什麼該做成旋鈕」那條判準，而且理由與其他四格不同
+    /// 其他四格是**門檻**（曲線上的一個點），這一格**根本不是門檻，是視圖** ——
+    /// 兩種畫的是同一份資料，只是問不同的問題：
+    /// - `daily`：**哪一天**燒了多少 → 日界附近看不到就會出錯（見 `WatchLog`）
+    /// - `cumulative`：**到現在為止**燒了多少 → 不需要分天，所以沒有歸屬問題
+    ///
+    /// 而這個 repo 的判準是「**調壞的方向是不是無聲的**」。
+    /// 選錯這一格的後果是**看得見的**（你看到另一張圖），所以它該做成旋鈕。
+    public var chartStyle: ChartStyle?
+
     public init(alertSound: AlertSoundChoice? = nil, morningHour: Int? = nil,
                 contextYellow: Int? = nil, contextRed: Int? = nil,
                 quotaCritical: Double? = nil, quotaTight: Double? = nil) {
@@ -84,6 +114,7 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 而一組互相矛盾的門檻比沒有設定更糟。
     public func sanitised() -> Preferences {
         var p = self
+        // chartStyle 不需要夾限：它是列舉，解不出來的值在 decode 時就是 nil。
         p.morningHour = morningHour.map { min(max($0, 0), 23) }
         let y = contextYellow.map { min(max($0, 1), 99) }
         let r = contextRed.map { min(max($0, 2), 100) }

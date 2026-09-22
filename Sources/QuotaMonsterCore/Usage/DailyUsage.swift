@@ -61,6 +61,77 @@ public enum DailyUsage {
     /// 高於它就是在超支，低於它就是在存。
     public static let evenPacePercent: Double = 100.0 / Double(days)
 
+    /// 累計曲線上的一個點。
+    public struct CumulativePoint: Equatable, Sendable {
+        public let at: Date
+        public let percent: Int
+        /// 這個讀數比**先前看過的最高值**還低。
+        ///
+        /// 同一個窗口內 7d 是累計值，不可能變小 —— 所以這個讀數與那個最高值
+        /// **其中之一是錯的，而我們不知道是哪一個**。兩個都留著、把矛盾標出來，
+        /// 不夾成遞增（那是把壞資料悄悄改成好資料），也不當沒事
+        /// （那是在畫一條定義上不可能的下降累計線）。
+        ///
+        /// ⚠️ 判準是「先前最高」不是「前一點」。〔實測 2026-09-22 本機歷史檔〕
+        /// 19 → 0 → 13 → …… → 19：中間那串 13、14 每一個都與那個 19 衝突，
+        /// 只比前一點的話它們全部會被當成正常的上升。
+        public let contradictsEarlier: Bool
+        public init(at: Date, percent: Int, contradictsEarlier: Bool = false) {
+            self.at = at
+            self.percent = percent
+            self.contradictsEarlier = contradictsEarlier
+        }
+    }
+
+    /// 曲線右上角那句話要寫什麼。
+    ///
+    /// ⚠️ 只有一句的空間，所以是**二選一**：有矛盾時改去解釋那一段。
+    /// 理由是「看得見的怪事優先於看不見的細節」—— 那條斜線不解釋只是少一層
+    /// 資訊，一段沒解釋的斷線則是讓使用者以為 app 壞了。
+    ///
+    /// ⚠️ 講「淡色段」不講「虛線」：**均速那條斜線本身就是虛線**，
+    /// 寫「虛線＝讀數互相矛盾」會直接指到它身上。第一版就是這樣，
+    /// 渲染出來才看見兩條虛線同時在畫面上。
+    public static func cumulativeLegend(_ points: [CumulativePoint]) -> String {
+        points.contains(where: \.contradictsEarlier)
+            ? "淡色段＝讀數互相矛盾"
+            : "斜線＝剛好在重置時用完"
+    }
+
+    /// 同一份資料的另一種看法：從窗口起點到現在的累計用量。
+    ///
+    /// ### ⚠️ 這個視圖**沒有歸屬問題**，長條圖有
+    /// 長條圖要回答「**哪一天**燒的」，所以日界附近看不到就會出錯
+    /// （見 `WatchLog.Mark.sawLiveReading`）。累計曲線只回答
+    /// 「到這一刻為止燒了多少」——**那個問題不需要分天**，
+    /// 所以共用帳號、別的裝置、觀測空窗都不影響它的正確性。
+    ///
+    /// 它唯一的損失是**空窗那一段的形狀**：兩個觀測點之間畫的是直線，
+    /// 而真實可能是階梯。總量與每一個端點都是對的。
+    ///
+    /// 第一個點是窗口起點的 0%（定義，不是資料），最後一個點是「現在」——
+    /// 曲線要畫到現在，不是畫到最後一次取樣。
+    public static func cumulative(samples: [UsageSample], resetsAt: Date,
+                                  now: Date) -> [CumulativePoint] {
+        let start = resetsAt.addingTimeInterval(-Double(days) * 86400)
+        guard now >= start else { return [] }
+        let inWindow = samples
+            .filter { $0.at >= start && $0.at <= min(resetsAt, now) && $0.sevenDay != nil }
+            .sorted { $0.at < $1.at }
+        var pts = [CumulativePoint(at: start, percent: 0)]
+        var peak = 0
+        for s in inWindow {
+            guard let v = s.sevenDay else { continue }
+            pts.append(CumulativePoint(at: s.at, percent: v, contradictsEarlier: v < peak))
+            peak = max(peak, v)
+        }
+        // 「現在」那一點繼承最後一筆的值 **與它的處境** —— 還在谷底就還是矛盾的。
+        let last = pts.last
+        pts.append(CumulativePoint(at: now, percent: last?.percent ?? 0,
+                                   contradictsEarlier: last?.contradictsEarlier ?? false))
+        return pts
+    }
+
     public static func bars(samples: [UsageSample], marks: [WatchLog.Mark],
                             resetsAt: Date, now: Date) -> [DailyUsageBar] {
         let start = resetsAt.addingTimeInterval(-Double(days) * 86400)
@@ -111,7 +182,14 @@ public enum DailyUsage {
             //
             // 只有一端沒被看著：中間看到了，數字算得出來，錯的只是跨日界那一小段的
             // 歸屬。那是 unverified —— 有數字但別完全相信。
-            guard marks.contains(where: { $0.at >= a && $0.at < end }) else {
+            // ⚠️ 只算 **看得到** 的心跳。「app 醒著」不等於「看得到帳號的變化」——
+            // 〔實測 2026-09-22〕18.8 小時裡有 16.1 小時（85%）這台機器沒有渲染
+            // 狀態列，而 app 是醒著的。`7d` 是帳號層級的，別人／別的裝置燒掉的
+            // 都算在裡面，但我們只在這台機器渲染時才看得到那個數字。
+            // 用「醒著」當證據，會把「別人半夜燒掉 30%」那天畫成 0%、滿分信心。
+            guard marks.contains(where: {
+                $0.sawLiveReading && $0.at >= a && $0.at < end
+            }) else {
                 return DailyUsageBar(index: i, start: a, end: b, state: .unknown)
             }
 

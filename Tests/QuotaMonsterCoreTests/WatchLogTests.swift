@@ -89,24 +89,28 @@ struct WatchLogTests {
 
     @Test("日界前後有心跳 → 那個邊界是可信的")
     func boundaryCoveredByNearbyMark() {
-        let marks = [WatchLog.Mark(at: now.addingTimeInterval(-120), kind: .heartbeat),
-                     WatchLog.Mark(at: now.addingTimeInterval(120), kind: .heartbeat)]
+        let marks = [WatchLog.Mark(at: now.addingTimeInterval(-120), kind: .heartbeat,
+                                   sawLiveReading: true),
+                     WatchLog.Mark(at: now.addingTimeInterval(120), kind: .heartbeat,
+                                   sawLiveReading: true)]
         #expect(WatchLog.covers(now, marks: marks))
     }
 
     @Test("日界附近完全沒有心跳 → 不可信（app 那時沒開）")
     func boundaryWithoutMarksIsNotCovered() {
-        let marks = [WatchLog.Mark(at: now.addingTimeInterval(-9999), kind: .heartbeat),
-                     WatchLog.Mark(at: now.addingTimeInterval(9999), kind: .heartbeat)]
+        let marks = [WatchLog.Mark(at: now.addingTimeInterval(-9999), kind: .heartbeat,
+                                   sawLiveReading: true),
+                     WatchLog.Mark(at: now.addingTimeInterval(9999), kind: .heartbeat,
+                                   sawLiveReading: true)]
         #expect(WatchLog.covers(now, marks: marks) == false)
     }
 
     @Test("容差是一個間隔的兩倍 —— 一次漏寫不該讓整天作廢")
     func toleranceIsTwoIntervals() {
         #expect(WatchLog.boundaryTolerance == WatchLog.interval * 2)
-        let just = [WatchLog.Mark(at: now.addingTimeInterval(-599), kind: .heartbeat)]
+        let just = [WatchLog.Mark(at: now.addingTimeInterval(-599), kind: .heartbeat, sawLiveReading: true)]
         #expect(WatchLog.covers(now, marks: just))
-        let tooFar = [WatchLog.Mark(at: now.addingTimeInterval(-601), kind: .heartbeat)]
+        let tooFar = [WatchLog.Mark(at: now.addingTimeInterval(-601), kind: .heartbeat, sawLiveReading: true)]
         #expect(WatchLog.covers(now, marks: tooFar) == false)
     }
 
@@ -125,5 +129,66 @@ struct WatchLogTests {
         #expect(log.prune(url, now: now))
         #expect(log.read(url).count == 1)
         #expect(log.prune(url, now: now) == false, "沒有東西過期就不該重寫整個檔")
+    }
+}
+
+/// 心跳要記的不是「app 醒著」，是「**當時看得到帳號的變化**」。
+///
+/// ### 為什麼這是兩件事
+/// 〔實測 2026-09-22〕18.8 小時裡有 16.1 小時（**85%**）這台機器沒有渲染狀態列
+/// （含一段 11.5 小時的整夜空窗），而 QuotaMonster 在那段時間是**醒著的**。
+///
+/// `7d` 是**帳號層級**的 —— 別人、別的裝置燒掉的都算在裡面。但我們只在
+/// 這台機器渲染狀態列時才看得到那個數字。所以「醒著」不等於「看得到」。
+///
+/// 後果：別人半夜燒掉 30% 的那一天，心跳有、取樣點沒有 →
+/// 圖上畫成 **0%，滿分信心**。那是這張圖最容易犯、最難發現的謊。
+@Suite("觀測紀錄 — 讀數活不活")
+struct WatchLogLivenessTests {
+    let now = Fixture.now
+
+    @Test("心跳要帶得出「那一刻讀數是不是活的」")
+    func markCarriesLiveness() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-live-\(UUID().uuidString)")
+            .appendingPathComponent("w.jsonl")
+        let log = WatchLog()
+        #expect(log.append(WatchLog.Mark(at: now, kind: .heartbeat, sawLiveReading: true), to: url))
+        #expect(log.append(WatchLog.Mark(at: now.addingTimeInterval(300), kind: .heartbeat,
+                                         sawLiveReading: false), to: url))
+        let back = log.read(url)
+        #expect(back.first?.sawLiveReading == true)
+        #expect(back.last?.sawLiveReading == false)
+    }
+
+    @Test("⚠️ 舊格式（沒有那個欄位）一律當成**看不到** —— 不存在不是證據")
+    func legacyMarksAreNotEvidence() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-legacy-\(UUID().uuidString)")
+            .appendingPathComponent("w.jsonl")
+        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(),
+                                                withIntermediateDirectories: true)
+        let t = Int(now.timeIntervalSince1970)
+        try ("{" + "\"t\":\(t),\"k\":\"hb\"" + "}\n").write(to: url, atomically: true,
+                                                            encoding: .utf8)
+        let back = WatchLog().read(url)
+        #expect(back.count == 1)
+        #expect(back.first?.sawLiveReading == false,
+                "把舊資料當成『那時看得到』，等於把一段我們其實是瞎的時間宣告成可信")
+    }
+
+    @Test("covers 只算**看得到**的那些心跳")
+    func coversOnlyCountsLiveMarks() {
+        let blind = [WatchLog.Mark(at: now, kind: .heartbeat, sawLiveReading: false)]
+        #expect(WatchLog.covers(now, marks: blind) == false,
+                "醒著但看不到，不算看著那個時刻")
+        let seeing = [WatchLog.Mark(at: now, kind: .heartbeat, sawLiveReading: true)]
+        #expect(WatchLog.covers(now, marks: seeing))
+    }
+
+    @Test("開機標記不是觀測證據 —— 它只說『這裡是一次執行的起點』")
+    func bootIsNotObservation() {
+        let boot = [WatchLog.Mark(at: now, kind: .boot, sawLiveReading: false)]
+        #expect(WatchLog.covers(now, marks: boot) == false)
     }
 }

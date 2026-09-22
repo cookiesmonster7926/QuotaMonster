@@ -3,10 +3,14 @@ import QuotaMonsterCore
 
 /// 偏好設定。
 ///
-/// ### ⚠️ 這裡只有四格，而那是設計不是省事
+/// ### ⚠️ 這裡只有五格，而那是設計不是省事
 /// 這個 app 有將近三十個門檻。被擋在外面的理由寫在 `Preferences` 的檔頭：
 /// 有量測撐著的界線不給調，兩個方向都無聲的常數也不給調。
 /// **一個好的設定介面的價值一半在於它拒絕暴露什麼。**
+///
+/// 第五格（圖表樣式，2026-09-22 加）過得了那一關，是因為它**不是門檻**：
+/// 它不改變任何判斷，只改變同一份資料畫成哪一種圖，而且選錯會**當場看見** ——
+/// 上面那條「調了會安靜地壞掉」的判準對它不成立。
 ///
 /// ### ⚠️ 三個元件在這裡是禁用的，理由都是「它會讓診斷說謊」
 /// - **`Menu`** —— 離屏渲染下畫成一個紅色禁止符號（`MutePolicy` 檔頭已記）。
@@ -39,6 +43,8 @@ struct PreferencesView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("偏好設定").font(.system(size: 13, weight: .semibold))
 
+            chartRow
+            Divider().opacity(0.5)
             soundRow
             Divider().opacity(0.5)
             morningRow
@@ -47,12 +53,42 @@ struct PreferencesView: View {
             Divider().opacity(0.5)
             quotaRow
 
-            Text("這裡只有四項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
+            Text("這裡只有五項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
                 .font(.system(size: 9.5)).foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(18)
         .frame(width: 380, alignment: .leading)
+    }
+
+    // ── 圖表樣式 ───────────────────────────────────────────────
+
+    /// 額度底下那張圖要畫哪一種。**兩種回答的是不同的問題**，
+    /// 所以這不是換皮：每日長條講「哪一天燒的」，累計曲線講「到現在燒了多少」。
+    ///
+    /// ⚠️ 用循環鍵而不是 `Picker` —— 理由見檔頭（`Picker` 在離屏渲染下
+    /// 會畫出一張看起來正常、但那個角落是假的圖）。
+    private var chartRow: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            label("額度底下那張圖",
+                  "長條看「哪一天燒的」，曲線看「到現在燒了多少」")
+            HStack(spacing: 8) {
+                cycleButton("chevron.left") { cycleChart(-1) }
+                Text(store.chartStyle.label)
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(minWidth: 120, alignment: .leading)
+                cycleButton("chevron.right") { cycleChart(1) }
+                Spacer()
+            }
+        }
+    }
+
+    private func cycleChart(_ step: Int) {
+        let all = ChartStyle.allCases
+        let i = all.firstIndex(of: store.chartStyle) ?? 0
+        var p = prefs
+        p.chartStyle = all[((i + step) % all.count + all.count) % all.count]
+        store.setPreferences(p)
     }
 
     // ── 音效 ───────────────────────────────────────────────────

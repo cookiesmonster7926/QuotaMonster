@@ -224,6 +224,22 @@ final class DataStore {
         return "bash scripts/install_statusline_tee.sh --apply"
     }
 
+    /// 額度區塊底下要畫哪一種圖。判準與「為什麼這一格可以是旋鈕」見 `ChartStyle`。
+    var chartStyle: ChartStyle { preferences.chartStyle ?? .standard }
+
+    /// 累計曲線的點。⚠️ 與長條圖吃同一份 `weekSamples`，
+    /// 兩張圖不可以各自撈一次資料 —— 那會變成兩份可能不一致的真相。
+    var cumulativePoints: [DailyUsage.CumulativePoint]? {
+        guard let resetsAt = usage?.sevenDay?.resetsAt else { return nil }
+        return DailyUsage.cumulative(samples: weekSamples, resetsAt: resetsAt, now: lastRefresh)
+    }
+
+    /// 7 天窗口的起點與重置時刻。曲線要靠它們把時間映射到 x 軸。
+    var quotaWindow: (start: Date, reset: Date)? {
+        guard let reset = usage?.sevenDay?.resetsAt else { return nil }
+        return (reset.addingTimeInterval(-Double(DailyUsage.days) * 86400), reset)
+    }
+
     /// 每日長條圖的七根。⚠️ 判準全部在 `DailyUsage`（Core），這裡只餵資料。
     /// 沒有 7 天窗口的重置時間就畫不出來 —— 那不是「全部 0%」，是「沒有這張圖」。
     var dailyBars: [DailyUsageBar]? {
@@ -248,8 +264,7 @@ final class DataStore {
 
     func start() {
         // 偏好要**最早**讀 —— 音效的選擇在第一次通知之前就要生效。
-        if let saved = Preferences.load(preferencesFile) { preferences = saved }
-        applyPreferences()
+        loadPreferences()
         // 先把上一筆讀回來，重啟才不會又寫一次一模一樣的紀錄。
         lastRecorded = history.last(historyFile)
         // 靜音是使用者直接下的指令，時間跨度（「到明早」約 12 小時）遠長於
@@ -259,6 +274,8 @@ final class DataStore {
         }
         // ⚠️ 開機標記要在 `recordsHistory` 之前寫：它標的是「這裡是一次執行的起點」，
         // 而心跳的空隙**推不出**「重開了」還是「機器睡著了」—— 睡醒不會有 boot。
+        // ⚠️ 開機標記**不是觀測證據**（sawLiveReading 留 false）——
+        // 它只說「這裡是一次執行的起點」。
         watchLog.append(WatchLog.Mark(at: Date(), kind: .boot), to: watchLogFile)
         lastWatchMark = Date()
         recordsHistory = true
@@ -298,9 +315,23 @@ final class DataStore {
 
     // ── 偏好 ───────────────────────────────────────────────────
 
-    func setPreferences(_ p: Preferences) {
+    /// 把磁碟上的偏好讀進來。`start()` 會呼叫，`--render-panel` 也會 ——
+    ///
+    /// ⚠️ 〔實測 2026-09-22〕在此之前**離線渲染完全看不到偏好**：`RenderPanel.run`
+    /// 只呼叫 `refresh()`，而讀檔在 `start()` 裡。於是「改了偏好、渲染一張圖來看」
+    /// 這個驗證動作，量到的一直是預設值 —— 它會在偏好真的壞掉時照樣給綠燈。
+    /// 一個**只在真實 app 走的那條路上才讀設定**的診斷工具，等於沒有診斷。
+    func loadPreferences() {
+        if let saved = Preferences.load(preferencesFile) { preferences = saved }
+        applyPreferences()
+    }
+
+    /// - Parameter persist: false 只改記憶體，**不寫檔**。
+    ///   只有離線渲染（`--render-panel --chart …`）用得到 ——
+    ///   一個診斷指令不可以改掉使用者真正的設定檔。
+    func setPreferences(_ p: Preferences, persist: Bool = true) {
         preferences = p.sanitised()
-        Preferences.save(preferences, to: preferencesFile)
+        if persist { Preferences.save(preferences, to: preferencesFile) }
         applyPreferences()
     }
 
@@ -361,7 +392,11 @@ final class DataStore {
         // 心跳。⚠️ 與歷史同一個閘（`recordsHistory`）—— 診斷指令不可以留下心跳，
         // 否則「那時 app 醒著」會被一支跑了兩秒就結束的 CLI 汙染。
         if recordsHistory, WatchLog.shouldWrite(lastWatchMark: lastWatchMark, now: now) {
-            let mark = WatchLog.Mark(at: now, kind: .heartbeat)
+            // ⚠️ 記的是「**那一刻看得到帳號的變化嗎**」，不是「app 醒著嗎」。
+            // 只有讀數是 live 的時候，帳號層級的變化才會被我們及時看到。
+            // 理由與代價見 `WatchLog.Mark.sawLiveReading`。
+            let mark = WatchLog.Mark(at: now, kind: .heartbeat,
+                                     sawLiveReading: usage?.freshness == .live)
             if watchLog.append(mark, to: watchLogFile) {
                 lastWatchMark = now
                 watchMarks.append(mark)

@@ -69,6 +69,19 @@ enum RenderPanel {
 
     static func run(path: String) {
         let store = DataStore()
+        // popover 會照偏好畫，所以離線渲染也要照偏好畫 —— 否則這張圖不是
+        // 「它長什麼樣」，是「它在預設值下長什麼樣」。
+        store.loadPreferences()
+        // `--chart daily|cumulative` 只覆寫記憶體，不碰使用者的偏好檔。
+        if let i = CommandLine.arguments.firstIndex(of: "--chart"),
+           CommandLine.arguments.count > i + 1,
+           let style = ChartStyle(rawValue: CommandLine.arguments[i + 1]) {
+            var p = store.preferences
+            p.chartStyle = style
+            store.setPreferences(p, persist: false)
+        }
+        FileHandle.standardError.write(
+            Data("圖表樣式：\(store.chartStyle.label)（\(store.chartStyle.rawValue)）\n".utf8))
         store.refresh()
 
         // `--demo-finish` 塞一筆合成的完成標記，讓那一列的版面看得到。

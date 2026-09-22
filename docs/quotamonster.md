@@ -430,6 +430,32 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   Tests/QuotaMonsterAppTests/GlyphRendererTests.swift（`eachArcCarriesItsOwnColour`）、
   RenderStates 的 `21-arcs-differ` / `22-arcs-differ-flip`
 
+**44. 離線渲染必須走與真實 app 同一條設定路徑。**
+
+- **為什麼**：〔實測 2026-09-22〕`RenderPanel.run` 只呼叫 `store.refresh()`，
+  而讀偏好檔在 `store.start()` 裡 —— 於是 `--render-panel` **從來沒有反映過任何偏好**，
+  畫出來的一直是預設值。「改了設定、渲染一張圖看看」這個驗證動作因此是空的：
+  它在偏好整個壞掉的時候照樣給綠燈。
+- 這是規矩 28（診斷不可以說謊）的一個新面向：前面講的是「畫的東西要跟註解說的一樣」，
+  這裡講的是「**輸入**要跟真實情況一樣」。兩者都會讓診斷變成安慰劑。
+- **修法**：抽出 `DataStore.loadPreferences()`，`start()` 與 `RenderPanel.run` 都呼叫；
+  另給 `--chart daily|cumulative` 只覆寫記憶體（`setPreferences(_:persist: false)`）——
+  **診斷指令不可以改掉使用者真正的設定檔**。渲染時把實際採用的樣式寫到 stderr。
+
+**45. 單調性的前提壞掉時要**標出來**，不是夾成單調，也不是照畫。**
+
+- **為什麼**：7d 是這個窗口的累計值，同一個窗口內不可能變小。所以一個比先前最高值
+  還低的讀數，與那個最高值**其中之一是錯的，而我們不知道是哪一個**。
+  照畫 → 畫出一條定義上不可能的下降累計線；夾成單調 → 把壞資料悄悄改成好資料，
+  而且從此看不出來。兩種都是在說謊，方向不同而已。
+- ⚠️ 判準是「比**先前最高**低」不是「比前一點低」。〔實測 2026-09-22 本機歷史檔，
+  窗口內 66 筆〕09-20 15:25 是 19，09-21 19:30 掉到 0，接著 13、14…… 到 20:40 才回到 19 ——
+  中間那串每一個都與那個 19 衝突，只比前一點的話它們全部會被當成正常的上升。
+- ⚠️ 圖例寫「**淡色段**」不寫「虛線」：均速那條斜線本身就是虛線，寫「虛線＝讀數互相矛盾」
+  會直接指到它身上。第一版就是這樣寫的，渲染出來才看見畫面上同時有兩條虛線。
+- **證據**：DailyUsage.swift（`CumulativePoint.contradictsEarlier`、`cumulativeLegend`）、
+  CumulativeChart.swift:`segments`、DailyUsageTests.swift（`CumulativeTests` 後六則）
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**
