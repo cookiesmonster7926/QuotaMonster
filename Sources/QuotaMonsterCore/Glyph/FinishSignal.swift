@@ -51,7 +51,21 @@ public enum FinishGlow: Equatable, Sendable {
         // 選單列講的是「剛剛那件事」，不是「最近一件夠格的事」；
         // 反過來寫的話，一個剛跑完 10 秒的小事會讓半小時前那件大事重新亮起來。
         guard let latest = finishes.max(by: { $0.finishedAt < $1.finishedAt }) else { return .none }
-        // ⚠️ `ranFor == nil` 不亮。〔實測〕約六分之一的完成算不出秒數，
+        // ⚠️ `ranFor == nil` 不亮。〔實測 2026-09-21〕命中率 84.1%（111/132），
+        // 約六分之一的完成算不出秒數。
+        //
+        // ⚠️ 〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕**那一版今天是 7/7 全部算不出來**，
+        // 於是這 53 分鐘裡選單列**一次都沒亮**。兩個數字不衝突，它們量的是不同的東西：
+        // `ranFor` 要上溯到這一輪的第一則真人訊息，而〔實測〕只有 37.4% 的回合
+        // 塞得進 64KB 的尾端窗口（中位要往回搆 114,059 bytes）。
+        // 回合越長越搆不到，而這幾個 session 的回合都很長。
+        //
+        // ⚠️ **所以「這個訊號該不該出聲」目前無法回答** —— 它幾乎不會亮。
+        // 卡住的不是這裡的 600 秒門檻，是上游算不出 `ranFor`。
+        // 修法已經有機器了：`TranscriptCursor` 是**往前**掃的，
+        // 掃過去的時候順手記下最後一則真人訊息的位置，回合起點就不用往回搆。
+        // 〔推論，尚未實作〕
+        //
         // 而亮起來那一下是在主張「這一輪跑很久」—— 沒有證據就不要主張。
         guard let ranFor = latest.ranFor, ranFor >= minimumRun else { return .none }
         return at(finishedAt: latest.finishedAt, now: now)

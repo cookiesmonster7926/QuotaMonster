@@ -109,7 +109,26 @@ enum TraceFinishes {
             finishes = FinishCaption.prune(finishes, wrote: out.wrote, now: now)
 
             let glow = FinishGlow.menuBar(Array(finishes.values), now: now)
-            let glowLine = "選單列 \(glow) · 手上有 \(finishes.count) 個標記"
+            // ⚠️ **不亮有三個不同的原因，而它們長得一模一樣。**
+            // 〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕產生了 8 個標記，
+            // 選單列**一次都沒亮**。光看「選單列 none」分不出是哪一種：
+            //   (a) 沒有標記   (b) 最新那個 `ranFor == nil`（算不出跑多久）
+            //   (c) 最新那個跑得不夠久（< minimumInterestingRun 600 秒）
+            // 「訊號該不該出聲」這個問題**必須先分得出 (b) 與 (c)** ——
+            // (b) 是量測缺口，(c) 是門檻訂得對不對。所以這裡把最新那個的
+            // `ranFor` 一起印出來，不要讓下一個人再猜一次。
+            let newest = finishes.values.max(by: { $0.finishedAt < $1.finishedAt })
+            let why: String
+            if finishes.isEmpty {
+                why = "沒有標記"
+            } else if let r = newest?.ranFor {
+                why = Int(r) >= Int(FinishGlow.minimumInterestingRun)
+                    ? "最新的跑了 \(Int(r))s（夠久）"
+                    : "最新的只跑了 \(Int(r))s < \(Int(FinishGlow.minimumInterestingRun))s"
+            } else {
+                why = "最新的算不出跑多久（ranFor = nil）"
+            }
+            let glowLine = "選單列 \(glow) · 手上有 \(finishes.count) 個標記 · \(why)"
             if lastLine["__glow"] != glowLine {
                 say("[\(stamp())] ◆ \(glowLine)")
                 lastLine["__glow"] = glowLine
