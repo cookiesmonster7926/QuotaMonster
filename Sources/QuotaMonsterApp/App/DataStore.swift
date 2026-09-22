@@ -89,6 +89,51 @@ final class DataStore {
     /// 而下面建 agent 樹的 `locate()` 每個 session 每 3 秒已經列舉過一次了 ——
     /// 不快取就是把那個成本再翻一倍。
     private var transcriptPaths: [String: URL] = [:]
+
+    /// 這一列該顯示的名字。
+    ///
+    /// 註冊表的 `name` 在 `nameSource == "derived"` 時是 Claude Code 從 cwd 湊的
+    /// 佔位名（`rl-1b`、`usage-ff`）——**使用者從來沒有看過它**。
+    /// 他真正看到的（VS Code 分頁上的 `0922作業`、終端機的 `修t2`）在 transcript 裡。
+    /// 判準全部在 `SessionTitle`（Core，13 則測試）；這裡只負責 I/O 與節流。
+    func displayName(for session: ClaudeSession) -> String {
+        let fallback = session.name ?? String(session.sessionId.prefix(8))
+        guard SessionTitle.isPlaceholder(session.nameSource) else { return fallback }
+        return SessionTitle.display(name: session.name, nameSource: session.nameSource,
+                                    transcriptTitle: { cachedTitle(for: session.sessionId) })
+            ?? fallback
+    }
+
+    private func cachedTitle(for sessionId: String) -> String? {
+        let now = Date()
+        if let hit = titles[sessionId],
+           now.timeIntervalSince(hit.at) < SessionTitle.refreshInterval {
+            return hit.title
+        }
+        // 優先用 transcriptPaths 這個既有的快取 —— resolver.transcript 會列舉
+        // 整個 projects 目錄，重算一次等於把那個成本再翻一倍。
+        //
+        // ⚠️ **但不可以只靠它。** 它是在 `if detectsCompletions` 裡面被填的，
+        // 而那個旗標只有真的 `start()` 之後才是 true ——`--render-panel` 這條路
+        // 不會走到，於是診斷會畫出一張名字與真實面板**不一樣**的圖（規矩 28）。
+        // 快取沒有就自己解析一次，結果（含 nil）快取 60 秒，不會反覆列舉。
+        let url = transcriptPaths[sessionId] ?? {
+            let u = resolver.transcript(
+                sessionId: sessionId,
+                projectsRoot: home.appendingPathComponent(".claude/projects"))
+            if let u { transcriptPaths[sessionId] = u }
+            return u
+        }()
+        let title = url.flatMap { SessionTitle.aiTitle(inTranscript: $0) }
+        titles[sessionId] = (title, now)
+        return title
+    }
+
+    /// sessionId → （顯示名, 什麼時候撈的）。
+    ///
+    /// ⚠️ 只有 `nameSource == "derived"` 的 session 會進來（見 `SessionTitle`），
+    /// 而且每 `SessionTitle.refreshInterval` 秒才重撈一次。
+    private var titles: [String: (title: String?, at: Date)] = [:]
     private var timer: Timer?
     private var lastPrune = Date.distantPast
     /// 歷史檔自己的清理節奏，與 statusline 快取分開。理由見 `UsageHistory.pruneInterval`。
@@ -280,6 +325,7 @@ final class DataStore {
             }
             let alive = Set(sessions.map(\.session.sessionId))
             transcriptPaths = transcriptPaths.filter { alive.contains($0.key) }
+            titles = titles.filter { alive.contains($0.key) }
 
             let out = completionTracker.update(CompletionInput(transcripts: transcripts), now: now)
             for f in out.finishes { finishes[f.sessionId] = f }

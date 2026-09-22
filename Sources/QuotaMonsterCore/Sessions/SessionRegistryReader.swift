@@ -53,6 +53,7 @@ public struct SessionRegistryReader: Sendable {
             startedAt: Date(timeIntervalSince1970: startedAtMs / 1000),
             status: status,
             name: d["name"] as? String,
+            nameSource: d["nameSource"] as? String,
             version: d["version"] as? String,
             kind: d["kind"] as? String,
             entrypoint: d["entrypoint"] as? String,

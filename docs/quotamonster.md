@@ -278,6 +278,39 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   所以這不是理論風險。`${V}` 版本正常。
 - **怎麼檢查**：非註解行 grep `\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7f{]`。
 
+**35. 註冊表的 `name` 只有在 `nameSource != "derived"` 時才是使用者看過的名字。
+`derived` 是 Claude Code 從 cwd 湊的佔位名，顯示它等於顯示一個使用者不認得的字串。**
+
+- **實測 2026-09-22**（四個同時存在的 session）：
+
+  | session | registry `name` | `nameSource` | transcript 的 `aiTitle` |
+  |---|---|---|---|
+  | a28a5af5 | `usage-ff` | derived | `修t2` |
+  | eb209917 | `rl-b5` | derived | `Q-learning 環境 setup` |
+  | d8258fe6 | `Q-learning 環境 setup` | **auto** | 同左 |
+  | 2d765b86（VS Code 外掛）| `rl-1b` | derived | `0922作業` |
+
+- **怎麼撈**：transcript 裡的 `{"type":"ai-title","aiTitle":"…"}`，取尾端**最後**一筆。
+  尾端大小沿用 `WaitingContextReader.tailBytes`（64KB）—— 不發明新門檻。
+  〔實測〕最後一筆離檔尾 176 / 2,529 / 15,666 bytes（n=3），餘裕充足。
+- ⚠️ **只在 `derived` 時才去讀。** `auto` 代表那個名字有來歷，蓋掉它是把已知的事實
+  換成猜測；`nameSource` 是 nil（未知）時同理。讀 transcript 是 I/O，
+  有測試**數呼叫次數**釘住「用不到就一次都不准發生」。
+- ⚠️ 每 60 秒才重撈一次（`SessionTitle.refreshInterval`）。面板每 3 秒刷新，
+  而標題幾乎不動 —— 每次都讀 64KB 是為了一個不變的字串每秒讀幾十 KB。
+- ⚠️ **這不是 VS Code 專屬的修補。** 起點是「外掛的 session 顯示成 rl-1b」，
+  但四個 session 有三個是 `derived`，終端機的也一樣。
+
+**36. VS Code 外掛的 session 不會產生 statusline payload，所以它對額度數字沒有任何貢獻。**
+
+- 〔實測 2026-09-22〕session `2d765b86` 已經活了 2 小時、正在工作，
+  tee 快取裡**一個 payload 都沒有**；同時間終端機的 session 每次渲染都有。
+  外掛有自己的一套 UI（模型選擇器、計時器），不呼叫 `statusLine` 命令。
+- **後果**：`context_window.used_percentage` 只存在於 payload 裡，磁碟上沒有第二處 ——
+  所以外掛的 session 永遠沒有 ctx 壓力細條。而配合規矩 33
+  （`~/.claude.json` 已經不再更新），**只用外掛的使用者完全拿不到額度數字**。
+- ⚠️ 這一條**修不了**（我們無法讓外掛去跑 statusline），只能寫在文件裡。
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**

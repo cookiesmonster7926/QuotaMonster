@@ -36,6 +36,10 @@ public struct ClaudeSession: Equatable, Sendable {
     public let status: SessionStatus
 
     public let name: String?
+    /// 這個 `name` 是哪來的。`"derived"` 代表 Claude Code 從 cwd 湊的佔位名
+    /// （`rl-1b`、`usage-ff`），**使用者從來沒有看過它**；`"auto"` 代表有來歷。
+    /// 判準與後果見 `SessionTitle`。
+    public let nameSource: String?
     public let version: String?
     public let kind: String?
     public let entrypoint: String?
@@ -43,7 +47,8 @@ public struct ClaudeSession: Equatable, Sendable {
     public let statusUpdatedAt: Date?
 
     public init(pid: Int32, sessionId: String, cwd: String, startedAt: Date,
-                status: SessionStatus, name: String? = nil, version: String? = nil,
+                status: SessionStatus, name: String? = nil, nameSource: String? = nil,
+                version: String? = nil,
                 kind: String? = nil, entrypoint: String? = nil,
                 updatedAt: Date? = nil, statusUpdatedAt: Date? = nil) {
         self.pid = pid
@@ -52,6 +57,7 @@ public struct ClaudeSession: Equatable, Sendable {
         self.startedAt = startedAt
         self.status = status
         self.name = name
+        self.nameSource = nameSource
         self.version = version
         self.kind = kind
         self.entrypoint = entrypoint

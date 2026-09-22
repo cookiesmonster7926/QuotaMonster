@@ -152,11 +152,24 @@ enum Dump {
         let summary = SessionSummary(live)
         print("Session  註冊表 \(raw.count) 筆 → 存活 \(summary.total) 筆"
               + "（\(raw.count - summary.total) 筆是殭屍，已被 pid+啟動時間比對濾掉）")
+        let projectsForTitles = home.appendingPathComponent(".claude/projects")
+        let resolverForTitles = SessionDirectoryResolver()
         print("         \(summary.blocked) 個在等你 · \(summary.working) 個工作中 · \(summary.idle) 個閒置")
+        // ⚠️ 與面板同一套判準（`SessionTitle`）。診斷若顯示 `rl-1b` 而面板顯示
+        // `0922作業`，使用者會以為兩邊看的不是同一個 session —— 規矩 28。
+        func shownName(_ session: ClaudeSession) -> String {
+            let fallback = session.name ?? String(session.sessionId.prefix(8))
+            guard SessionTitle.isPlaceholder(session.nameSource) else { return fallback }
+            let title = resolverForTitles.transcript(sessionId: session.sessionId,
+                                                     projectsRoot: projectsForTitles)
+                .flatMap { SessionTitle.aiTitle(inTranscript: $0) }
+            return title ?? fallback
+        }
+
         for s in live {
             let mark = s.needsHuman ? "⏸" : (s.isWorking ? "▶" : "·")
             let reason = s.waitingFor.map { "  ← \($0.rawValue)" } ?? ""
-            let name = s.session.name ?? s.session.sessionId.prefix(8).description
+            let name = shownName(s.session)
             print("  \(mark) \(name.padded(14)) \(s.project.padded(22)) "
                   + "pid \(s.session.pid)\(reason)")
         }
@@ -168,13 +181,13 @@ enum Dump {
         for s in live {
             guard let paths = resolver.locate(sessionId: s.session.sessionId,
                                               projectsRoot: projects) else {
-                print("Agent  \(s.session.name ?? "?")：找不到 session 目錄")
+                print("Agent  \(shownName(s.session))：找不到 session 目錄")
                 continue
             }
             let tree = builder.build(paths: paths,
                                      sessionId: s.session.sessionId,
                                      sessionStartedAt: s.session.startedAt)
-            let name = s.session.name ?? String(s.session.sessionId.prefix(8))
+            let name = shownName(s.session)
             print("Agent  \(name) · \(s.project)  →  \(tree.runningAgentCount) 隻確定在跑")
             for a in tree.agents {
                 print("         ├ \(a.meta.agentType)  \(a.meta.description.prefix(40))"

@@ -182,7 +182,7 @@ bash scripts/test_statusline_tee.sh         # shell 層：狀態列一個 byte �
 bash scripts/test_install_statusline_tee.sh
 ```
 
-**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 34 條不可違反的規矩、
+**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 36 條不可違反的規矩、
 16 條寫下來的拒絕、27 處「曾經這樣想、後來被資料推翻」，每一條都附證據。
 
 > ⚠️ **`docs/build-log.md` 是施工紀錄，不是現況。** 它裡面有**已知是錯的敘述**

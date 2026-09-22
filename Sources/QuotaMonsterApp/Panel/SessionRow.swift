@@ -7,6 +7,9 @@ import QuotaMonsterCore
 /// 7 隻 agent 的扇出只吃 3 行而不是 7 行。
 struct SessionRow: View {
     let session: LiveSession
+    /// 這一列要顯示的名字。由 `DataStore.displayName(for:)` 算好傳進來 ——
+    /// 它要讀 transcript，不可以在 body 裡做。
+    let title: String
     let tree: AgentTree?
     /// 這個 session 最後一次的 statusLine payload。只有裝了 tee 才會有。
     let context: StatusLinePayload?
@@ -85,7 +88,10 @@ struct SessionRow: View {
                 }
             }
             .frame(width: 10, height: 10)
-            Text(session.session.name ?? String(session.session.sessionId.prefix(8)))
+            // ⚠️ 不可以直接用 `session.session.name` —— 那在 nameSource 是 "derived"
+            // 時是 Claude Code 從 cwd 湊的佔位名（`rl-1b`），使用者從來沒有看過它。
+            // 由 `DataStore.displayName(for:)` 解析（判準在 Core 的 `SessionTitle`）。
+            Text(title)
                 .font(.system(size: 12, weight: .medium))
                 .lineLimit(1).truncationMode(.tail).layoutPriority(2)
             Text(session.project)

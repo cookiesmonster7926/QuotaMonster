@@ -304,7 +304,7 @@ struct PanelView: View {
                             .fill(Color.orange).frame(width: 3)
                         VStack(alignment: .leading, spacing: 2) {
                             HStack(spacing: 6) {
-                                Text(s.session.name ?? String(s.session.sessionId.prefix(8)))
+                                Text(store.displayName(for: s.session))
                                     .font(.system(size: 12, weight: .semibold))
                                 Text(s.project).font(.system(size: 10, design: .monospaced))
                                     .foregroundStyle(.secondary)
@@ -414,6 +414,7 @@ struct PanelView: View {
                 VStack(spacing: 8) {
                     ForEach(listedSessions, id: \.session.sessionId) { s in
                         SessionRow(session: s,
+                                   title: store.displayName(for: s.session),
                                    tree: store.trees[s.session.sessionId],
                                    context: store.statusLine[s.session.sessionId],
                                    finish: store.finishes[s.session.sessionId],

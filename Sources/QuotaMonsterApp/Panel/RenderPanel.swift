@@ -134,6 +134,7 @@ enum RenderPanel {
         let rowsOnly = VStack(spacing: 8) {
             ForEach(store.sessions, id: \.session.sessionId) { s in
                 SessionRow(session: s,
+                                   title: store.displayName(for: s.session),
                            tree: store.trees[s.session.sessionId],
                            context: store.statusLine[s.session.sessionId],
                            finish: store.finishes[s.session.sessionId],
