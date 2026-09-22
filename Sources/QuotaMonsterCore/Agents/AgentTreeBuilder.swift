@@ -20,13 +20,18 @@ public struct AgentTreeBuilder: Sendable {
 
     public init() {}
 
+    /// - Parameter now: ⚠️ **刻意不給預設值。** 一般 Agent subagent 的執行狀態是
+    ///   從 transcript 的 mtime 推定的（見 `AgentActivity`），所以「現在幾點」
+    ///   是這個函式的輸入之一。給預設值會讓呼叫端不知道自己在依賴一個時鐘 ——
+    ///   同一條理由見 `Presence`。
     public func build(paths: SessionPaths, sessionId: String,
-                      sessionStartedAt: Date) -> AgentTree {
+                      sessionStartedAt: Date, now: Date) -> AgentTree {
         let toolUseIds = Self.toolUseIds(inTranscript: paths.transcript)
         let plain = plainAgents(in: paths.subagents, since: sessionStartedAt)
         return AgentTree(
             sessionId: sessionId,
-            agents: forest(from: plain, transcriptToolUseIds: toolUseIds),
+            agents: forest(from: plain, in: paths.subagents,
+                           transcriptToolUseIds: toolUseIds, now: now),
             workflows: workflowGroups(in: paths.subagents, runs: paths.workflowRuns,
                                       since: sessionStartedAt)
         )
@@ -46,8 +51,8 @@ public struct AgentTreeBuilder: Sendable {
     }
 
     /// 依 `parentAgentId` 組成森林。沒有 parent 的就是根。
-    private func forest(from metas: [AgentMeta],
-                        transcriptToolUseIds: Set<String>) -> [AgentNode] {
+    private func forest(from metas: [AgentMeta], in subagents: URL,
+                        transcriptToolUseIds: Set<String>, now: Date) -> [AgentNode] {
         var childrenOf: [String: [AgentMeta]] = [:]
         var roots: [AgentMeta] = []
         let known = Set(metas.map(\.agentId))
@@ -65,7 +70,11 @@ public struct AgentTreeBuilder: Sendable {
         func node(_ m: AgentMeta) -> AgentNode {
             AgentNode(
                 meta: m,
-                runState: .unknown,   // 一般 agent 沒有 journal，見 AgentRunState.unknown
+                // 一般 Agent subagent 磁碟上沒有任何狀態欄位，所以這裡是**推定**的：
+                // transcript 最近還在被寫就當作還在跑。判準與實測誤差見 `AgentActivity`。
+                // 推不出來時維持 `.unknown` —— **不推定「已完成」**，那需要證據。
+                runState: Self.isLikelyRunning(agentId: m.agentId, in: subagents, now: now)
+                    ? .likelyRunning : .unknown,
                 children: (childrenOf[m.agentId] ?? []).sorted { $0.agentId < $1.agentId }.map(node),
                 isLinkedToTranscript: m.toolUseId.map(transcriptToolUseIds.contains) ?? false
             )
@@ -117,6 +126,14 @@ public struct AgentTreeBuilder: Sendable {
 
     /// `subagents/` 是 **append-only 的歷史**，跨 `--resume` 累積。
     /// 少了這一閘，四天前就死掉的 agent 會被當成正在跑。
+    /// transcript 最近還在動嗎。與 `isFresh` 讀同一個檔案的同一個欄位，
+    /// 但問的是**不同的問題**：`isFresh` 問「是不是這一輪的」，這個問「現在還在不在跑」。
+    static func isLikelyRunning(agentId: String, in directory: URL, now: Date) -> Bool {
+        let jsonl = directory.appendingPathComponent("agent-\(agentId).jsonl")
+        let mtime = (try? FileManager.default.attributesOfItem(atPath: jsonl.path))?[.modificationDate]
+        return AgentActivity.isLikelyRunning(lastWrite: mtime as? Date, now: now)
+    }
+
     static func isFresh(agentId: String, in directory: URL, since start: Date) -> Bool {
         let jsonl = directory.appendingPathComponent("agent-\(agentId).jsonl")
         guard let attrs = try? FileManager.default.attributesOfItem(atPath: jsonl.path),

@@ -128,13 +128,11 @@ enum GlyphRenderer {
         let r = GlyphGeometry.outerArc.centreline
         let w = GlyphGeometry.outerArc.stroke
 
-        // 暗軌在每個狀態都畫 —— 沒有 agent 時墨水盒才不會縮水。
-        let track = arcPath(radius: r, arc: rail)
-        track.lineWidth = w
-        track.lineCapStyle = .round
-        ink.withAlphaComponent(ink.isLight ? 0.48 : 0.32).setStroke()
-        track.stroke()
-
+        // ⚠️ **不畫暗軌。** 這裡原本每個狀態都畫一條 alpha 0.48／0.32 的軌，
+        // 理由寫「沒有 agent 時墨水盒才不會縮水」。
+        // 〔實測 2026-09-22，2x〕那條軌本身就讀成一條線，而點點與它的對比太弱 ——
+        // 1～3 隻看起來像「一條線上有幾塊比較亮」，0 隻則是一條沒有意義的灰線。
+        // 使用者回報的就是這件事。現在只畫點／橫槓，底部平常是空的。
         ink.setFill()
         switch GlyphGeometry.agentUnits(count: state.runningAgents) {
         case .none:

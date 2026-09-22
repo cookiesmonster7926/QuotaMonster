@@ -266,6 +266,9 @@ struct SessionRow: View {
     private func colour(_ s: AgentRunState) -> Color {
         switch s {
         case .running: return .accentColor
+        // ⚠️ 降調是**載重的**：這顆點是推定的，不可以畫得跟 journal 讀到的一樣篤定。
+        // 判準與誤差見 `AgentActivity`（實測 0.45% 的時刻會誤判）。
+        case .likelyRunning: return .accentColor.opacity(0.45)
         case .finished: return .green.opacity(0.7)
         case .unknown: return .secondary.opacity(0.45)   // 誠實標示，不假裝知道
         }

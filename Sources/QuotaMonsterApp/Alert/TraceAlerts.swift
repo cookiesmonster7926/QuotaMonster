@@ -60,7 +60,7 @@ enum TraceAlerts {
                                                   projectsRoot: projects) else { continue }
                 trees[s.session.sessionId] = builder.build(
                     paths: paths, sessionId: s.session.sessionId,
-                    sessionStartedAt: s.session.startedAt)
+                    sessionStartedAt: s.session.startedAt, now: now)
             }
 
             // 狀態有變就印，這樣看得出「有沒有真的進入 waiting」。

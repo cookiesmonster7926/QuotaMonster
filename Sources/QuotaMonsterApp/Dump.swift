@@ -186,9 +186,13 @@ enum Dump {
             }
             let tree = builder.build(paths: paths,
                                      sessionId: s.session.sessionId,
-                                     sessionStartedAt: s.session.startedAt)
+                                     sessionStartedAt: s.session.startedAt, now: now)
             let name = shownName(s.session)
-            print("Agent  \(name) · \(s.project)  →  \(tree.runningAgentCount) 隻確定在跑")
+            // ⚠️ 這一行原本寫「N 隻確定在跑」。一般 Agent subagent 改用代理量測之後
+            // 那個「確定」就是謊 —— 說得出幾隻是推的，才有資格說總數。
+            let likely = tree.likelyRunningAgentCount
+            let suffix = likely > 0 ? "（其中 \(likely) 隻是由 transcript 活動推定的）" : ""
+            print("Agent  \(name) · \(s.project)  →  \(tree.runningAgentCount) 隻在跑\(suffix)")
             for a in tree.agents {
                 print("         ├ \(a.meta.agentType)  \(a.meta.description.prefix(40))"
                       + "  [\(describe(a.runState))]"
@@ -212,6 +216,8 @@ enum Dump {
     static func describe(_ r: AgentRunState) -> String {
         switch r {
         case .running: return "執行中"
+        // ⚠️ 括號是刻意的：它是推定的，不是讀到的（見 `AgentActivity`）。
+        case .likelyRunning: return "（推定在跑）"
         case .finished: return "已收尾"
         case .unknown: return "未知"
         }

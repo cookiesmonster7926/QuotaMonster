@@ -117,4 +117,73 @@ struct GlyphRendererTests {
         }
         #expect(found == 0, "沒有完成訊號卻畫出了 \(found) 個丁香紫像素")
     }
+
+    // ── agent 軌：點就是點，不是一條線 ─────────────────────────
+    //
+    // ⚠️ 這一段以前**完全沒有測試**。原本每個狀態都會畫一條 alpha 0.48／0.32
+    // 的暗軌，理由寫「沒有 agent 時墨水盒才不會縮水」。
+    // 〔實測 2026-09-22，使用者回報 + 2x 渲染對照〕那條軌本身就讀成一條線，
+    // 而點與它的對比太弱：1～3 隻看起來像「一條線上有幾塊比較亮」，
+    // 0 隻則是一條沒有意義的灰線。現在不畫暗軌。
+    //
+    // 墨水盒確實會縮（〔實測 2x〕idle 從 32px 高變成 27px），但 NSImage 是固定
+    // 22×22、狀態列置中的是**圖**不是墨水，所以位置不會跑。
+
+    func agents(_ n: Int) -> GlyphState {
+        GlyphState(fiveHourRemaining: 0.72, sevenDayRemaining: 0.82,
+                   runningAgents: n, blockedSessions: 0,
+                   exhausted: false, freshness: .live)
+    }
+
+    /// agent 軌那一帶（生物下方）有多少不透明的像素。
+    func railInk(_ s: GlyphState) -> Int {
+        let rep = bitmap(s)
+        let px = Int(GlyphGeometry.canvas) * Self.scale
+        // ⚠️ 取樣框要**只框住 agent 軌**。第一版用「圖的下半部」，結果把兩條弧
+        // 的下緣也算進去了（0 隻時就量到 583 個像素）。
+        //
+        // 軌的幾何：半徑 7.25、−67.65° 到 −112.35°、筆寬 1.50。換算（AppKit，
+        // 圓心 11,11、y 向上）：x ∈ [8.24, 13.76]、y ∈ [3.75, 4.30]，各加半個筆寬。
+        // 兩條弧在這一帶是**缺口**（−40° 到 −140° 不畫），它們的端點在
+        // 外弧 (16.55, 6.34)、內弧 (14.18, 8.33) —— 都在框外。
+        let lo = { (v: CGFloat) in Int(v * CGFloat(Self.scale)) }
+        let xs = lo(7.0)..<lo(15.0)
+        // 螢幕座標 y 向下：y_screen = 22 − y_appkit
+        let ys = lo(GlyphGeometry.canvas - 5.5)..<lo(GlyphGeometry.canvas - 2.5)
+        var n = 0
+        for y in ys where y < px {
+            for x in xs where x < px && (rep.colorAt(x: x, y: y)?.alphaComponent ?? 0) > 0.05 {
+                n += 1
+            }
+        }
+        return n
+    }
+
+    @Test("0 隻 agent 時，底部一個像素都不畫")
+    func noAgentsMeansNoRail() {
+        #expect(railInk(agents(0)) == 0,
+                "那條暗軌沒有任何意義，而它讀起來就是一條線")
+    }
+
+    @Test("1 隻就有東西，而且比 0 隻多")
+    func oneAgentDraws() {
+        #expect(railInk(agents(1)) > 0)
+    }
+
+    @Test("點數越多墨水越多 —— 1 < 2 < 3")
+    func moreAgentsMeansMoreInk() {
+        let a = railInk(agents(1)), b = railInk(agents(2)), c = railInk(agents(3))
+        #expect(a < b)
+        #expect(b < c)
+    }
+
+    @Test("4 隻以上合併成滿軌，墨水比 3 個點多")
+    func mergedBarIsHeavierThanThreeDots() {
+        #expect(railInk(agents(5)) > railInk(agents(3)))
+    }
+
+    @Test("5 隻與 15 隻畫出來一樣 —— 那是算術限制，不是品味（既有行為，不可退步）")
+    func mergedIsSaturated() {
+        #expect(railInk(agents(5)) == railInk(agents(15)))
+    }
 }

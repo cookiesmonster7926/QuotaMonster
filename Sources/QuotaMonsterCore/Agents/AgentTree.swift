@@ -2,7 +2,14 @@ import Foundation
 
 /// 一隻 agent 的執行狀態。
 public enum AgentRunState: Equatable, Sendable {
+    /// **讀到的** —— workflow 的 journal 說它 started 而且還沒 result／failed。
     case running
+    /// **推定的** —— 一般 Agent subagent 沒有任何狀態欄位可讀，
+    /// 這是從 transcript 最近有沒有被寫入推出來的。判準與誤差見 `AgentActivity`。
+    ///
+    /// ⚠️ 刻意**不與 `.running` 合併**：那一個是量到的，這一個是推出來的，
+    /// 合併就是把推論寫成量測。畫面上也要分得出來。
+    case likelyRunning
     /// 收尾了 —— 成功或失敗都算。
     case finished
     /// **不知道。** 一般 Agent subagent 沒有 journal，完成與否要從母 transcript 的
@@ -83,14 +90,29 @@ public struct AgentTree: Equatable, Sendable {
     /// workflow 扇出，依目錄分組。
     public let workflows: [WorkflowGroup]
 
-    /// 只計入**確定**在跑的。unknown 不計入 —— 寧可少報，不要謊報。
+    /// 在跑的總數 —— **量到的加上推定的**。
+    ///
+    /// ⚠️ 這裡原本寫「只計入**確定**在跑的。unknown 不計入 —— 寧可少報，不要謊報」。
+    /// 2026-09-22 使用者拍板改成「代理量測 + 誤差已知」：一般 Agent subagent
+    /// 磁碟上沒有任何狀態欄位，堅持只算確定的，等於它們永遠顯示成 0
+    /// （實測：一隻正在跑的 agent，面板的 AGENTS 仍然是 0）。
+    ///
+    /// 條件是**分得出來**：推定的那些走 `.likelyRunning`，
+    /// 而 `likelyRunningAgentCount` 說得出其中幾隻是推的。判準見 `AgentActivity`。
+    /// `unknown` 仍然不計入。
     public var runningAgentCount: Int {
         workflows.reduce(0) { $0 + $1.runningCount }
-            + agents.reduce(0) { $0 + Self.countRunning($1) }
+            + agents.reduce(0) { $0 + Self.count($1) { $0 == .running || $0 == .likelyRunning } }
     }
 
-    static func countRunning(_ n: AgentNode) -> Int {
-        (n.runState == .running ? 1 : 0) + n.children.reduce(0) { $0 + countRunning($1) }
+    /// 上面那個數字裡，有幾隻是**推定**的（沒有讀到任何狀態，只看到 transcript 在動）。
+    /// 畫面要據此降調，不可以把它畫得跟 journal 讀到的一樣篤定。
+    public var likelyRunningAgentCount: Int {
+        agents.reduce(0) { $0 + Self.count($1) { $0 == .likelyRunning } }
+    }
+
+    static func count(_ n: AgentNode, where match: (AgentRunState) -> Bool) -> Int {
+        (match(n.runState) ? 1 : 0) + n.children.reduce(0) { $0 + count($1, where: match) }
     }
 
     public init(sessionId: String, agents: [AgentNode], workflows: [WorkflowGroup]) {

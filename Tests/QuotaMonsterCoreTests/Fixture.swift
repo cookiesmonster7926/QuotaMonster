@@ -24,6 +24,11 @@ enum Fixture {
     /// 名字對應 `agent-<id>.jsonl`。
     static let staleAgentIds = ["stale"]
 
+    /// 這些 agent 還在存活窗內（比 `sessionStart` 新），但已經 300 秒沒寫字 ——
+    /// 超過 `AgentActivity.window`（120s），所以應該是 `.unknown` 而不是
+    /// `.likelyRunning`。沒有這一類，就沒有東西釘得住那個窗口。
+    static let quietAgentIds = ["minimal"]
+
     /// agent 樹 fixture 的根，等同 ~/.claude/projects/
     ///
     /// ### ⚠️ 複製到暫存目錄並**自己蓋 mtime**，不直接用 bundle 裡那一份
@@ -55,9 +60,14 @@ enum Fixture {
         for case let f as URL in walker where f.lastPathComponent.hasSuffix(".jsonl")
             && f.lastPathComponent.hasPrefix("agent-") {
             let id = String(f.lastPathComponent.dropFirst(6).dropLast(6))
-            let stamp = staleAgentIds.contains(id)
-                ? sessionStart.addingTimeInterval(-4 * 86400)   // 四天前那一輪留下的
-                : now                                          // 這一輪的
+            let stamp: Date
+            if staleAgentIds.contains(id) {
+                stamp = sessionStart.addingTimeInterval(-4 * 86400)   // 四天前那一輪留下的
+            } else if quietAgentIds.contains(id) {
+                stamp = now.addingTimeInterval(-300)                  // 這一輪的，但安靜很久了
+            } else {
+                stamp = now                                          // 剛剛還在寫
+            }
             try? fm.setAttributes([.modificationDate: stamp], ofItemAtPath: f.path)
         }
         return dir

@@ -303,7 +303,7 @@ final class DataStore {
                                               projectsRoot: projects) else { continue }
             built[s.session.sessionId] = treeBuilder.build(
                 paths: paths, sessionId: s.session.sessionId,
-                sessionStartedAt: s.session.startedAt)
+                sessionStartedAt: s.session.startedAt, now: now)
         }
         trees = built
 

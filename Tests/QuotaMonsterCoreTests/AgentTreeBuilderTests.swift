@@ -21,7 +21,7 @@ struct AgentTreeBuilderTests {
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
-                                        sessionStartedAt: Fixture.sessionStart)
+                                        sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 
     // ── 連結法一：一般 agent ────────────────────────────────────
@@ -85,13 +85,36 @@ struct AgentTreeBuilderTests {
 
     @Test("失敗的 agent 不算執行中")
     func failedAgentIsNotRunning() throws {
-        #expect(try tree().runningAgentCount == 1)
+        // ⚠️ 2026-09-22 這個數字從 1 變成 2，而那是**刻意**的：
+        // 一般 Agent subagent 的執行狀態改成由 transcript 活動推定（`AgentActivity`），
+        // 所以 fixture 裡剛寫過字的 `plain1` 也算進去了。
+        // 這一則守的是「**失敗的**不算」，那一點沒有變 —— 下面把它分開釘。
+        let t = try tree()
+        // 3 = workflow journal 讀到的 1 隻 + 推定的 2 隻（plain1 與它的子 plain2，
+        // 兩個的 transcript 都被 Fixture 蓋成「剛剛才寫」）。
+        #expect(t.runningAgentCount == 3)
+        #expect(t.likelyRunningAgentCount == 2, "其中兩隻是推定的，說得出來才有資格算進去")
+        #expect(t.workflows.reduce(0) { $0 + $1.runningCount } == 1, "workflow 那邊仍然只有 1 隻")
     }
 
-    @Test("一般 agent 的完成狀態目前是 unknown —— 誠實標示，不假裝知道")
-    func plainAgentRunStateIsHonestlyUnknown() throws {
-        let plain1 = try #require(try tree().agents.first { $0.meta.agentId == "plain1" })
-        #expect(plain1.runState == .unknown)
+    @Test("一般 agent：transcript 還在動就推定在跑，安靜太久就回到 unknown")
+    func plainAgentRunStateComesFromActivity() throws {
+        let t = try tree()
+        // `plain1` 的 transcript 被 Fixture 蓋成「剛剛才寫」→ 推定在跑。
+        let plain1 = try #require(t.agents.first { $0.meta.agentId == "plain1" })
+        #expect(plain1.runState == .likelyRunning)
+        // `minimal` 被蓋成 300 秒前（> AgentActivity.window 的 120 秒）→ 推不出來。
+        let quiet = try #require(t.agents.first { $0.meta.agentId == "minimal" })
+        #expect(quiet.runState == .unknown)
+    }
+
+    @Test("⚠️ 一般 agent **永遠**不可以被標成 finished —— 那需要證據，而磁碟上沒有")
+    func plainAgentIsNeverClaimedFinished() throws {
+        let all = try tree().agents.flatMap { [$0] + $0.children }
+        #expect(all.allSatisfy { $0.runState != .finished },
+                "推不出來要留在 unknown，不是猜一個「做完了」")
+        #expect(all.allSatisfy { $0.runState != .running },
+                "`.running` 是 journal 讀到的那一種，一般 agent 沒有 journal")
     }
 
     @Test("不得單用 mtime 門檻判死活 —— 實測有 agent 失敗後僅 153 秒就被觀察到")
@@ -129,7 +152,7 @@ struct AbortedWorkflowTests {
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
-                                        sessionStartedAt: Fixture.sessionStart)
+                                        sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 
     @Test("被中止的 run 裡沒有任何 agent 算執行中，即使 journal 只有 started")
@@ -147,7 +170,9 @@ struct AbortedWorkflowTests {
 
     @Test("整個 session 的執行中總數不會把中止的算進去")
     func abortedAgentsDoNotInflateTheSessionCount() throws {
-        #expect(try tree().runningAgentCount == 1)
+        // 3 = workflow journal 讀到的 1 隻 + 由 transcript 活動推定的 2 隻。
+        // 中止的那一個仍然沒有被算進去 —— 那才是這一則守的東西。
+        #expect(try tree().runningAgentCount == 3)
     }
 
     @Test("group 自己帶著 run 狀態 —— 通知層要靠它分辨「全部完成」與「被你停掉」")
