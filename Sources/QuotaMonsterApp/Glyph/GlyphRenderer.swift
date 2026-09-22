@@ -51,12 +51,14 @@ enum GlyphRenderer {
         // 但這樣離線渲染（--render --dark）畫出來的才是選單列上真正的樣子。
         let pen = ink
         let onDark = ink.isLight
-        let tint = state.quotaTier.map { tierColour($0, onDark: onDark) }
+        // ⚠️ 兩條弧**各自**上色 —— 見 `GlyphState.fiveHourTier` 的檔頭。
+        let tints = (five: state.fiveHourTier.map { tierColour($0, onDark: onDark) },
+                     seven: state.sevenDayTier.map { tierColour($0, onDark: onDark) })
         let img = NSImage(size: size, flipped: false) { _ in
             if state.isAlerting {
                 drawAlert(state, chevronOpacity: chevronOpacity)
             } else {
-                drawGauges(state, ink: pen, tint: tint)
+                drawGauges(state, ink: pen, tints: tints)
                 drawAgentRail(state, ink: pen)
                 // ⚠️ 生物**不染色**。實測在 22pt 的選單列上，弧線與生物都染同一個顏色
                 // 會變成一坨同色的東西，兩條弧與生物的界線全部消失 ——
@@ -74,7 +76,8 @@ enum GlyphRenderer {
 
     // ── 量表 ───────────────────────────────────────────────────
 
-    private static func drawGauges(_ state: GlyphState, ink: NSColor, tint: NSColor?) {
+    private static func drawGauges(_ state: GlyphState, ink: NSColor,
+                                   tints: (five: NSColor?, seven: NSColor?)) {
         // ⚠️ 暗軌的透明度必須看墨色深淺分兩組。
         // 0.24 的黑畫在淺色列上是清楚的淺灰，但 0.24 的白畫在深色列上幾乎消失 ——
         // 實測整顆圖示會比旁邊的鄰居淡一截，看起來像沒對到焦。
@@ -84,9 +87,9 @@ enum GlyphRenderer {
         let lit = state.freshness == .expired ? 0.45 : 1.0
 
         draw(band: GlyphGeometry.outerArc, remaining: state.fiveHourRemaining,
-             dim: dim, lit: lit, ink: ink, tint: tint)
+             dim: dim, lit: lit, ink: ink, tint: tints.five)
         draw(band: GlyphGeometry.innerArc, remaining: state.sevenDayRemaining,
-             dim: dim, lit: lit, ink: ink, tint: tint)
+             dim: dim, lit: lit, ink: ink, tint: tints.seven)
     }
 
     private static func draw(band: GlyphGeometry.Band, remaining: Double?,

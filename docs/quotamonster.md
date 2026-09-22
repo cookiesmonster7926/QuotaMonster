@@ -411,6 +411,25 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   `make_dmg.sh` 與三支測試腳本都進了使用者的 .app —— 沒有理由的表面積，
   而且會讓人以為那些是給他用的。
 
+**43. 同一個事實在兩個地方必須用同一套語彙 —— 選單列的兩條弧各自上色，與面板的三條進度條一致。**
+
+- **為什麼**：〔使用者回報 2026-09-22〕選單列上 5 小時燒到一半（綠）、7 天還剩
+  三分之二（藍）的時候，**兩條弧都是綠的**。原因是上色只問 `GlyphState.quotaTier`，
+  而它取的是兩個窗口裡比較緊的那一個。那個取法對「整體現在多緊」是對的，
+  對「這條弧代表的窗口多緊」是錯的 —— 一個值被拿去回答兩個問題。
+  結果是**選單列看起來像 7 天也快沒了**，而面板同一時刻畫的是綠 + 藍。
+- **修法**：`fiveHourTier` / `sevenDayTier` 各自判，`quotaTier` 留著只回答
+  `usesTemplateRendering` 那個是非題（兩條弧的 nil 條件相同，所以等價）。
+- ⚠️ **Core 的測試擋不住這個 bug。** 兩個 tier 算對了，繪製端照樣可以只拿其中一個
+  去畫兩條弧。抓得到的只有 App 層的像素測試：渲染一個兩條弧落在不同分級的狀態，
+  量兩條中線上有顏色的像素的平均色相，斷言相差超過 60°。
+  〔突變驗證〕把 `tints.seven` 改回 `tints.five`，兩條色相差 0.006° → 紅。
+- ⚠️ 配對的第二則同樣重要：**兩條落在同一級時顏色必須一樣**（差 < 2°）——
+  否則「永遠給不同顏色」的假修法會讓第一則過關。
+- **證據**：GlyphState.swift（`fiveHourTier` 檔頭）、GlyphRenderer.swift:`drawGauges`、
+  Tests/QuotaMonsterAppTests/GlyphRendererTests.swift（`eachArcCarriesItsOwnColour`）、
+  RenderStates 的 `21-arcs-differ` / `22-arcs-differ-flip`
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**

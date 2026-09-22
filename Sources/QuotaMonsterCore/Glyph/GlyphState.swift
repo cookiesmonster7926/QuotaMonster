@@ -94,9 +94,30 @@ public struct GlyphState: Equatable, Sendable {
         GlyphGeometry.creaturePosture(agents: runningAgents, exhausted: exhausted)
     }
 
-    /// 依剩餘額度決定的顏色分級。**沒有可信讀數時回 nil —— 那時候不上色。**
+    /// 5 小時那條弧自己的顏色分級。
     ///
-    /// 取兩個窗口裡比較緊的那一個：你在意的是先撞到哪一道牆。
+    /// ⚠️ 〔2026-09-22 使用者回報〕在此之前**兩條弧共用 `quotaTier` 一個顏色**，
+    /// 於是 5 小時燒到一半（綠）、7 天還剩三分之二（藍）的時候，兩條都是綠的 ——
+    /// 看起來像 7 天也快沒了。面板的三條進度條一直都是各自上色的，
+    /// 所以那是同一個事實在兩個地方用兩種語彙講。
+    public var fiveHourTier: QuotaTier? { tier(of: fiveHourRemaining) }
+
+    /// 7 天那條弧自己的顏色分級。見 `fiveHourTier`。
+    public var sevenDayTier: QuotaTier? { tier(of: sevenDayRemaining) }
+
+    /// 「沒有讀數」與「過期」兩種情況都回 nil —— 那時候那條弧不上色。
+    private func tier(of remaining: Double?) -> QuotaTier? {
+        guard freshness != .expired, let remaining else { return nil }
+        return .forRemaining(remaining, thresholds: quotaThresholds)
+    }
+
+    /// 整體的顏色分級 —— 取兩個窗口裡比較緊的那一個：
+    /// 你在意的是先撞到哪一道牆。**沒有可信讀數時回 nil。**
+    ///
+    /// ⚠️ **這不再是上色的來源**（弧各自問自己的 `fiveHourTier` / `sevenDayTier`）。
+    /// 它剩下的唯一消費者是 `usesTemplateRendering` 那個是非題：
+    /// 「有沒有任何一條弧要上色」—— 而兩條弧的 nil 條件相同，
+    /// 所以「比較緊的那一個是不是 nil」與「兩條是不是都 nil」等價。
     ///
     /// ⚠️ 過期的讀數回 nil，不是回一個顏色。綠色代表「還很寬裕」，
     /// 對一個你自己都知道不可信的數字塗綠色是說謊。這同時保留了第三種

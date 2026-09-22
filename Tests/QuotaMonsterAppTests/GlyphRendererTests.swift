@@ -186,4 +186,64 @@ struct GlyphRendererTests {
     func mergedIsSaturated() {
         #expect(railInk(agents(5)) == railInk(agents(15)))
     }
+
+    // ── 兩條弧的顏色 ──────────────────────────────────────────
+
+    /// 這一圈（以 `band` 的中線為半徑）上，有顏色的像素平均色相是幾度。
+    /// 白色的暗軌沒有飽和度，所以會被自動濾掉。nil = 這一圈根本沒有上色的像素。
+    func arcHue(_ rep: NSBitmapImageRep, _ band: GlyphGeometry.Band) -> Double? {
+        let c = GlyphGeometry.centre.x * CGFloat(Self.scale)
+        let r = band.centreline * CGFloat(Self.scale)
+        let half = band.stroke * CGFloat(Self.scale) / 2 * 0.5
+        var xs = 0.0, ys = 0.0, n = 0
+        for px in 0..<rep.pixelsWide {
+            for py in 0..<rep.pixelsHigh {
+                let d = hypot(CGFloat(px) + 0.5 - c, CGFloat(py) + 0.5 - c)
+                guard abs(d - r) < half,
+                      let p = rep.colorAt(x: px, y: py)?.usingColorSpace(.sRGB),
+                      p.alphaComponent > 0.5, p.saturationComponent > 0.25 else { continue }
+                // 色相是角度，直接平均會在 0°/360° 的接縫上出錯 —— 走單位向量。
+                let a = p.hueComponent * 2 * .pi
+                xs += cos(a); ys += sin(a); n += 1
+            }
+        }
+        guard n > 20 else { return nil }
+        var deg = atan2(ys, xs) * 180 / .pi
+        if deg < 0 { deg += 360 }
+        return deg
+    }
+
+    func twoArcs(five: Double?, seven: Double?,
+                 freshness: Freshness = .live) -> GlyphState {
+        GlyphState(fiveHourRemaining: five, sevenDayRemaining: seven,
+                   runningAgents: 0, blockedSessions: 0,
+                   exhausted: false, freshness: freshness)
+    }
+
+    @Test("⚠️ 兩條弧各自上色 —— 5 小時剩一半（綠）時，7 天那條仍然是藍的")
+    func eachArcCarriesItsOwnColour() {
+        // 〔2026-09-22 使用者回報〕在此之前兩條弧共用 `quotaTier`（取較緊的那個），
+        // 所以這張圖的兩條弧都是綠的 —— 看起來像 7 天也快沒了。
+        // ⚠️ Core 的 `fiveHourTier` / `sevenDayTier` 測試**擋不住**這個 bug：
+        // 那兩個值算對了，繪製端照樣可以只用其中一個去畫兩條弧。
+        let rep = bitmap(twoArcs(five: 0.50, seven: 0.90))
+        let outer = arcHue(rep, GlyphGeometry.outerArc)   // 5 小時
+        let inner = arcHue(rep, GlyphGeometry.innerArc)   // 7 天
+        #expect(outer != nil)
+        #expect(inner != nil)
+        guard let outer, let inner else { return }
+        // 綠與藍在色相上相差超過 60 度 —— 不寫死度數，那是配色的事，
+        // 這裡要釘的是「它們不一樣」。
+        #expect(abs(outer - inner) > 60)
+    }
+
+    @Test("兩條落在同一級時顏色就該一樣 —— 上一則不可以靠「永遠給不同顏色」過關")
+    func sameTierMeansSameColour() {
+        let rep = bitmap(twoArcs(five: 0.90, seven: 0.85))
+        guard let outer = arcHue(rep, GlyphGeometry.outerArc),
+              let inner = arcHue(rep, GlyphGeometry.innerArc) else {
+            Issue.record("兩條弧都應該有顏色"); return
+        }
+        #expect(abs(outer - inner) < 2)
+    }
 }

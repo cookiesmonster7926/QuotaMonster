@@ -149,4 +149,48 @@ struct QuotaTierTests {
         #expect(state(five: nil, seven: nil, blocked: 1).usesTemplateRendering == false)
         #expect(state(five: 0.80, blocked: 1).usesTemplateRendering == false)
     }
+
+    // ── 每條弧各自的顏色 ──────────────────────────────────────
+    //
+    // ⚠️ 〔2026-09-22 使用者回報〕選單列上兩條弧**同色**：5 小時已經燒到
+    // 一半（綠），7 天還很寬裕（藍），但兩條都畫成綠的。原因是上色只問
+    // `quotaTier`，而它取的是兩者中比較緊的那一個。
+    //
+    // 面板的三條進度條一直都是各自上色的 —— 所以同一個事實在兩個地方
+    // 用兩種語彙講，而且選單列那一版**看起來像 7 天也快沒了**。
+    //
+    // `quotaTier` 本身不改：它還要回答「要不要走 template」那個是非題。
+
+    @Test("5 小時緊、7 天寬裕時，兩條弧的分級不一樣")
+    func eachArcHasItsOwnTier() {
+        let s = state(five: 0.50, seven: 0.66)
+        #expect(s.fiveHourTier == .tight)
+        #expect(s.sevenDayTier == .comfortable)
+        // 整體仍然取比較緊的 —— 那個問題沒有改。
+        #expect(s.quotaTier == .tight)
+    }
+
+    @Test("沒有讀數的那一條不上色，另一條照常")
+    func aMissingReadingOnlySilencesItsOwnArc() {
+        let s = state(five: nil, seven: 0.30)
+        #expect(s.fiveHourTier == nil)
+        #expect(s.sevenDayTier == .tight)
+    }
+
+    @Test("過期時兩條都不上色 —— 與 quotaTier 同一條規則")
+    func expiredSilencesBothArcs() {
+        let s = state(five: 0.50, seven: 0.90, freshness: .expired)
+        #expect(s.fiveHourTier == nil)
+        #expect(s.sevenDayTier == nil)
+    }
+
+    @Test("兩條弧各自用自己的門檻判 —— 不是一條抄另一條")
+    func neitherArcCopiesTheOther() {
+        // 刻意讓兩條落在不同的分級，而且**順序相反**於上一則
+        // （7 天緊、5 小時寬裕）—— 只把 quotaTier 接到兩條弧上的假修法
+        // 會讓兩則其中一則過、另一則不過。
+        let s = state(five: 0.90, seven: 0.10)
+        #expect(s.fiveHourTier == .comfortable)
+        #expect(s.sevenDayTier == .critical)
+    }
 }

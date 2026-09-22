@@ -39,6 +39,12 @@ enum RenderStates {
             // 有人在等你時完成訊號整批丟掉，所以這一張必須與 09-blocked-1 一模一樣。
             Case(name: "20-finish-while-blocked",
                  state: s(0.72, 0.82, agents: 3, blocked: 1, finish: .fresh)),
+            // 兩條弧落在**不同**分級。使用者 2026-09-22 回報的正是這一格：
+            // 5 小時燒到一半（綠）、7 天還剩三分之二（藍），在此之前兩條都畫成綠的。
+            // ⚠️ 這一格的價值全在 **2x 的配色**上 —— 1x 看不出兩個色的界線。
+            Case(name: "21-arcs-differ",     state: s(0.50, 0.66)),
+            // 反過來：7 天比 5 小時緊。左右對調可以抓到「把某一條寫死」的改壞。
+            Case(name: "22-arcs-differ-flip", state: s(0.90, 0.18)),
         ]
     }()
 
