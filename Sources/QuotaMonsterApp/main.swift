@@ -225,6 +225,13 @@ if CommandLine.arguments.contains("--probe-login") {
     exit(0)
 }
 
+if let i = CommandLine.arguments.firstIndex(of: "--bench-refresh") {
+    let n = CommandLine.arguments.count > i + 1 ? Int(CommandLine.arguments[i + 1]) ?? 10 : 10
+    _ = NSApplication.shared
+    MainActor.assumeIsolated { BenchRefresh.run(iterations: n) }
+    exit(0)
+}
+
 if CommandLine.arguments.contains("--dump") {
     Dump.run()
     exit(0)

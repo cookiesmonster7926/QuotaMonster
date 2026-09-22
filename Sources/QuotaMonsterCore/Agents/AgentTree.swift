@@ -12,10 +12,15 @@ public enum AgentRunState: Equatable, Sendable {
     case likelyRunning
     /// 收尾了 —— 成功或失敗都算。
     case finished
-    /// **不知道。** 一般 Agent subagent 沒有 journal，完成與否要從母 transcript 的
-    /// `toolUseResult` 推，而背景啟動的 agent 根本不回報完成（實測 23 筆中 13 筆是
-    /// `async_launched`，不帶 totalTokens / totalDurationMs / agentType）。
-    /// 所以這裡誠實標示為未知，不假裝知道。
+    /// **不知道。** 沒有任何正面證據說它在跑，也沒有讀到它的下場。
+    ///
+    /// ⚠️ 這裡原本寫「背景啟動的 agent **根本不回報完成**（實測 23 筆中 13 筆是
+    /// `async_launched`）」——**那句話今天是錯的**，而且錯的方式很典型：
+    /// 觀察本身沒錯（`tool_result` 當下回的確實是 `async_launched`），
+    /// 錯在**停在那裡** —— 完成是後來以另一種記錄抵達的
+    /// （`<task-notification>` 的 `<status>`，實測 25/25）。
+    /// 現在讀得到了，讀到的那些會是 `.finished` 並帶著 `AgentNode.outcome`；
+    /// 這一格留給**真的**沒有證據的那些。
     case unknown
 }
 
@@ -23,6 +28,16 @@ public enum AgentRunState: Equatable, Sendable {
 public struct AgentNode: Equatable, Sendable {
     public let meta: AgentMeta
     public let runState: AgentRunState
+    /// 讀到的**真實下場**。
+    ///
+    /// ⚠️ nil ＝ **沒讀到**，不是「順利結束」。`AgentTally` 會把它算進
+    /// 「狀態不明」那一格而不是「已完成」—— 第二節拒絕 2 講的就是這件事：
+    /// 併進去等於在面板上宣告一件我們不知道的事。
+    ///
+    /// ⚠️ 它與 `runState` 是**兩種不同的證據**，不可以互相推導：
+    /// `runState` 的 `.likelyRunning` 是活動代理量測（規矩 37），
+    /// 這一格是母 transcript 裡讀到的記錄。有這一格時 `runState` 才可以是 `.finished`。
+    public let outcome: AgentOutcome.Kind?
     public var children: [AgentNode]
 
     /// 生出這隻 agent 的 tool_use id（只有一般 agent 有）。
@@ -31,9 +46,11 @@ public struct AgentNode: Equatable, Sendable {
     public let isLinkedToTranscript: Bool
 
     public init(meta: AgentMeta, runState: AgentRunState,
+                outcome: AgentOutcome.Kind? = nil,
                 children: [AgentNode] = [], isLinkedToTranscript: Bool = false) {
         self.meta = meta
         self.runState = runState
+        self.outcome = outcome
         self.children = children
         self.isLinkedToTranscript = isLinkedToTranscript
     }

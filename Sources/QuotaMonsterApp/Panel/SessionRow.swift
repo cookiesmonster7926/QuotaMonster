@@ -52,7 +52,7 @@ struct SessionRow: View {
                 ForEach(agents.outstanding, id: \.meta.agentId) { a in
                     agentRow(a)
                 }
-                if !tally.collapsed.isEmpty || agents.collapsedText != nil {
+                if !tally.collapsed.isEmpty || !agents.collapsed.isEmpty {
                     HStack(spacing: 6) {
                         Rectangle().fill(.quaternary).frame(width: 1).padding(.leading, 2)
                         // ⚠️ 這一行本來寫「另有 N 個 workflow 已完成」，把失敗的也
@@ -68,12 +68,17 @@ struct SessionRow: View {
                                 .font(.system(size: 9.5))
                                 .foregroundStyle(tallyColour(part.outcome))
                         }
-                        if let ended = agents.collapsedText {
-                            if !tally.collapsed.isEmpty {
+                        // agent 這一行原本只能說「已結束 N 隻」——〔2026-09-22〕
+                        // 真實下場讀得到了（`TranscriptWatcher`），所以它與 workflow
+                        // 那一行用**完全一樣**的形狀與用詞，包括顏色。
+                        // ⚠️ 讀不到下場的那些是「狀態不明」，不是「已完成」。
+                        ForEach(Array(agents.collapsed.enumerated()), id: \.offset) { i, part in
+                            if i > 0 || !tally.collapsed.isEmpty {
                                 Text("·").font(.system(size: 9.5)).foregroundStyle(.quaternary)
                             }
-                            // ⚠️ 用詞是**已結束**不是已完成 —— 判準與理由見 `AgentTally`。
-                            Text(ended).font(.system(size: 9.5)).foregroundStyle(.tertiary)
+                            Text(part.text)
+                                .font(.system(size: 9.5))
+                                .foregroundStyle(agentTallyColour(part.outcome))
                         }
                         Spacer()
                     }
@@ -215,6 +220,17 @@ struct SessionRow: View {
         switch o {
         case .failed:  return AnyShapeStyle(.red)
         case .unknown: return AnyShapeStyle(.secondary)
+        default:       return AnyShapeStyle(.tertiary)
+        }
+    }
+
+    /// agent 版。⚠️ **顏色與上面那支必須一致** —— 同一件事（失敗／不明）
+    /// 在同一行裡出現兩種顏色，是規矩 43 那個坑的另一個形狀。
+    /// nil ＝ 讀不到下場 ＝ 「狀態不明」，對應上面的 `.unknown`。
+    private func agentTallyColour(_ o: AgentOutcome.Kind?) -> AnyShapeStyle {
+        switch o {
+        case .failed:  return AnyShapeStyle(.red)
+        case .none:    return AnyShapeStyle(.secondary)
         default:       return AnyShapeStyle(.tertiary)
         }
     }

@@ -480,6 +480,38 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 - ⚠️ **加 CI 的價值有一半在這裡**，不是在「跑一次測試」——
   本機的 632 則全綠，CI 連編都編不過。
 
+**47. 增量讀檔的身分是 `(inode, offset)`，不是路徑；而且「沒有新東西」與「讀不到」不可以塌縮。**
+
+- **為什麼**：transcript 在 compact / fork / `--resume` 時會被**整個重寫**。它可能變短（size 測得到），
+  也可能**大小一樣而內容整個換掉**（寫新檔再 rename 上去）—— 後者 size 與 mtime **都測不出來**，
+  只有 inode 測得到。認錯了就是從一個錯的位移往下讀，交出半行垃圾。
+  這是 `~/CLAUDE.md`「mtime 是什麼時候寫的，不是內容什麼時候量的」在增量讀取上的落點。
+- ⚠️ **半行要留著，不可以丟也不可以重讀。** 既有的 `WaitingContextReader.tail` 從尾端抓 64KB 並
+  **丟掉第一個換行之前的東西**（它切在半行上）—— 從記住的 offset 往前讀時第一個 byte **就是**行首，
+  照抄那個行為會每讀一次就靜靜吃掉一筆記錄。反過來，讓 offset 停在行首、半行留在檔案裡下次重讀，
+  會讓那半行**被讀兩次**（「bb」+「bb\n」變成「bbbbbb」）。正解：bytes 一旦拿走就算進 offset，
+  未完成的那截另外暫存。〔兩個方向都是測試抓到的〕
+- ⚠️ `FileHandle.readToEnd()` 在**已經在檔尾**時回 `nil`，不是回空的 `Data`。
+  把那個 nil 當成讀取失敗，「檔案沒長」與「空檔案」兩種**正常情況**都會變成「讀不到」——
+  也就是把正面證據講成「我們沒看到」。
+- **代價是量到的**：改造前 `--bench-refresh` 量到 `DataStore.refresh()` 穩態中位 **1004 毫秒**
+  （一拍的預算是 3000），因為 `AgentTreeBuilder.toolUseIds` 每 3 秒把整份母 transcript
+  `String(contentsOf:)` 讀進來再逐行 JSON 解析。改成增量之後：**71.8 毫秒**，第一拍（補課）596 毫秒。
+  ⚠️ 拆開來看 16.1MB 的檔案 I/O 只要 0.014 秒，**97% 是 JSON 解析** ——
+  所以省的必須是「重新解析舊的行」，只快取 bytes 的版本一點都不會比較快。
+
+**48. 讀到的終端狀態勝過活動代理量測，而且兩者不可以互相推導。**
+
+- **為什麼**：一般 Agent subagent 現在有兩種證據：`AgentActivity` 的「transcript 最近還在被寫」
+  （**代理量測**，規矩 37）與母 transcript 裡讀到的 `<status>`（**量測**）。
+  優先序固定：讀到下場 → `.finished` 並帶 `AgentNode.outcome`；讀不到才退回推定；
+  推不出來維持 `.unknown`。形狀與 workflow 那邊完全一樣（`terminated ? .finished : journal…`）。
+- ⚠️ **`outcome == nil` 是「沒讀到」，不是「順利結束」。** `AgentTally` 把它算進「狀態不明」
+  而不是「已完成」—— 第二節拒絕 2 講的就是這件事。實測 18.5% 的背景 agent 從來沒有終端記錄，
+  所以那一格不是理論上的。
+- ⚠️ **收合那一行的用詞與顏色必須與 `WorkflowTally` 完全一樣**（已完成 / 失敗 / 已停止 / 狀態不明，
+  失敗紅、不明 secondary、其餘 tertiary）。同一件事兩套語彙，這個 repo 已經為它付過一次代價（規矩 43）。
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**
@@ -516,10 +548,21 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 加回來之前請先讀它的理由，並確認那個理由今天不成立了。
 
 
-**1. T2 對 `killed` 的 run 完全不出聲；run 狀態檔沒寫出來（app crash、未來版本改格式）就永遠不發；一般 Agent 扇出永遠不會發 T2。**
+**1. T2 對 `killed` 的 run 完全不出聲；run 狀態檔沒寫出來（app crash、未來版本改格式）就永遠不發；一般 Agent 扇出不發 T2。**
 
-- **為什麼**：`killed` 是你自己按的 TaskStop，你知道它為什麼停。另外兩條是同一條原則「寧可少報，不謊報」的落點：一般 subagent 每個節點都是 `.unknown`（背景啟動的 agent 根本不回報完成，〔實測〕23 筆中 13 筆是 `async_launched`，不帶 totalTokens / totalDurationMs / agentType），沒有正面證據就不宣告完成。這是 Stage 2 的已知缺口被刻意接受，不是通知層的 bug —— 代價是這台機器 251 隻 subagent 裡有 31 隻排空時不會有聲音。
-- **證據**：AgentTree.swift:3-13、86-90；NotificationEngine.swift:487-490；WorkflowTally.swift:16-18；docs/build-log.md:351-354、1036-1039、1456-1459、1548-1552
+- **為什麼（前兩條，未變）**：`killed` 是你自己按的 TaskStop，你知道它為什麼停。沒有正面證據就不宣告完成 —— 「寧可少報，不謊報」。
+
+- ⚠️ **第三條的理由 2026-09-22 被換掉了，結論沒變。** 原本寫的是「一般 subagent 每個節點都是 `.unknown`（背景啟動的 agent 根本不回報完成）」——**那個理由今天不成立**：完成的正面證據一直在母 transcript 裡（第三節第 29 條），而且 2026-09-22 下午**已經讀進來了**（`TranscriptWatcher`，面板的收合那一行現在說「已完成 N · 失敗 M」）。
+
+  結論仍然成立，是因為**另外三件量到的事**：
+
+  1. **沒有可用的扇出單位。** 規矩 16 說 T2 絕不聚合，workflow 的單位是 `workflowId`；一般 agent 沒有等價的容器。〔實測 2026-09-22，37 份 transcript / 37 筆 spawn〕`sourceToolAssistantUUID`、`parentUuid`、擁有那個 tool_use 的 assistant 記錄 uuid、2 秒時間桶 —— **四個候選鍵給出同一個直方圖 `{1: 37}`，一個批次都沒有**。根因也量到了：背景 Agent 立刻回 `async_launched`，所以扇出的成員是在**連續好幾個 assistant 回合**裡開出去的（相隔 2.6–25.2 秒），每一隻自己一則記錄。全機器**沒有任何一則 assistant 記錄含有 ≥2 個 Agent tool_use**。
+  2. **唯一分得出批次的鍵會直接違反規矩 16。** `promptId`（人類那一回合的 id）給出 `{1:17, 2:5, 3:2, 4:1}`，但它〔實測〕**跨 transcript 不唯一** —— `e168fb68` 同時是某個母 session 的 3 隻扇出與某個孫 agent 的 4 隻扇出的鍵，只用它當鍵就是把兩個無關的單位聚合在一起，正是規矩 16 點名的那件事。它還會在 `--resume` / fork 時**靜靜地消失**（同一個 uuid 在原檔有 promptId、在分叉檔是 `None`），而且它的語意是「這一個人類回合」不是「這一次扇出」——實測把相隔 86.6 秒與 828.2 秒的兩次委派併成同一批。
+  3. **批次不保證會關。** 〔實測〕27 隻背景 agent 裡有 **5 隻（18.5%）從來沒有終端記錄**，其中兩隻是設計上就不會結束的伺服器。所以「等到全部都終結」需要一個逾時 —— 而那是一個**沒有量過**的門檻（規矩 2）。
+  4. **它幾乎不會觸發。** 全機器**有史以來只有 6 個真正的扇出批次**，其中 3 個還藏在 subagent 自己的 transcript 裡（從頂層 session 看不到）。三週的重度使用會響幾次。
+
+- **所以**：讀到的下場**只拿來顯示**（面板收合那一行、`--dump`），不拿來發聲。顯示錯了看得見，發聲錯了是一聲謊報。
+- **證據**：AgentTally.swift、AgentOutcome.swift、TranscriptWatcher.swift；NotificationEngine.swift:487-490；WorkflowTally.swift:16-18；本節第三段的四項量測
 
 **2. 「狀態不明」的 workflow 不併進「已完成」。**
 
@@ -821,6 +864,68 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 `AgentTally` 這一版仍然只用 `AgentActivity` 的活動代理，所以收合那一行說
 「已結束」不說「已完成」。
 
+**30. 原文說**：第三節第 29 條（那條推翻「一般 Agent 沒有正面證據」的）自己寫的表格：
+「背景（`isAsync: true`）24 隻 → `<task-notification>` 帶 `<task-id>{agentId}` 與 `<status>`；
+前景 9 隻 → `toolUseResult.status == "completed"`」。
+
+**資料說**：〔重新實測 2026-09-22，37 份 transcript、34,204 筆記錄〕方向對，但**兩個決定實作怎麼寫的細節是錯的**：
+
+1. **接得起來的鍵不是 tool-use-id，是 `toolUseResult.agentId`。**
+   用 agentId 對 `<task-id>`：**25/25**。用 tool-use-id：**5/25** ——
+   `<tool-use-id>` 只出現在 72 個通知區塊裡的 57 個，而且**重複通知時會消失**。
+2. **通知主要不是 `type:"user"` 記錄。** 25/25 隻 agent 的最早落地形式是
+   `type:"queue-operation"` / `operation:"enqueue"`（一個**沒有 `message` 外層**、
+   `content` 直接是字串的記錄）。只看 user 記錄的 reader 看得到 **6/25**。
+   第三種載體 `type:"attachment"`（`attachment.prompt`）帶 11 隻，但**沒有一隻**是
+   前兩種看不到的 —— enqueue 單獨就是 25/25。
+
+還量到三個會讓資料說謊的邊界，原文沒有提：
+
+- `operation:"remove"` 是 enqueue 的**逐字複本**（338 vs 417 筆）。兩個都算＝雙重計數。
+- **同一隻 agent 會重複通知 `completed`** —— 一隻通知了 **17 次**，另一隻的第二次
+  `<result>` 開頭是「Correction to my previous report」。所以是**最後一筆贏**，
+  而且要算「不同的 agentId」不是「通知筆數」。通知本身就寫著：
+  「A task-notification fires each time this agent stops with no live background children of its own.」
+- **沒有 `<status>` 的區塊不是「下場不明」，是「不是完成」。** 11 筆沒有 status 的裡面
+  9 筆是 `Monitor event:` 帶 `<event>`（例如「Episode 1500 | Score 3」）。把它當 unknown
+  會讓一個**活著的** monitor 在面板上變成一隻卡住的 agent —— 正是規矩 1 那個兩層分界。
+
+**代價**：原文那兩個細節任何一個照著寫，得到的都是一個「看起來會動、覆蓋率卻只有 20–24%」的 reader，
+而且不會有任何錯誤訊息。⚠️ 原文還有一個數字對不上：表格說 33 隻 agent，`<status>` 三種值合計卻是 740
+（720/14/6）—— 那顯然是全庫記錄數不是這 33 隻的分佈。引用時不要把兩組數字當成同一個母數。
+
+**31. 原文說**：`AgentTreeBuilder` 檔頭：「不要用 `sourceToolAssistantUUID` 當 parent 指標。
+實測它是**檔案內**指標（72/72 解析於 subagent 自己的 transcript，母 transcript 內 0 筆），
+照它寫會得到一棵空樹。」
+
+**資料說**：〔實測 2026-09-22〕**那句話沒有錯，但它的範圍被寫得太寬了。**
+兩個不同的記錄族群被講成同一件事：
+
+| 族群 | 數量 | 在自己的檔案裡解析得到 | 在母 transcript 裡解析得到 |
+|---|---|---|---|
+| subagent transcript 裡帶這個欄位的記錄 | 18,092 | 18,092 | **0 / 18,094** |
+| 母 transcript 裡的 **spawn** 記錄 | 37 | **37 / 37** | 同左（就是同一個檔案） |
+
+也就是說它**永遠是檔案內指標**；原始量測只取樣了 subagent 那一側，於是「母 transcript 內 0 筆」
+對那些記錄為真、對 spawn 記錄為假。檔頭那句操作建議（拿它當 parent 指標會得到空樹）仍然正確。
+
+**代價**：這一條差點讓「用它當扇出批次鍵」在還沒量之前就被放棄。真正讓那個方案出局的是
+**另一件事**（它是 per-tool-call 的鍵，直方圖 `{1: 37}`，一個批次都沒有）—— 見第二節拒絕 1。
+⚠️ 一條**範圍寫太寬的實測**與一條寫錯的實測一樣貴：它會讓下一個人停止提問。
+
+**32. 原文說**：`DataStore` 的 `refreshInterval` 註解：「慢輪詢。FSEvents 監看是 V2 的事；
+先用固定間隔把功能跑通。**全部是 stat + 小檔案解析，成本可以忽略。**」
+
+**資料說**：〔實測 2026-09-22，`--bench-refresh`〕`refresh()` 的穩態中位是 **1004 毫秒**，
+而一拍的預算是 3000 毫秒 —— **三分之一的時間在 main actor 上重新解析看過的行**。
+「小檔案」那三個字是這句話唯一錯的地方：`AgentTreeBuilder.toolUseIds` 讀的是母 transcript，
+這台機器上最大的 22.4MB、還活著的最大 16.1MB（`AgentTally` 的註解與這份文件三處都寫「13MB」，
+已經低估約 70%）。改成增量讀取之後是 **71.8 毫秒**。
+
+**代價**：這句註解讓「這個迴圈很便宜」變成一個**沒有人再去驗的前提**，
+而它正好是後面每一個「順手加一點在 refresh 裡」的依據。
+⚠️ 一個沒有量過的「成本可以忽略」，與把推論寫成量測是同一件事（規矩 5）。
+
 ## 四、診斷指令對照
 
 **哪一支回答哪一個問題**是關鍵，因為它們看起來都像「印一些東西出來」。
@@ -944,11 +1049,21 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
   緩解方案是 `statusLine.refreshInterval`（官方設定，最小 1 秒），
   但那會改變使用者狀態列的更新節奏 —— **要先問過**。
 
-- **一般 Agent 的真實完成狀態**（`completed` / `failed` / `killed`）。
-  證據實測 100% 覆蓋（第三節第 29 條），但要掃母 transcript ——
-  它可以到 13MB，尾端 64KB 只涵蓋約 15 筆記錄。需要「記住 byte offset、
-  只讀新增部分」那套機器。做完之後：面板收合那一行可以從「已結束 N 隻」
-  升級成「已完成 N · 失敗 M」，而且 **T2 可以對一般 Agent 扇出生效**。
+- ~~**一般 Agent 的真實完成狀態**（`completed` / `failed` / `killed`）~~ ——
+  **已做（2026-09-22）**。`TranscriptCursor`（記 `(inode, offset)`，只交出新增的完整行）
+  ＋ `TranscriptWatcher`（每份 transcript 一份累積的事實）＋ `TranscriptFacts`（解析）。
+  面板收合那一行現在說「已完成 N · 失敗 M · 狀態不明 K」，`--dump` 同一套語彙。
+  ⚠️ 順手修掉一個沒人量過的效能洞：`refresh()` 穩態 1004 → **71.8 毫秒**（規矩 47）。
+  ⚠️ **T2 仍然不對一般 Agent 扇出生效** —— 理由整個換過，見第二節拒絕 1：
+  不是「沒有證據」（有了），是**沒有可用的扇出單位**（四個候選鍵給出 `{1: 37}`，
+  唯一分得出批次的 `promptId` 跨 transcript 不唯一、會在 resume 時消失），
+  加上 18.5% 的背景 agent 從來不終結，以及全機器有史以來只有 6 個真正的扇出批次。
+- **workflow 的 `journal.jsonl` 還是每拍整份重讀**，而且是在新鮮度閘**之前**
+  （`AgentTreeBuilder.swift` 的 `journalReader.read()` 在 `isFresh` 過濾之前），
+  所以四天前死掉的 workflow 的 journal（這台機器上最大 888KB）永遠會被重新解析。
+  〔實測〕它是改造後剩下的 71.8 毫秒的主要來源。機器已經有了（`TranscriptCursor`），
+  缺的是把它接上去 —— 但 journal 是 append-only 且會跨 `--resume` 累積，
+  接之前要先確認它的重寫行為與 transcript 一樣。
 - **已經在跑的 session 不會立刻開始寫 tee 快取**（見上）。
 - ~~**一般 Agent subagent 看不出在不在跑**~~ —— **已做（2026-09-22）**，
   改用 transcript 活動的代理量測（規矩 37），窗口 120 秒。

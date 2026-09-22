@@ -95,6 +95,16 @@ final class DataStore {
     private var presenter: NotificationPresenting?
     private let resolver = SessionDirectoryResolver()
     private let treeBuilder = AgentTreeBuilder()
+    /// 母 transcript 的增量游標 + 累積的事實。
+    ///
+    /// ⚠️ **只活在行程記憶體裡，不落地。** 「讀到哪裡了」是一個**抑制方向**的
+    /// 觀測值（offset 之前的記錄不會再被讀到），而規矩 20 說可以寫到磁碟的
+    /// 只有 `mutedUntil` —— 使用者直接下的指令。這個 repo 已經因為存了
+    /// 「已通知過的 episode」而整個撤銷過一次（第三節第 18 條）。
+    ///
+    /// 代價：app 每次啟動要把每個活著的 session 的 transcript 重掃一次。
+    /// 〔實測〕那是 `--bench-refresh` 的「第一拍」，之後每拍接近零。
+    private var transcripts = TranscriptWatcher()
     private let completionReader = TurnCompletionReader()
     /// 沉澱窗狀態機。I/O 三支注入，所以它本身是純的、測得到。
     @ObservationIgnored private lazy var completionTracker = CompletionTracker(
@@ -430,14 +440,20 @@ final class DataStore {
 
         let projects = home.appendingPathComponent(".claude/projects")
         var built: [String: AgentTree] = [:]
+        var watched: Set<URL> = []
         for s in sessions {
             guard let paths = resolver.locate(sessionId: s.session.sessionId,
                                               projectsRoot: projects) else { continue }
             built[s.session.sessionId] = treeBuilder.build(
                 paths: paths, sessionId: s.session.sessionId,
+                facts: transcripts.update(paths.transcript),
                 sessionStartedAt: s.session.startedAt, now: now)
+            watched.insert(paths.transcript)
         }
         trees = built
+        // session 死了就放掉它的事實 —— 一份 13MB transcript 的 toolUseIds
+        // 不是可以忽略的記憶體（規矩 42 的記憶體版本）。
+        transcripts.keep(only: watched)
 
         // 完成偵測。**在通知之前**，因為選單列的 glyph 要讀 `finishes`。
         if detectsCompletions {

@@ -229,6 +229,9 @@ enum Dump {
         let projects = home.appendingPathComponent(".claude/projects")
         let resolver = SessionDirectoryResolver()
         let builder = AgentTreeBuilder()
+        // ⚠️ 診斷是一次性行程，游標一定從 0 開始 —— 它每次都會整份重掃。
+        // 那是對的：`--dump` 要回答「現在磁碟上是什麼」，不是「app 記得什麼」。
+        var watcher = TranscriptWatcher()
         for s in live {
             guard let paths = resolver.locate(sessionId: s.session.sessionId,
                                               projectsRoot: projects) else {
@@ -237,6 +240,7 @@ enum Dump {
             }
             let tree = builder.build(paths: paths,
                                      sessionId: s.session.sessionId,
+                                     facts: watcher.update(paths.transcript),
                                      sessionStartedAt: s.session.startedAt, now: now)
             let name = shownName(s.session)
             // ⚠️ 這一行原本寫「N 隻確定在跑」。一般 Agent subagent 改用代理量測之後
@@ -244,9 +248,14 @@ enum Dump {
             let likely = tree.likelyRunningAgentCount
             let suffix = likely > 0 ? "（其中 \(likely) 隻是由 transcript 活動推定的）" : ""
             print("Agent  \(name) · \(s.project)  →  \(tree.runningAgentCount) 隻在跑\(suffix)")
+            // 收合那一行要與面板**同一套語彙**（規矩 28 / 43）：
+            // 面板說「已完成 N · 失敗 M」，--dump 就不可以只說「已結束」。
+            if let collapsed = AgentTally(tree.agents).collapsedText {
+                print("         ╰ \(collapsed)")
+            }
             for a in tree.agents {
                 print("         ├ \(a.meta.agentType)  \(a.meta.description.prefix(40))"
-                      + "  [\(describe(a.runState))]"
+                      + "  [\(describe(a.runState))\(a.outcome.map { " · " + describe($0) } ?? "")]"
                       + (a.isLinkedToTranscript ? "" : "  ⚠ transcript 內找不到對應的 tool_use"))
                 for c in a.children {
                     print("         │  └ \(c.meta.agentType)  \(c.meta.description.prefix(36))")
@@ -271,6 +280,15 @@ enum Dump {
         case .likelyRunning: return "（推定在跑）"
         case .finished: return "已收尾"
         case .unknown: return "未知"
+        }
+    }
+
+    /// 讀到的真實下場。⚠️ 沒有這一格代表**沒讀到**，不是「順利結束」。
+    static func describe(_ o: AgentOutcome.Kind) -> String {
+        switch o {
+        case .completed: return "已完成"
+        case .failed:    return "失敗"
+        case .killed:    return "已停止"
         }
     }
 

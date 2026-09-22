@@ -19,8 +19,10 @@ struct AgentTreeBuilderTests {
         let root = try Fixture.projectsRoot()
         let paths = try #require(SessionDirectoryResolver()
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
+        var watcher = TranscriptWatcher()
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
+                                        facts: watcher.update(paths.transcript),
                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 
@@ -108,13 +110,41 @@ struct AgentTreeBuilderTests {
         #expect(quiet.runState == .unknown)
     }
 
-    @Test("⚠️ 一般 agent **永遠**不可以被標成 finished —— 那需要證據，而磁碟上沒有")
-    func plainAgentIsNeverClaimedFinished() throws {
+    @Test("⚠️ **沒有證據時**，一般 agent 不可以被標成 finished")
+    func plainAgentIsNotClaimedFinishedWithoutEvidence() throws {
+        // ⚠️ 這一則的標題原本是「**永遠**不可以」，理由是「那需要證據，而磁碟上沒有」。
+        // 〔2026-09-22〕**後半句已經不成立** —— 證據一直都在母 transcript 裡
+        // （`<task-notification>` 的 `<status>`，實測 25/25）。
+        // 這一則沒有被刪掉，是因為它保護的東西仍然成立，只是範圍變小了：
+        // **讀不到的時候不准猜**。下一則釘住反面（讀到了就要算數）。
+        // 這份 fixture 的母 transcript 裡沒有任何 task-notification。
         let all = try tree().agents.flatMap { [$0] + $0.children }
         #expect(all.allSatisfy { $0.runState != .finished },
                 "推不出來要留在 unknown，不是猜一個「做完了」")
+        #expect(all.allSatisfy { $0.outcome == nil },
+                "沒讀到就是沒讀到 —— outcome 不可以憑空生出來")
         #expect(all.allSatisfy { $0.runState != .running },
                 "`.running` 是 journal 讀到的那一種，一般 agent 沒有 journal")
+    }
+
+    @Test("讀到終端狀態時，一般 agent 就是 finished，而且帶著真實下場")
+    func plainAgentBecomesFinishedWhenTheEvidenceIsRead() throws {
+        let root = try Fixture.projectsRoot()
+        let paths = try #require(SessionDirectoryResolver()
+            .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
+        // 挑一隻 fixture 裡真的存在、而且**現在被判成還在跑**的 agent，
+        // 給它一筆終端記錄 —— 讀到的下場必須勝過活動代理量測。
+        var facts = TranscriptFacts()
+        facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>plain1</task-id>\n<status>failed</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
+
+        let t = AgentTreeBuilder().build(paths: paths, sessionId: Fixture.agentSessionId,
+                                         facts: facts,
+                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
+        let n = try #require(t.agents.first { $0.meta.agentId == "plain1" })
+        #expect(n.outcome == .failed)
+        // ⚠️ 這隻在上一則裡是 `.likelyRunning`（它的 transcript 剛被寫過）——
+        // 正面證據必須勝過代理量測，形狀與 workflow 那邊一樣。
+        #expect(n.runState == .finished)
     }
 
     @Test("不得單用 mtime 門檻判死活 —— 實測有 agent 失敗後僅 153 秒就被觀察到")
@@ -150,8 +180,10 @@ struct AbortedWorkflowTests {
         let root = try Fixture.projectsRoot()
         let paths = try #require(SessionDirectoryResolver()
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
+        var watcher = TranscriptWatcher()
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
+                                        facts: watcher.update(paths.transcript),
                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 

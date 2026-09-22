@@ -87,6 +87,7 @@ struct WorkflowPhaseTests {
         try Data().write(to: transcript)
         let paths = SessionPaths(transcript: transcript, sessionDirectory: sessionDir)
         return AgentTreeBuilder().build(paths: paths, sessionId: sessionId,
+                                        facts: TranscriptFacts(),
                                         sessionStartedAt: sessionStart, now: clock)
             .workflows.first
     }

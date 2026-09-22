@@ -9,9 +9,15 @@ import Foundation
 /// | 一般 Agent subagent | `toolUseId` 配母 transcript；深度 ≥2 用 `parentAgentId` | 31 / 187 |
 /// | workflow subagent | **沒有任何 parent 欄位**，只能靠目錄路徑 | 156 / 187 |
 ///
-/// ⚠️ 不要用 `sourceToolAssistantUUID` 當 parent 指標。實測它是**檔案內**指標
-/// （72/72 解析於 subagent 自己的 transcript，母 transcript 內 0 筆），
+/// ⚠️ 不要用 `sourceToolAssistantUUID` 當 parent 指標：它是**檔案內**指標，
 /// 照它寫會得到一棵空樹。
+///
+/// ⚠️ 這句話原本附的證據是「72/72 解析於 subagent 自己的 transcript，
+/// **母 transcript 內 0 筆**」——〔重新實測 2026-09-22〕那個 0 只對**那一族群**成立。
+/// 母 transcript 裡的 **spawn** 記錄 37/37 都帶這個欄位，而且 37/37 解析得到
+/// （它指向發出那個 tool_use 的 assistant 記錄，與 `parentUuid` 逐字相同）。
+/// 結論沒變（它永遠是檔案內指標），但**範圍寫太寬的實測與寫錯的實測一樣貴** ——
+/// 它會讓下一個人停止提問。完整對照見 `docs/quotamonster.md` 第三節第 31 條。
 public struct AgentTreeBuilder: Sendable {
 
     private let metaReader = AgentMetaReader()
@@ -20,18 +26,21 @@ public struct AgentTreeBuilder: Sendable {
 
     public init() {}
 
+    /// - Parameter facts: 母 transcript 讀出來的事實（`TranscriptWatcher.update`）。
+    ///   ⚠️ **刻意不給預設值，也刻意不在這裡自己讀檔。** 這支函式每 3 秒被呼叫一次，
+    ///   而它原本自己 `String(contentsOf:)` 整份 transcript ——〔實測 2026-09-22〕
+    ///   `refresh()` 的穩態中位因此是 1004 毫秒，一拍只有 3000。
+    ///   把讀檔移到呼叫端，增量游標才有地方活著。
     /// - Parameter now: ⚠️ **刻意不給預設值。** 一般 Agent subagent 的執行狀態是
     ///   從 transcript 的 mtime 推定的（見 `AgentActivity`），所以「現在幾點」
     ///   是這個函式的輸入之一。給預設值會讓呼叫端不知道自己在依賴一個時鐘 ——
     ///   同一條理由見 `Presence`。
-    public func build(paths: SessionPaths, sessionId: String,
+    public func build(paths: SessionPaths, sessionId: String, facts: TranscriptFacts,
                       sessionStartedAt: Date, now: Date) -> AgentTree {
-        let toolUseIds = Self.toolUseIds(inTranscript: paths.transcript)
         let plain = plainAgents(in: paths.subagents, since: sessionStartedAt, now: now)
         return AgentTree(
             sessionId: sessionId,
-            agents: forest(from: plain, in: paths.subagents,
-                           transcriptToolUseIds: toolUseIds, now: now),
+            agents: forest(from: plain, in: paths.subagents, facts: facts, now: now),
             workflows: workflowGroups(in: paths.subagents, runs: paths.workflowRuns,
                                       since: sessionStartedAt, now: now)
         )
@@ -52,7 +61,7 @@ public struct AgentTreeBuilder: Sendable {
 
     /// 依 `parentAgentId` 組成森林。沒有 parent 的就是根。
     private func forest(from metas: [AgentMeta], in subagents: URL,
-                        transcriptToolUseIds: Set<String>, now: Date) -> [AgentNode] {
+                        facts: TranscriptFacts, now: Date) -> [AgentNode] {
         var childrenOf: [String: [AgentMeta]] = [:]
         var roots: [AgentMeta] = []
         let known = Set(metas.map(\.agentId))
@@ -68,15 +77,23 @@ public struct AgentTreeBuilder: Sendable {
         }
 
         func node(_ m: AgentMeta) -> AgentNode {
-            AgentNode(
+            // ⚠️ **兩種證據，優先序固定。**
+            // 讀到的下場（母 transcript 裡那一筆記錄）勝過活動代理量測 ——
+            // 形狀與 workflow 那邊完全一樣（`terminated ? .finished : journal…`）。
+            // 讀不到下場時才退回推定：transcript 最近還在被寫就當作還在跑
+            // （判準與實測誤差見 `AgentActivity`），推不出來就維持 `.unknown` ——
+            // **不推定「已完成」**，那需要證據。
+            let outcome = facts.outcomes[m.agentId]?.kind
+            let state: AgentRunState = outcome != nil
+                ? .finished
+                : (Self.isLikelyRunning(agentId: m.agentId, in: subagents, now: now)
+                    ? .likelyRunning : .unknown)
+            return AgentNode(
                 meta: m,
-                // 一般 Agent subagent 磁碟上沒有任何狀態欄位，所以這裡是**推定**的：
-                // transcript 最近還在被寫就當作還在跑。判準與實測誤差見 `AgentActivity`。
-                // 推不出來時維持 `.unknown` —— **不推定「已完成」**，那需要證據。
-                runState: Self.isLikelyRunning(agentId: m.agentId, in: subagents, now: now)
-                    ? .likelyRunning : .unknown,
+                runState: state,
+                outcome: outcome,
                 children: (childrenOf[m.agentId] ?? []).sorted { $0.agentId < $1.agentId }.map(node),
-                isLinkedToTranscript: m.toolUseId.map(transcriptToolUseIds.contains) ?? false
+                isLinkedToTranscript: m.toolUseId.map(facts.toolUseIds.contains) ?? false
             )
         }
         return roots.map(node)
@@ -147,24 +164,5 @@ public struct AgentTreeBuilder: Sendable {
         // `WindowExpiry.horizon` 有、`AgentActivity.futureTolerance` 今天補了）。
         guard mtime.timeIntervalSince(now) <= AgentActivity.futureTolerance else { return false }
         return mtime > start
-    }
-
-    // ── 協調者 transcript ──────────────────────────────────────
-
-    /// 收集母 transcript 裡所有 tool_use 的 id，用來確認一般 agent 的 toolUseId 真的配得上。
-    static func toolUseIds(inTranscript url: URL) -> Set<String> {
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else { return [] }
-        var ids: Set<String> = []
-        for line in text.split(separator: "\n") {
-            guard let data = line.data(using: .utf8),
-                  let d = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
-                  let message = d["message"] as? [String: Any],
-                  let content = message["content"] as? [[String: Any]]
-            else { continue }
-            for block in content where block["type"] as? String == "tool_use" {
-                if let id = block["id"] as? String { ids.insert(id) }
-            }
-        }
-        return ids
     }
 }
