@@ -70,6 +70,12 @@ final class DataStore {
     private let statusLineReader = StatusLineCacheReader()
     private let pruner = StatusLineCachePruner()
     private let history = UsageHistory()
+
+    /// 「那一天沒用量」與「那一天我們沒在看」分得開，靠的是它。
+    /// ⚠️ 刻意寫在**另一個檔案**，`usage-history.jsonl` 的語意一個字都不動 ——
+    /// 理由（以及這一步為什麼曾經被擱置）見 `WatchLog` 的檔頭。
+    private let watchLog = WatchLog()
+    private var lastWatchMark: Date?
     private let registry = SessionRegistryReader()
     /// 通知的決策層。`var` 因為 `update` 是 mutating。
     private var notifier = NotificationEngine()
@@ -147,6 +153,18 @@ final class DataStore {
     /// 然後呼叫 `refresh()`，從來不呼叫 `start()` —— 種在 start 裡的話，
     /// 診斷指令畫出來的面板永遠沒有箭頭，而那正是要用它檢查的東西。
     private(set) var recentSamples: [UsageSample] = []
+
+    /// 每日長條圖要的那一份。
+    ///
+    /// ⚠️ **不可以把 `sampleWindow` 從 24 小時放大到 7 天** —— 那個常數餵的是
+    /// `UsageBurn` 的分段迴歸，放大它會靜靜地改掉燒量速率看到的東西。
+    /// 這裡另外留一份，多留一天當緩衝（窗口邊界附近要取得到「邊界當下的值」）。
+    private(set) var weekSamples: [UsageSample] = []
+    static let weekWindow: TimeInterval = 8 * 86400
+
+    /// 心跳與開機標記。`DailyUsage` 靠它分辨「那天沒用」與「那天我們沒在看」。
+    /// ⚠️ 開機時讀一次，之後只追加我們自己寫出去的那些 —— 這個檔案只有我們在寫。
+    private(set) var watchMarks: [WatchLog.Mark] = []
     private var samplesSeeded = false
     /// 只有真的在跑的 app 會寫時間序列。
     ///
@@ -168,6 +186,15 @@ final class DataStore {
     /// tee 寫出來的快取目錄。路徑常數在 Core，與 shell wrapper 有測試對帳。
     private var statusLineCache: URL { StatusLineCacheReader.defaultDirectory(home: home) }
     private var historyFile: URL { UsageHistory.defaultURL(home: home) }
+    private var watchLogFile: URL { WatchLog.defaultURL(home: home) }
+
+    /// 每日長條圖的七根。⚠️ 判準全部在 `DailyUsage`（Core），這裡只餵資料。
+    /// 沒有 7 天窗口的重置時間就畫不出來 —— 那不是「全部 0%」，是「沒有這張圖」。
+    var dailyBars: [DailyUsageBar]? {
+        guard let resetsAt = usage?.sevenDay?.resetsAt else { return nil }
+        return DailyUsage.bars(samples: weekSamples, marks: watchMarks,
+                               resetsAt: resetsAt, now: lastRefresh)
+    }
     private var notifyStateFile: URL { NotifyState.defaultURL(home: home) }
     private var preferencesFile: URL { Preferences.defaultURL(home: home) }
 
@@ -194,6 +221,10 @@ final class DataStore {
         if let saved = NotifyState.load(notifyStateFile) {
             notifier.restore(mutedUntil: saved.mutedUntil)
         }
+        // ⚠️ 開機標記要在 `recordsHistory` 之前寫：它標的是「這裡是一次執行的起點」，
+        // 而心跳的空隙**推不出**「重開了」還是「機器睡著了」—— 睡醒不會有 boot。
+        watchLog.append(WatchLog.Mark(at: Date(), kind: .boot), to: watchLogFile)
+        lastWatchMark = Date()
         recordsHistory = true
         deliversNotifications = true
         detectsCompletions = true
@@ -270,8 +301,11 @@ final class DataStore {
         // 都要靠自己累積。數字沒變就不寫 —— 三秒輪詢一天會問兩萬多次。
         if !samplesSeeded {
             samplesSeeded = true
-            recentSamples = history.read(historyFile, now: now)
-                .filter { now.timeIntervalSince($0.at) <= Self.sampleWindow }
+            // ⚠️ 只讀一次檔案，兩個視窗各自過濾 —— 讀兩次等於把成本翻倍。
+            let all = history.read(historyFile, now: now)
+            recentSamples = all.filter { now.timeIntervalSince($0.at) <= Self.sampleWindow }
+            weekSamples = all.filter { now.timeIntervalSince($0.at) <= Self.weekWindow }
+            watchMarks = watchLog.read(watchLogFile)
         }
 
         if recordsHistory,
@@ -280,6 +314,7 @@ final class DataStore {
             if history.append(sample, to: historyFile) {
                 lastRecorded = sample
                 recentSamples.append(sample)
+                weekSamples.append(sample)
             }
         }
 
@@ -287,9 +322,22 @@ final class DataStore {
             pruner.prune(directory: statusLineCache, now: now)
             lastPrune = now
         }
+        // 心跳。⚠️ 與歷史同一個閘（`recordsHistory`）—— 診斷指令不可以留下心跳，
+        // 否則「那時 app 醒著」會被一支跑了兩秒就結束的 CLI 汙染。
+        if recordsHistory, WatchLog.shouldWrite(lastWatchMark: lastWatchMark, now: now) {
+            let mark = WatchLog.Mark(at: now, kind: .heartbeat)
+            if watchLog.append(mark, to: watchLogFile) {
+                lastWatchMark = now
+                watchMarks.append(mark)
+            }
+        }
+
         if now.timeIntervalSince(lastHistoryPrune) > UsageHistory.pruneInterval {
             history.prune(historyFile, now: now)
+            watchLog.prune(watchLogFile, now: now)
             recentSamples.removeAll { now.timeIntervalSince($0.at) > Self.sampleWindow }
+            weekSamples.removeAll { now.timeIntervalSince($0.at) > Self.weekWindow }
+            watchMarks.removeAll { now.timeIntervalSince($0.at) > WatchLog.retention }
             lastHistoryPrune = now
         }
 

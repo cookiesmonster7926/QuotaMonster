@@ -113,6 +113,12 @@ struct PanelView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .textSelection(.enabled)   // 指令要能複製走
             }
+            // 每日長條圖。⚠️ 沒有 7 天窗口的重置時間就**整個不畫** ——
+            // 那不是「七根都是 0%」，是「這張圖畫不出來」（規矩 2）。
+            if let bars = store.dailyBars {
+                Divider().opacity(0.4).padding(.vertical, 1)
+                DailyBarChart(bars: bars)
+            }
         }
         .padding(.horizontal, 14).padding(.vertical, 11)
         // ⚠️ 沒有這一行，額度區塊會被撐高。

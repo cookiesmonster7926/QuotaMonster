@@ -61,7 +61,9 @@ enum Dump {
 
         // ── 最後採用哪一個 ──────────────────────────────────────
         print(String(repeating: "·", count: 58))
-        if let picked = UsageSourceSelector.pick(claudeJSON: fromClaudeJSON,
+        let pickedUsage = UsageSourceSelector.pick(claudeJSON: fromClaudeJSON,
+                                                  statusLine: payloads, now: now)
+        if let picked = pickedUsage ?? UsageSourceSelector.pick(claudeJSON: fromClaudeJSON,
                                                  statusLine: payloads, now: now) {
             let label = picked.source == .statusLine ? "statusline tee（來源 B）"
                                                      : "~/.claude.json（來源 A）"
@@ -173,6 +175,44 @@ enum Dump {
             print("  \(mark) \(name.padded(14)) \(s.project.padded(22)) "
                   + "pid \(s.session.pid)\(reason)")
         }
+        // ── 每日長條圖 ──────────────────────────────────────────
+        // ⚠️ 面板上那七根看起來一樣的「很矮」與「不知道」差很多，
+        // 而圖上分不出一根 3% 與一根 0%。這裡印出數字。
+        print(String(repeating: "─", count: 58))
+        let barsOrNil = pickedUsage?.snapshot.sevenDay?.resetsAt.map {
+            DailyUsage.bars(samples: UsageHistory().read(UsageHistory.defaultURL(home: home), now: now),
+                            marks: WatchLog().read(WatchLog.defaultURL(home: home)),
+                            resetsAt: $0, now: now)
+        }
+        if let bars = barsOrNil {
+            let f = DateFormatter(); f.dateFormat = "M/d HH:mm"
+            print("每日     7 天視窗切成七天（邊界＝resetsAt−7天，不是午夜）")
+            var sum = 0
+            for b in bars {
+                let what: String
+                switch b.state {
+                case .notYet:              what = "還沒到"
+                case .unknown:             what = "不知道（那時沒在看）"
+                case .measured(let p):     what = "\(p)%"; sum += p
+                case .unverified(let p):   what = "\(p)%  ⚠️ 日界附近沒紀錄，歸屬可能落在隔壁"; sum += p
+                }
+                print("  \(f.string(from: b.start)) → \(f.string(from: b.end))   \(what)")
+            }
+            // ⚠️ 「相加＝7 天已用」只在**七根都說得出數字**時才成立。
+            // 有 unknown 的時候它本來就對不上 —— 把那句話無條件印出來，
+            // 使用者會去追一個不存在的 bug（規矩 28）。
+            let gaps = bars.filter { $0.state == .unknown }.count
+            let pending = bars.filter { $0.state == .notYet }.count
+            if gaps == 0 && pending == 0 {
+                print("  七根相加 = \(sum)%   ← 必須等於上面 7 天那一欄，不等就是有 bug")
+            } else {
+                print("  已知的相加 = \(sum)%"
+                      + "（\(gaps) 天不知道、\(pending) 天還沒到，所以**不會**等於 7 天那一欄）")
+            }
+        } else {
+            print("每日     畫不出來：沒有 7 天窗口的重置時間")
+        }
+
         // ── agent 樹 ────────────────────────────────────────────
         print(String(repeating: "─", count: 58))
         let projects = home.appendingPathComponent(".claude/projects")

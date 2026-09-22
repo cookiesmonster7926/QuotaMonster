@@ -79,6 +79,7 @@
 | `preferences.json` | 你在偏好設定裡選的東西（音效名稱、門檻、開關） | app |
 | `notify-state.json` | 只有 `mutedUntil`（靜音到什麼時候） | app |
 | `usage-history.jsonl` | 額度時間序列，一行就是 `{時間, 5h%, 7d%}`，**沒有任何文字內容** | app |
+| `watch-log.jsonl` | **只有時間戳與一個 `hb`／`boot` 標記**，沒有任何額度數字、路徑或內容。用途是分辨「那天你沒用」與「那天 app 沒開」——每日長條圖靠它才不會把後者畫成前者。300 秒一行，保留 30 天 | app |
 | `trace-usage.log` | 選用的量測記錄。**預設完全不寫** —— 只有你自己 `touch trace-usage.on` 才會開始記 | statusline tee |
 
 ⚠️ **`statusline/<session_id>.json` 是這些檔案裡最敏感的一個**，因為它是 payload 原文。
