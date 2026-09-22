@@ -465,6 +465,21 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 - **證據**：DailyUsage.swift（`CumulativePoint.contradictsEarlier`、`cumulativeLegend`）、
   CumulativeChart.swift:`segments`、DailyUsageTests.swift（`CumulativeTests` 後六則）
 
+**46. 本機編得過不代表 CI 編得過 —— 而且差異是靜默的，只會在 CI 第一次跑才爆。**
+
+- **為什麼**：開發機的 `xcode-select` 指向 CommandLineTools（Swift 6.3.3），
+  CI 的 macos runner 用完整 Xcode（Swift 6.2.3）。**沒有任何本機指令看得到這個差**。
+- **付過的代價，兩次，都是型別推論**：
+  1. `StatusLineCachePrunerTests` 把 `Int` 當 `TimeInterval` 用，6.3.3 過、6.2.3 不過。
+  2. 〔2026-09-22〕`cos(a)` / `sin(a)` 對一個 `CGFloat` 是**歧義**的 ——
+     arm64 上 `CGFloat == Double`，於是 CoreGraphics 的 `cos(CGFloat)` 與
+     `_math` 的 `cos(Double)` 兩個多載一樣好。本機過、CI 紅。
+- **怎麼避開**：算術一律先 `Double(...)` 轉明確；能不用三角函式就不用
+  （那一則測試改成「先平均 RGB 再換算一次色相」，**前提是一條弧只有一個顏色**，
+  而那個前提在這裡本來就成立）。
+- ⚠️ **加 CI 的價值有一半在這裡**，不是在「跑一次測試」——
+  本機的 632 則全綠，CI 連編都編不過。
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**

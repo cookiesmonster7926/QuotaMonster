@@ -191,26 +191,32 @@ struct GlyphRendererTests {
 
     /// 這一圈（以 `band` 的中線為半徑）上，有顏色的像素平均色相是幾度。
     /// 白色的暗軌沒有飽和度，所以會被自動濾掉。nil = 這一圈根本沒有上色的像素。
+    ///
+    /// ⚠️ 先平均 RGB 再換算一次色相，不是平均色相本身 ——
+    /// 色相是角度，直接平均會在 0°/360° 的接縫上出錯。
+    /// **成立的前提是「一條弧只有一個顏色」**，這裡本來就是。
+    /// （第一版走單位向量求圓平均，`cos`/`sin` 在 CI 的工具鏈上歧義 —— 見規矩 46。）
     func arcHue(_ rep: NSBitmapImageRep, _ band: GlyphGeometry.Band) -> Double? {
         let c = GlyphGeometry.centre.x * CGFloat(Self.scale)
         let r = band.centreline * CGFloat(Self.scale)
         let half = band.stroke * CGFloat(Self.scale) / 2 * 0.5
-        var xs = 0.0, ys = 0.0, n = 0
+        var red = 0.0, green = 0.0, blue = 0.0, n = 0.0
         for px in 0..<rep.pixelsWide {
             for py in 0..<rep.pixelsHigh {
                 let d = hypot(CGFloat(px) + 0.5 - c, CGFloat(py) + 0.5 - c)
                 guard abs(d - r) < half,
                       let p = rep.colorAt(x: px, y: py)?.usingColorSpace(.sRGB),
                       p.alphaComponent > 0.5, p.saturationComponent > 0.25 else { continue }
-                // 色相是角度，直接平均會在 0°/360° 的接縫上出錯 —— 走單位向量。
-                let a = p.hueComponent * 2 * .pi
-                xs += cos(a); ys += sin(a); n += 1
+                red += Double(p.redComponent)
+                green += Double(p.greenComponent)
+                blue += Double(p.blueComponent)
+                n += 1
             }
         }
         guard n > 20 else { return nil }
-        var deg = atan2(ys, xs) * 180 / .pi
-        if deg < 0 { deg += 360 }
-        return deg
+        let avg = NSColor(srgbRed: CGFloat(red / n), green: CGFloat(green / n),
+                          blue: CGFloat(blue / n), alpha: 1)
+        return Double(avg.hueComponent) * 360
     }
 
     func twoArcs(five: Double?, seven: Double?,
