@@ -103,18 +103,42 @@ struct AgentTallyTests {
         #expect(try #require(t.collapsedText) == "1 個 agent 失敗")
     }
 
-    @Test("用詞與 workflow 那一行完全一樣 —— 同一件事不可以兩套語彙")
+    @Test("⚠️ 用詞與 workflow 那一行逐字一樣 —— 真的去問 WorkflowTally，不是抄一份字串進來")
     func theVocabularyMatchesTheWorkflowLine() {
-        let agent = AgentTally([node("a", .finished, .completed)]).collapsedText ?? ""
-        for word in ["已完成"] { #expect(agent.contains(word)) }
-        // WorkflowTally 用的是「已完成 / 失敗 / 已停止 / 狀態不明」——
-        // 兩邊的字面量各自寫死在自己的檔案裡，所以這一則是唯一會在它們漂開時變紅的東西。
-        let workflowWords = ["已完成", "失敗", "已停止", "狀態不明"]
-        let all = AgentTally([
+        // ⚠️ **這一則原本什麼都沒保護。**〔code review 2026-09-22〕它把
+        // 「已完成 / 失敗 / 已停止 / 狀態不明」四個字硬寫在測試裡，然後斷言
+        // `AgentTally` 含有它們 —— 那只證明 `AgentTally` 抄對了測試，
+        // 不證明兩個 tally 講同一套話。`WorkflowTally` 改掉任何一個字，它照樣綠。
+        // 而它的註解還寫著「這一則是唯一會在它們漂開時變紅的東西」——
+        // 一句把自己說成守門員的假話，比沒有守門員更糟。
+        //
+        // 現在它真的去問 WorkflowTally 要那四個詞。
+        let wf = WorkflowTally([
+            group("w1", "completed"), group("w2", "failed"),
+            group("w3", "killed"), group("w4", nil),
+        ]).collapsed.map(\.text)
+        let ag = AgentTally([
             node("a", .finished, .completed), node("b", .finished, .failed),
             node("c", .finished, .killed), node("d", .unknown, nil),
-        ]).collapsedText ?? ""
-        for w in workflowWords { #expect(all.contains(w)) }
+        ]).collapsed.map(\.text)
+
+        #expect(wf.count == 4)
+        #expect(ag.count == 4)
+        // 兩邊逐格比對：只有名詞（workflow / agent）那一個字可以不同。
+        for (w, a) in zip(wf, ag) {
+            #expect(w.replacingOccurrences(of: " workflow ", with: " agent ") == a,
+                    "兩個 tally 的用詞漂開了：workflow 說「\(w)」，agent 說「\(a)」")
+        }
+    }
+
+    /// 造一個已經收尾的 workflow 群組。
+    func group(_ id: String, _ status: String?) -> WorkflowGroup {
+        WorkflowGroup(workflowId: id, latestPhase: nil,
+                      agents: [AgentNode(meta: AgentMeta(agentId: "\(id)-a",
+                                                         agentType: "workflow-subagent",
+                                                         description: "d", spawnDepth: 1),
+                                         runState: .finished)],
+                      runStatus: status, runDuration: nil)
     }
 
     @Test("還在跑的那些不進任何一格")

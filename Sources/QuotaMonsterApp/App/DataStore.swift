@@ -451,7 +451,7 @@ final class DataStore {
             watched.insert(paths.transcript)
         }
         trees = built
-        // session 死了就放掉它的事實 —— 一份 13MB transcript 的 toolUseIds
+        // session 死了就放掉它的事實 —— 一份 16.1MB transcript 的 toolUseIds
         // 不是可以忽略的記憶體（規矩 42 的記憶體版本）。
         transcripts.keep(only: watched)
 

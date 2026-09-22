@@ -183,7 +183,7 @@ bash scripts/test_install_statusline_tee.sh
 ```
 
 **接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 48 條不可違反的規矩、
-16 條寫下來的拒絕、32 處「曾經這樣想、後來被資料推翻」，每一條都附證據。
+16 條寫下來的拒絕、33 處「曾經這樣想、後來被資料推翻」，每一條都附證據。
 
 > ⚠️ **`docs/build-log.md` 是施工紀錄，不是現況。** 它裡面有**已知是錯的敘述**
 > （哪些錯了列在 `docs/quotamonster.md` 第三節）。不要拿它當文件讀。

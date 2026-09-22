@@ -110,7 +110,7 @@ enum TraceFinishes {
 
             let glow = FinishGlow.menuBar(Array(finishes.values), now: now)
             // ⚠️ **不亮有三個不同的原因，而它們長得一模一樣。**
-            // 〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕產生了 8 個標記，
+            // 〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕產生了 7 個標記，
             // 選單列**一次都沒亮**。光看「選單列 none」分不出是哪一種：
             //   (a) 沒有標記   (b) 最新那個 `ranFor == nil`（算不出跑多久）
             //   (c) 最新那個跑得不夠久（< minimumInterestingRun 600 秒）

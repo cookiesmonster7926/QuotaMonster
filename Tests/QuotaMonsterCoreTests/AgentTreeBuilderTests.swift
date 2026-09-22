@@ -127,24 +127,72 @@ struct AgentTreeBuilderTests {
                 "`.running` 是 journal 讀到的那一種，一般 agent 沒有 journal")
     }
 
-    @Test("讀到終端狀態時，一般 agent 就是 finished，而且帶著真實下場")
-    func plainAgentBecomesFinishedWhenTheEvidenceIsRead() throws {
+    /// 餵一筆終端記錄給某一隻 fixture agent，回傳那個節點。
+    func node(_ agentId: String, outcome: String) throws -> AgentNode {
         let root = try Fixture.projectsRoot()
         let paths = try #require(SessionDirectoryResolver()
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
-        // 挑一隻 fixture 裡真的存在、而且**現在被判成還在跑**的 agent，
-        // 給它一筆終端記錄 —— 讀到的下場必須勝過活動代理量測。
         var facts = TranscriptFacts()
-        facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>plain1</task-id>\n<status>failed</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
-
+        facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>"#
+            + agentId + #"</task-id>\n<status>"# + outcome
+            + #"</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
         let t = AgentTreeBuilder().build(paths: paths, sessionId: Fixture.agentSessionId,
                                          facts: facts,
                                          sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
-        let n = try #require(t.agents.first { $0.meta.agentId == "plain1" })
-        #expect(n.outcome == .failed)
-        // ⚠️ 這隻在上一則裡是 `.likelyRunning`（它的 transcript 剛被寫過）——
-        // 正面證據必須勝過代理量測，形狀與 workflow 那邊一樣。
+        return try #require(t.agents.first { $0.meta.agentId == agentId })
+    }
+
+    @Test("⚠️ 讀到 completed **不代表**它停了 —— 還在寫就還是在跑")
+    func aCompletedNotificationDoesNotOverrideLiveActivity() throws {
+        // ⚠️ 這一則是 code review 抓到的，而且是拿**真實資料**重現的：
+        // agent `ad3e01f33c6a06e3b` 在 06:46:42 發出 `<status>completed</status>`，
+        // 然後**繼續產出新的內容** 106 秒（18 則通知，`<result>` 內容各不相同），
+        // 最後在 06:48:28 被 `killed`。那 106 秒裡它自己的 transcript 一直在被寫，
+        // 所以 `isLikelyRunning` 是 true —— 但第一版讓 outcome 無條件勝出，
+        // 於是那一列**從面板上消失**，收合那一行還宣告「1 個 agent 已完成」。
+        //
+        // ⚠️ 第一版的註解拿 workflow 那邊類比（`terminated ? .finished : journal…`），
+        // **那個類比正是 bug**：workflow 的 `terminated` 真的是終結，
+        // 而 agent 的 `completed` 我們自己在 `AgentOutcome.outcomes` 的檔頭就寫著
+        // 「『完成』的意思是『這一次停下來了』，不是『從此結束』」。
+        // 一份說一套、一份做另一套。
+        let n = try node("plain1", outcome: "completed")
+        #expect(n.runState == .likelyRunning, "它還在寫 —— 不可以因為讀到一筆 completed 就說它結束了")
+        // ⚠️ 下場仍然留在節點上：那是另一個問題的答案（「它上一次回報什麼」）。
+        #expect(n.outcome == .completed)
+    }
+
+    @Test("還在跑的那一隻仍然要有自己一列，不可以被收進「已完成」")
+    func aLiveAgentKeepsItsOwnRow() throws {
+        let root = try Fixture.projectsRoot()
+        let paths = try #require(SessionDirectoryResolver()
+            .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
+        var facts = TranscriptFacts()
+        facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>plain1</task-id>\n<status>completed</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
+        let t = AgentTreeBuilder().build(paths: paths, sessionId: Fixture.agentSessionId,
+                                         facts: facts,
+                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
+        let tally = AgentTally(t.agents)
+        #expect(tally.outstanding.contains { $0.meta.agentId == "plain1" },
+                "面板上那一列不可以因為一筆非終結的 completed 就消失")
+    }
+
+    @Test("⚠️ killed 是唯一真的終結的 —— 那是你自己按的 TaskStop")
+    func killedIsTerminalEvenWhileTheFileIsStillWarm() throws {
+        // 其餘兩種（completed / failed）都可能後面還有下文；`killed` 不會。
+        // 而且被停掉之後那個檔案還會「溫」上一段時間（最多 `AgentActivity.window` 120 秒）——
+        // 那段時間說它「還在跑」，是在對一件使用者剛剛親手做的事說反話。
+        let n = try node("plain1", outcome: "killed")
         #expect(n.runState == .finished)
+        #expect(n.outcome == .killed)
+    }
+
+    @Test("安靜下來之後，讀到的下場才接手")
+    func aQuietAgentTakesItsOutcome() throws {
+        // `minimal` 的 mtime 被蓋成 300 秒前 —— 超過 AgentActivity.window（120 秒）。
+        let n = try node("minimal", outcome: "failed")
+        #expect(n.runState == .finished)
+        #expect(n.outcome == .failed)
     }
 
     @Test("不得單用 mtime 門檻判死活 —— 實測有 agent 失敗後僅 153 秒就被觀察到")

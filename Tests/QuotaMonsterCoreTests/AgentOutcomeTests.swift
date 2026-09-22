@@ -69,7 +69,22 @@ struct AgentOutcomeTests {
     }
 
     @Test("⚠️ 沒有 <status> 的區塊不是完成 —— 那是進度回報")
-    func aBlockWithoutStatusIsNotACompletion() throws {
+    func aBlockWithoutStatusIsNotACompletion() {
+        // ⚠️ **這一則原本是空的。**〔code review 2026-09-22〕它餵的是
+        // `notify-no-status` fixture，而那一份的 summary 是 `Monitor event: "…"` ——
+        // 於是它被**上一道** summary 守衛擋掉，`<status>` 那道守衛根本沒被走到。
+        // 把 status 守衛整個拿掉，675 則測試全綠。
+        //
+        // 所以這裡用合成的一行（這個 suite 本來就有合成行的先例）：
+        // summary 是 Agent 的，**只有 status 缺席**，這樣能讓它變紅的就只剩那一道守衛。
+        var f = TranscriptFacts()
+        f.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>a5151515151515151</task-id>\n<summary>Agent \"x\" is still working</summary>\n<event>還在跑</event>\n</task-notification>"}"#)
+        #expect(f.outcomes.isEmpty)
+    }
+
+    @Test("真實的那一份進度回報（Monitor event）也不算完成 —— 它連 summary 那關都過不了")
+    func theRealMonitorPingIsAlsoNotACompletion() throws {
+        // 上一則釘 status 守衛，這一則釘 summary 守衛。兩道都要有人守。
         let f = try facts(["notify-no-status"])
         #expect(f.outcomes.isEmpty)
     }

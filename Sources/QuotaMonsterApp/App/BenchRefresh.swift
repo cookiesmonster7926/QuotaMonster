@@ -23,8 +23,13 @@ enum BenchRefresh {
         let store = DataStore()
         var ms: [Double] = []
         for _ in 0..<max(iterations, 2) {
+            // ⚠️ `autoreleasepool` 不可省，而且要**包在計時裡面**。
+            // 這支是純 CLI 迴圈，沒有 runloop 幫忙排乾 pool ——〔code review 2026-09-22〕
+            // 少了它每拍 RSS 長約 5MB 且不封頂，跑久了量到的就不只是 refresh 的成本。
+            // 放在計時窗口內是因為排乾的成本本來就屬於那一拍
+            // （與這個檔頭「第一拍與其餘分開報」同一條理由）。
             let t0 = DispatchTime.now().uptimeNanoseconds
-            store.refresh()
+            autoreleasepool { store.refresh() }
             let t1 = DispatchTime.now().uptimeNanoseconds
             ms.append(Double(t1 - t0) / 1_000_000)
         }

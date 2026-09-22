@@ -104,8 +104,27 @@ struct TranscriptWatcherTests {
         _ = w.update(a); _ = w.update(b)
         w.keep(only: [a])
         #expect(w.watchedCount == 1)
-        // 留下來的那一份的事實也要還在（不是重新讀一次）。
+        // ⚠️ 這裡原本只斷言「`update(a)` 還看得到一筆」——〔code review 2026-09-22〕
+        // **那個斷言是空的**：重新整份讀一次也會看到一筆。
+        // 分得出兩者的只有「有沒有再解析一次」。
+        let before = w.linesIngested
         #expect(w.update(a).outcomes.count == 1)
+        #expect(w.linesIngested == before, "留下來的那一份被重新解析了 —— 游標沒有跟著留下")
+    }
+
+    @Test("⚠️ 沒有新東西時一行都不重新解析 —— 這一層的存在理由，唯一釘得住它的斷言")
+    func nothingIsReParsedWhenTheFileHasNotGrown() throws {
+        let url = try file(notify("a1", "completed") + notify("a2", "completed"))
+        var w = TranscriptWatcher()
+        _ = w.update(url)
+        #expect(w.linesIngested == 2)
+        // 再問十次，一行都不該被重新解析。
+        for _ in 0..<10 { _ = w.update(url) }
+        #expect(w.linesIngested == 2, "每拍重新解析整份 —— 那正是要修掉的 1004 毫秒")
+        // 追加一行才會多一行。
+        try append(notify("a3", "completed"), to: url)
+        _ = w.update(url)
+        #expect(w.linesIngested == 3)
     }
 
     @Test("⚠️ 舊的行不會被重新解析 —— 這是這一層唯一的存在理由")

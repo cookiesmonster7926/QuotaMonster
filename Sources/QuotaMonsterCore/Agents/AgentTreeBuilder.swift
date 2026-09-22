@@ -29,7 +29,7 @@ public struct AgentTreeBuilder: Sendable {
     /// - Parameter facts: 母 transcript 讀出來的事實（`TranscriptWatcher.update`）。
     ///   ⚠️ **刻意不給預設值，也刻意不在這裡自己讀檔。** 這支函式每 3 秒被呼叫一次，
     ///   而它原本自己 `String(contentsOf:)` 整份 transcript ——〔實測 2026-09-22〕
-    ///   `refresh()` 的穩態中位因此是 1004 毫秒，一拍只有 3000。
+    ///   `refresh()` 的穩態中位因此是 740 毫秒，一拍只有 3000。
     ///   把讀檔移到呼叫端，增量游標才有地方活著。
     /// - Parameter now: ⚠️ **刻意不給預設值。** 一般 Agent subagent 的執行狀態是
     ///   從 transcript 的 mtime 推定的（見 `AgentActivity`），所以「現在幾點」
@@ -77,17 +77,40 @@ public struct AgentTreeBuilder: Sendable {
         }
 
         func node(_ m: AgentMeta) -> AgentNode {
-            // ⚠️ **兩種證據，優先序固定。**
-            // 讀到的下場（母 transcript 裡那一筆記錄）勝過活動代理量測 ——
-            // 形狀與 workflow 那邊完全一樣（`terminated ? .finished : journal…`）。
-            // 讀不到下場時才退回推定：transcript 最近還在被寫就當作還在跑
-            // （判準與實測誤差見 `AgentActivity`），推不出來就維持 `.unknown` ——
-            // **不推定「已完成」**，那需要證據。
+            // ⚠️ **兩種證據，優先序固定 —— 而且順序不是直覺的那一個。**
+            //
+            // 第一版寫的是「讀到的下場勝過活動代理量測，形狀與 workflow 那邊一樣
+            // （`terminated ? .finished : journal…`）」。**那個類比就是 bug**：
+            // workflow 的 `terminated` 真的是終結，一般 agent 的 `completed` **不是** ——
+            // 我們自己在 `TranscriptFacts.outcomes` 的檔頭就寫著
+            // 「『完成』的意思是『這一次停下來了』，不是『從此結束』」。
+            //
+            // ⚠️〔code review 2026-09-22，拿真實資料重現〕agent `ad3e01f33c6a06e3b`
+            // 在 06:46:42 發出 `completed`，接著**繼續產出新內容 106 秒**
+            // （18 則通知，`<result>` 各不相同），最後在 06:48:28 被 `killed`。
+            // 那 106 秒裡它自己的 transcript 一直在被寫，而第一版讓 outcome 勝出 ——
+            // 於是那一列**從面板上消失**，收合那一行還宣告「1 個 agent 已完成」。
+            //
+            // 正確的順序來自「這一格在回答什麼」：`runState` 問的是**現在還在不在跑**，
+            // 而唯一關於「現在」的證據是活動代理量測。過去那一筆 `completed`
+            // 回答的是另一個問題，所以它留在 `outcome` 那一格。
+            //
+            // `killed` 是唯一的例外，因為它**真的**是終結：那是使用者自己按的 TaskStop，
+            // 沒有東西會把它重新啟動。而被停掉之後檔案還會「溫」上一段時間
+            // （最多 `AgentActivity.window` 120 秒）—— 那段時間說它還在跑，
+            // 是在對一件使用者剛剛親手做的事說反話。
             let outcome = facts.outcomes[m.agentId]?.kind
-            let state: AgentRunState = outcome != nil
-                ? .finished
-                : (Self.isLikelyRunning(agentId: m.agentId, in: subagents, now: now)
-                    ? .likelyRunning : .unknown)
+            let state: AgentRunState
+            if outcome == .killed {
+                state = .finished
+            } else if Self.isLikelyRunning(agentId: m.agentId, in: subagents, now: now) {
+                state = .likelyRunning
+            } else if outcome != nil {
+                state = .finished
+            } else {
+                // 推不出來就維持 `.unknown` —— **不推定「已完成」**，那需要證據。
+                state = .unknown
+            }
             return AgentNode(
                 meta: m,
                 runState: state,
