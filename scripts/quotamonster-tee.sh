@@ -130,6 +130,14 @@ fi
 # 快取檔只留最新一份，所以歷史在那裡看不到。這支 log 補的就是那段歷史：
 # 每一次渲染都記一行，於是「渲染了但數字沒變」與「數字變了」在時間軸上分得開。
 #
+# ⚠️ **這支 log 會輪替，上限 1MB。** 它每次渲染寫一行（實測約 150KB／天），
+# 沒有上限就是在使用者磁碟上無限成長 —— 而 `usage-history.jsonl` 與
+# `watch-log.jsonl` 都有 30 天保留，只有它漏掉了（code review 2026-09-22）。
+#
+# ⚠️ 清理由 **wrapper 自己做**，不交給 app：這個檔案是 bash 在 append，
+# 而 app 的 prune 走 tmp + rename 換檔 —— 那會把正在寫的那一行丟掉，
+# 而且兩個寫入者搶同一個檔。
+#
 # 格式（一行一次渲染，tab 分隔）：
 #   <epoch 秒>\t<"rate_limits": 之後到結尾的原文>
 # ⚠️ 第二欄**不是**單獨合法的 JSON —— 它含著 payload 自己的收尾大括號
@@ -155,6 +163,17 @@ if [ -n "$payload" ] && [ "$payload_truncated" -eq 0 ] && [ -n "$trace_to" ]; th
   rl=$(LC_ALL=C
        if [[ $payload =~ \"rate_limits\":(.*)$ ]]; then printf '%s' "${BASH_REMATCH[1]}"; fi)
   [ -n "$rl" ] || rl="(沒有 rate_limits)"
+  # 寫之前看一眼大小。超過就只留後半 —— 要的是「最近的歷史」，不是全部。
+  # `stat` 每次渲染一次，成本可以忽略；真正的砍檔很少發生。
+  trace_max=1048576
+  trace_size=$(stat -f%z "$trace_to" 2>/dev/null || echo 0)
+  if [ "$trace_size" -gt "$trace_max" ] 2>/dev/null; then
+    if tail -c $((trace_max / 2)) "$trace_to" > "$trace_to.tmp" 2>/dev/null; then
+      mv -f "$trace_to.tmp" "$trace_to" 2>/dev/null || rm -f "$trace_to.tmp" 2>/dev/null
+    else
+      rm -f "$trace_to.tmp" 2>/dev/null
+    fi
+  fi
   printf '%s\t%s\n' "$(date +%s)" "$rl" >> "$trace_to" 2>/dev/null || true
 fi
 

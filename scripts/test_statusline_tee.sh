@@ -513,6 +513,39 @@ set -e
 assert "內層設了但不存在時，講的是錯誤而不是內建那一行" \
   "[[ \"\$OUT_BROKEN\" == *'不可執行'* ]]"
 
+# ── shadow log 的輪替 ───────────────────────────────────────────
+# ⚠️ 這支 log 每次渲染寫一行，而且是 **bash 在 append**，所以清理不能交給 app
+#（app 用 tmp + rename 換檔，會把正在寫的那一行丟掉，而且兩個寫入者搶同一個檔）。
+# 由 wrapper 自己在寫之前看一眼大小，超過就砍掉前半。
+echo "▸ shadow log 輪替"
+ROTD="$WORK/rot"; mkdir -p "$ROTD"
+ROTLOG="$ROTD/t.log"
+# 造一個超過上限的檔案
+uv_python=$(command -v python3)
+"$uv_python" - "$ROTLOG" <<'PYEOF'
+import sys
+open(sys.argv[1],'w').write('x'*(1200*1024) + '\n')
+PYEOF
+BEFORE=$(wc -c < "$ROTLOG" | tr -d ' ')
+QM_STATUSLINE_TRACE="$ROTLOG" QM_STATUSLINE_INNER="$WORK/stub-inner.sh" \
+  QM_STATUSLINE_CACHE_DIR="$ROTD" "$WRAPPER" < "$WORK/trace-payload.json" >/dev/null 2>&1 || true
+AFTER=$(wc -c < "$ROTLOG" | tr -d ' ')
+assert "超過上限時會砍掉前半（${BEFORE} → ${AFTER}）" "[[ ${AFTER} -lt ${BEFORE} ]]"
+assert "砍完之後仍然在上限之內" "[[ ${AFTER} -le 1048576 ]]"
+assert "砍完之後新的那一行還是寫得進去" "grep -q 'used_percentage' '$ROTLOG'"
+
+# ⚠️ 沒超過上限時**不可以重寫整個檔**。
+#    比對內容分不出來：`tail -c 512K` 對一個小檔不會損壞任何東西，
+#    所以「一律砍」這個突變在內容比對上照樣過（實測紅 0 則）。
+#    差別在**有沒有重寫**，而那要用 inode 量 —— 與安裝腳本那則同一招。
+SMALL="$ROTD/small.log"; printf 'keep-me\n' > "$SMALL"
+SMALL_INO_BEFORE=$(stat -f%i "$SMALL")
+QM_STATUSLINE_TRACE="$SMALL" QM_STATUSLINE_INNER="$WORK/stub-inner.sh" \
+  QM_STATUSLINE_CACHE_DIR="$ROTD" "$WRAPPER" < "$WORK/trace-payload.json" >/dev/null 2>&1 || true
+assert "沒超過上限時舊內容原封不動" "head -1 '$SMALL' | grep -q 'keep-me'"
+assert "沒超過上限時不重寫整個檔（inode 不變）" \
+  "[[ ${SMALL_INO_BEFORE} == \$(stat -f%i '$SMALL') ]]"
+
 # ── 結果 ─────────────────────────────────────────────────────────
 echo
 REACHED_END=1
