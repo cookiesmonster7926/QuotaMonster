@@ -111,6 +111,33 @@ struct OSAScriptCommandTests {
         "-eproperty p:(do shell script \"touch '\(sentinel.path)'\")"
     }
 
+    /// 把 argv 裡那一段 `display notification …` 換成不做事的。
+    ///
+    /// ### ⚠️ 為什麼一定要有這個東西
+    /// 下面兩則測試會**真的執行** osascript，而真的執行 `display notification`
+    /// 就是**真的在開發者的通知中心留下一則通知**，標題 QuotaMonster、
+    /// 副標 proj、內文就是那一長串 payload。〔實測 2026-09-22〕使用者回報
+    /// 通知中心被洗版 —— 那天為了突變驗證，`scripts/test.sh` 被連續跑了幾十次，
+    /// 每一次都留兩則。**一則有使用者可見副作用的測試，跑得越勤傷害越大。**
+    ///
+    /// ### 為什麼這樣換仍然證明同一件事
+    /// 注入發生在 **getopt 解析期**，早於任何一行 AppleScript 執行 ——
+    /// 而這個替換不動 argv 的**形狀**：一樣三對 `-e`、`--` 在同一格、
+    /// 後面一樣是 body / title / subtitle 三格。被換掉的只有那一段腳本**本文**，
+    /// 而本文對解析毫無影響。控制組（拿掉 `--`）照樣會把 sentinel 建出來，
+    /// 那一則就是這個推論的證人。
+    ///
+    /// ⚠️ 樣板改了而這裡沒換到任何一格時要**當場失敗**，不可以安靜地放行 ——
+    /// 安靜放行的後果就是通知又跑出來，而且沒有人知道為什麼。
+    static func silenced(_ argv: [String]) -> [String] {
+        let out = argv.map {
+            $0.hasPrefix("display notification") ? "return item 1 of argv" : $0
+        }
+        #expect(out != argv, "沒有換掉任何一格 —— `arguments()` 的樣板變了，通知會跑回來")
+        #expect(!out.contains { $0.contains("display notification") })
+        return out
+    }
+
     /// 跑一次 osascript，有上限地等它結束。
     ///
     /// ⚠️ **三個 fd 都要導掉。**〔實測〕探測時有一個案例（`-i` 互動模式）
@@ -156,8 +183,8 @@ struct OSAScriptCommandTests {
         // 一次成功的 RCE 藏在一則錯誤訊息底下。
         guard Self.available else { return }
         try withSentinel { sentinel in
-            Self.run(OSAScriptCommand.arguments(
-                body: Self.payload(touching: sentinel), subtitle: "proj"))
+            Self.run(Self.silenced(OSAScriptCommand.arguments(
+                body: Self.payload(touching: sentinel), subtitle: "proj")))
             #expect(!FileManager.default.fileExists(atPath: sentinel.path),
                     "payload 被執行了 —— `--` 那道防線破了")
         }
@@ -173,8 +200,8 @@ struct OSAScriptCommandTests {
         // 重拼的話，`arguments()` 一改形狀，這個控制組就不再對照同一件事。
         guard Self.available else { return }
         try withSentinel { sentinel in
-            let unguarded = OSAScriptCommand.arguments(
-                body: Self.payload(touching: sentinel), subtitle: "proj")
+            let unguarded = Self.silenced(OSAScriptCommand.arguments(
+                body: Self.payload(touching: sentinel), subtitle: "proj"))
                 .filter { $0 != "--" }
             Self.run(unguarded)
             #expect(FileManager.default.fileExists(atPath: sentinel.path),
