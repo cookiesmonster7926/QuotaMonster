@@ -72,6 +72,16 @@ enum RenderPanel {
         // 所以離線渲染也要照偏好畫，否則這張圖不是「它長什麼樣」，
         // 是「它在預設值下長什麼樣」。
         let store = DataStore()
+        // `--panel simple|full` 與 `--chart` 一樣只覆寫記憶體，不碰使用者的偏好檔。
+        if let i = CommandLine.arguments.firstIndex(of: "--panel"),
+           CommandLine.arguments.count > i + 1,
+           let style = PanelStyle(rawValue: CommandLine.arguments[i + 1]) {
+            var p = store.preferences
+            p.panelStyle = style
+            store.setPreferences(p, persist: false)
+        }
+        FileHandle.standardError.write(
+            Data("面板版面：\(store.panelStyle.label)（\(store.panelStyle.rawValue)）\n".utf8))
         // `--chart daily|cumulative` 只覆寫記憶體，不碰使用者的偏好檔。
         if let i = CommandLine.arguments.firstIndex(of: "--chart"),
            CommandLine.arguments.count > i + 1,
@@ -141,6 +151,16 @@ enum RenderPanel {
         let url = URL(fileURLWithPath: (path as NSString).expandingTildeInPath)
         try? png.write(to: url)
         print("面板已渲染 → \(url.path)  (\(Int(img.size.width))×\(Int(img.size.height))pt)")
+
+        // ⚠️ **簡易版面沒有 session 清單，所以到此為止。**
+        // 下面那段是為了繞過「ScrollView 在 ImageRenderer 下畫成空的」而另外渲染
+        // session 列再接回去 —— 對簡易版面做的話，會寫出一張**使用者看不到的合成圖**，
+        // 那是規矩 28（診斷不可以說謊）。
+        guard store.panelStyle == .full else {
+            FileHandle.standardError.write(
+                Data("簡易版面沒有 session 清單 —— 不另外渲染 rows、也不 splice。\n".utf8))
+            return
+        }
 
         // ScrollView 在 ImageRenderer 底下會畫成空的（已知限制），
         // 所以 session 列另外用一個沒有 ScrollView 的版本渲染，才驗得到 row 版面。

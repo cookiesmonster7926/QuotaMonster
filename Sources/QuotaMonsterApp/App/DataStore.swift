@@ -249,6 +249,16 @@ final class DataStore {
     /// 額度區塊底下要畫哪一種圖。判準與「為什麼這一格可以是旋鈕」見 `ChartStyle`。
     var chartStyle: ChartStyle { preferences.chartStyle ?? .standard }
 
+    /// 下拉面板畫哪一種版面。
+    var panelStyle: PanelStyle { preferences.panelStyle ?? .standard }
+
+    /// 切換版面。⚠️ 走 `setPreferences` 所以會落地 —— 這是使用者直接下的指令。
+    func setPanelStyle(_ s: PanelStyle) {
+        var p = preferences
+        p.panelStyle = s
+        setPreferences(p)
+    }
+
     /// 累計曲線的點。⚠️ 與長條圖吃同一份 `weekSamples`，
     /// 兩張圖不可以各自撈一次資料 —— 那會變成兩份可能不一致的真相。
     var cumulativePoints: [DailyUsage.CumulativePoint]? {

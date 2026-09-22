@@ -160,3 +160,56 @@ struct ChartStylePreferenceTests {
                 "磁碟上出現預設值，新的量測改了預設他就不會跟著走")
     }
 }
+
+/// 下拉面板的版面（使用者 2026-09-22 選了「A 放大鏡」那一版）。
+///
+/// 形狀與 `ChartStyle` 逐字相同，理由也一樣：**它不是門檻，是視圖**。
+/// 選錯的後果是你看到另一個版面 —— 響亮得不能再響亮，所以它過得了
+/// `Preferences` 檔頭那道「調壞的方向是不是無聲的」的關。
+@Suite("PanelStyle")
+struct PanelStyleTests {
+
+    @Test("沒調過時是完整版 —— 簡易頁是加出來的選項，不是取代")
+    func defaultsToFull() {
+        #expect(PanelStyle.standard == .full)
+        #expect((Preferences.empty.panelStyle ?? .standard) == .full)
+    }
+
+    @Test("存得下、讀得回來")
+    func roundTrips() throws {
+        var p = Preferences.empty
+        p.panelStyle = .simple
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-panelstyle-\(UUID().uuidString).json")
+        #expect(Preferences.save(p, to: url))
+        #expect(Preferences.load(url)?.panelStyle == .simple)
+    }
+
+    @Test("⚠️ 沒調過的人磁碟上仍然沒有這個 key")
+    func anUntouchedPreferenceIsAbsentOnDisk() throws {
+        // 規矩：**磁碟上永遠不出現預設值** —— 這樣之後改了預設，沒調過的人會跟著走。
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-panelstyle-\(UUID().uuidString).json")
+        #expect(Preferences.save(Preferences.empty, to: url))
+        let raw = try String(contentsOf: url, encoding: .utf8)
+        #expect(!raw.contains("panelStyle"))
+    }
+
+    @Test("解不出來的值當成沒調過，不是當成簡易版")
+    func anUnknownValueFallsBackToTheDefault() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-panelstyle-\(UUID().uuidString).json")
+        try Data(#"{"panelStyle":"holographic"}"#.utf8).write(to: url)
+        #expect((Preferences.load(url)?.panelStyle ?? .standard) == .full)
+    }
+
+    @Test("切換鍵寫的是**另一邊**的名字")
+    func theToggleShowsTheOtherSide() {
+        // 簡易頁上那顆鍵寫「完整」，完整頁上那顆寫「簡易」——
+        // 按鈕標的是「按下去會到哪裡」，不是「你現在在哪裡」。
+        #expect(PanelStyle.simple.otherLabel == "完整")
+        #expect(PanelStyle.full.otherLabel == "簡易")
+        #expect(PanelStyle.full.other == .simple)
+        #expect(PanelStyle.simple.other == .full)
+    }
+}

@@ -3,7 +3,7 @@ import QuotaMonsterCore
 
 /// 偏好設定。
 ///
-/// ### ⚠️ 這裡只有五格，而那是設計不是省事
+/// ### ⚠️ 這裡只有六格，而那是設計不是省事
 /// 這個 app 有將近三十個門檻。被擋在外面的理由寫在 `Preferences` 的檔頭：
 /// 有量測撐著的界線不給調，兩個方向都無聲的常數也不給調。
 /// **一個好的設定介面的價值一半在於它拒絕暴露什麼。**
@@ -43,6 +43,8 @@ struct PreferencesView: View {
         VStack(alignment: .leading, spacing: 16) {
             Text("偏好設定").font(.system(size: 13, weight: .semibold))
 
+            panelRow
+            Divider().opacity(0.5)
             chartRow
             Divider().opacity(0.5)
             soundRow
@@ -53,12 +55,41 @@ struct PreferencesView: View {
             Divider().opacity(0.5)
             quotaRow
 
-            Text("這裡只有五項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
+            Text("這裡只有六項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
                 .font(.system(size: 9.5)).foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(18)
         .frame(width: 380, alignment: .leading)
+    }
+
+    // ── 面板版面 ───────────────────────────────────────────────
+
+    /// 完整 / 簡易。與「圖表樣式」同一類：**不是門檻，是視圖**，
+    /// 選錯的後果是你看到另一個版面 —— 響亮得不能再響亮。
+    ///
+    /// ⚠️ 面板 footer 上也有一顆同樣作用的鍵。兩個都留著是刻意的：
+    /// 那顆鍵是順手切，這一格是「我想知道有這個選項」。兩邊寫同一個 `panelStyle`，
+    /// 不是兩份狀態。
+    private var panelRow: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            label("下拉面板的版面",
+                  "簡易＝放大的標記＋兩個讀數；完整＝連 session 一起看")
+            HStack(spacing: 8) {
+                cycleButton("chevron.left") { cyclePanel(-1) }
+                Text(store.panelStyle.label)
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(minWidth: 120, alignment: .leading)
+                cycleButton("chevron.right") { cyclePanel(1) }
+                Spacer()
+            }
+        }
+    }
+
+    private func cyclePanel(_ step: Int) {
+        let all = PanelStyle.allCases
+        let i = all.firstIndex(of: store.panelStyle) ?? 0
+        store.setPanelStyle(all[((i + step) % all.count + all.count) % all.count])
     }
 
     // ── 圖表樣式 ───────────────────────────────────────────────

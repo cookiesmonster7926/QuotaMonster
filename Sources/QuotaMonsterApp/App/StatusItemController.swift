@@ -43,6 +43,20 @@ final class StatusItemController {
             self.preferences.show(store: store)
         }
 
+        // ⚠️ 版面切換之後 **下一跳** 重新指派 `popover.contentSize`。
+        // 〔實測 2026-09-22，`--probe-panel-switch`，n=2、兩個方向〕
+        // 翻版面的同一個 tick `fittingSize` 還是舊值，`main.async` 一跳之後就是新值
+        // （594 ↔ 302），之後 1.5 秒都不再變 —— 所以一跳就夠，不必用計時器賭。
+        // ⚠️ 同一次量測也發現 popover 的 **window 自己就跟上了**（620 ↔ 328），
+        // 所以這一行不是為了畫面，是為了讓 `contentSize` 這個屬性不要過期 ——
+        // `panelSize()` 的螢幕高度夾限（規矩 27）之後還要讀它。
+        panel.rootView.onPanelStyleChange = { [weak self] in
+            DispatchQueue.main.async {
+                guard let self, self.popover.isShown else { return }
+                self.popover.contentSize = self.panelSize()
+            }
+        }
+
         item.button?.target = self
         item.button?.action = #selector(togglePanel)
         animator = BreathAnimator { [weak item] image in item?.button?.image = image }

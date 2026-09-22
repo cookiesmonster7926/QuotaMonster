@@ -2,6 +2,45 @@ import Foundation
 
 /// 警示音效要放什麼。
 /// 額度區塊底下那張圖的兩種看法。
+/// 下拉面板畫哪一種版面。
+///
+/// ### 為什麼這可以是一個偏好
+/// `Preferences` 的判準是「**調壞的方向是不是無聲的**」——
+/// 被擋在外面的是 `SoundBudget.capacity` 那種調錯會安靜吞掉通知的東西。
+/// 這一格與 `ChartStyle` 同一類：**它不是門檻，是視圖**，
+/// 選錯的後果是你看到另一個版面，響亮得不能再響亮。
+public enum PanelStyle: String, Equatable, Sendable, Codable, CaseIterable {
+    /// 今天的面板：額度三欄 + 圖表 + session 逐列 + footer。
+    case full
+    /// 簡易頁：放大的選單列標記 + 兩個讀數 + 一行活動摘要。
+    ///
+    /// ⚠️ 它**沒有** session 清單，所以也沒有 `ScrollView` ——
+    /// 高度是純加法。這件事有兩個下游影響，兩個都要記得：
+    /// (1) `RenderPanel` 不可以對它做 `splice()`（那會寫出一張使用者看不到的合成圖）；
+    /// (2) `blockedBanner` 那個沒有上限的 `ForEach` 在這裡沒有 ScrollView 吸收。
+    case simple
+
+    /// ⚠️ 預設是完整版 —— 簡易頁是**加**出來的選項，不是取代。
+    public static let standard: PanelStyle = .full
+
+    public var label: String {
+        switch self {
+        case .full:   return "完整"
+        case .simple: return "簡易"
+        }
+    }
+
+    /// 切換鍵上要寫的字：顯示**另一邊**的名字。
+    public var otherLabel: String { other.label }
+
+    public var other: PanelStyle {
+        switch self {
+        case .full:   return .simple
+        case .simple: return .full
+        }
+    }
+}
+
 public enum ChartStyle: String, Equatable, Sendable, Codable, CaseIterable {
     /// 七根長條，一天一根。回答「哪一天燒了多少」。
     case daily
@@ -91,6 +130,9 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 選錯這一格的後果是**看得見的**（你看到另一張圖），所以它該做成旋鈕。
     public var chartStyle: ChartStyle?
 
+    /// 下拉面板畫哪一種版面。nil ＝ 沒調過，用 `PanelStyle.standard`。
+    public var panelStyle: PanelStyle?
+
     public init(alertSound: AlertSoundChoice? = nil, morningHour: Int? = nil,
                 contextYellow: Int? = nil, contextRed: Int? = nil,
                 quotaCritical: Double? = nil, quotaTight: Double? = nil) {
@@ -114,7 +156,7 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 而一組互相矛盾的門檻比沒有設定更糟。
     public func sanitised() -> Preferences {
         var p = self
-        // chartStyle 不需要夾限：它是列舉，解不出來的值在 decode 時就是 nil。
+        // chartStyle / panelStyle 不需要夾限：它們是列舉，解不出來的值在 decode 時就是 nil。
         p.morningHour = morningHour.map { min(max($0, 0), 23) }
         let y = contextYellow.map { min(max($0, 1), 99) }
         let r = contextRed.map { min(max($0, 2), 100) }

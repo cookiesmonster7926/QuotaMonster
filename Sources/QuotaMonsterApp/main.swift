@@ -237,6 +237,14 @@ if CommandLine.arguments.contains("--dump") {
     exit(0)
 }
 
+if CommandLine.arguments.contains("--probe-panel-switch") {
+    let app = NSApplication.shared
+    app.setActivationPolicy(.accessory)
+    let d = MainActor.assumeIsolated { PanelSwitchDelegate() }
+    app.delegate = d
+    app.run()
+}
+
 if CommandLine.arguments.contains("--probe-popover") {
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)

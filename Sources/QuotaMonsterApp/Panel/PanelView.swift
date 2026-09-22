@@ -20,6 +20,18 @@ struct PanelView: View {
     /// 注入端做，這裡只負責說「使用者按了」。
     var openPreferences: (() -> Void)?
 
+    /// 使用者按了版面切換鍵。
+    ///
+    /// ⚠️ **注入端要在下一跳重新指派 `popover.contentSize`。**
+    /// 〔實測 2026-09-22，`--probe-panel-switch`，n=2、兩個方向〕
+    /// 翻版面的**同一個 tick** `fittingSize` 還是舊值；`DispatchQueue.main.async`
+    /// **一跳之後**就是新值（594 ↔ 302），而且之後 1.5 秒都不再變。
+    /// ⚠️ 同一次量測還發現：`window` 那一欄自己就跟上了（620 ↔ 328）——
+    /// 所以**視覺上不補指派也是對的**；要補是為了讓 `contentSize` 這個屬性
+    /// 不要過期（規矩 27 的螢幕高度夾限會去讀它）。
+    /// 不要用計時器賭，也不要在 Core 複製一份高度計算 —— 那會變成第二份字面量（規矩 2）。
+    var onPanelStyleChange: (() -> Void)?
+
     /// 面板背景是深色還是淺色。進度條的色階要照這個分兩組，
     /// 否則同一組色值在其中一邊一定偏悶或偏亮。
     @Environment(\.colorScheme) private var colorScheme
@@ -29,17 +41,32 @@ struct PanelView: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            // ⚠️ 兩種版面回答**不同的問題**，不是同一頁的兩種皮：
+            //   完整 → 「每一個 session 現在怎麼了」
+            //   簡易 → 「我還有多少額度」（使用者 2026-09-22 選的 A 放大鏡）
+            switch store.panelStyle {
+            case .full:   fullContent
+            case .simple: SimplePanelBody(store: store, onDark: onDark)
+            }
+            Divider().opacity(0.5)
+            // ⚠️ footer **兩頁共用**，切換鍵才會落在同一個像素上。
+            footer
+        }
+        .frame(width: width)
+        // ⚠️ `.task` 掛在最外層，不是掛在某一個版面上 ——
+        // 掛在裡面的話切換版面會重跑一次，而且簡易頁會用上一次抓到的數字開場。
+        .task { store.refresh() }
+    }
+
+    private var fullContent: some View {
+        VStack(spacing: 0) {
             header
             Divider().opacity(0.5)
             quota
             Divider().opacity(0.5)
             blockedBanner
             sessionList
-            Divider().opacity(0.5)
-            footer
         }
-        .frame(width: width)
-        .task { store.refresh() }
     }
 
     // ── 表頭 ───────────────────────────────────────────────────
@@ -468,6 +495,7 @@ struct PanelView: View {
             Text("更新於 \(relative(store.lastRefresh))")
                 .font(.system(size: 10)).foregroundStyle(.tertiary)
             Spacer()
+            panelStyleToggle
             Button { openPreferences?() } label: {
                 Image(systemName: "gearshape").font(.system(size: 10.5))
             }
@@ -481,6 +509,30 @@ struct PanelView: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
+    }
+
+    /// 在簡易與完整之間切換。
+    ///
+    /// ⚠️ 一定是 `Button`，**不可以是 `Menu` / `Picker` / `Stepper`** ——
+    /// 那三個在 `ImageRenderer` 底下畫成一個紅色禁止符號，
+    /// 於是 `--render-panel` 會對這個角落說不出真話（理由與 `muteControl` 同一條）。
+    ///
+    /// 標的是「按下去會到哪裡」，不是「你現在在哪裡」—— 判準在 `PanelStyle.otherLabel`。
+    private var panelStyleToggle: some View {
+        Button {
+            store.setPanelStyle(store.panelStyle.other)
+            onPanelStyleChange?()
+        } label: {
+            HStack(spacing: 4) {
+                Image(systemName: store.panelStyle == .full
+                      ? "rectangle.compress.vertical" : "rectangle.expand.vertical")
+                    .font(.system(size: 10.5))
+                Text(store.panelStyle.otherLabel).font(.system(size: 10))
+            }
+            .foregroundStyle(.secondary)
+        }
+        .buttonStyle(.plain)
+        .help("切換成\(store.panelStyle.otherLabel)版面")
     }
 
     /// 開機時自動啟動。

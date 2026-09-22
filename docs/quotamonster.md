@@ -525,6 +525,41 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 - ⚠️ **收合那一行的用詞與顏色必須與 `WorkflowTally` 完全一樣**（已完成 / 失敗 / 已停止 / 狀態不明，
   失敗紅、不明 secondary、其餘 tertiary）。同一件事兩套語彙，這個 repo 已經為它付過一次代價（規矩 43）。
 
+**49. 放大的選單列標記一定要包一層 `NSImage` 重畫，不可以 `Image(nsImage:).resizable()`。**
+
+- **為什麼（邊緣）**：〔實測 2026-09-22〕`ImageRenderer(scale: 2)`、132pt 目標，沿中線掃描：
+  `.resizable()` 有 **24 個過渡像素**（邊緣糊掉），包裝重畫是 **0 個**。
+- ⚠️ **為什麼（顏色，這個更嚴重）**：來源若 `isTemplate == true`，SwiftUI 會用
+  `foregroundStyle` 把**兩條弧的顏色整個吃掉**（實測紅／藍變成一片單色）。
+  而 `GlyphState.usesTemplateRendering` 在「**沒有讀數／過期**」時正好是 true ——
+  **這個陷阱剛好落在最需要誠實的那一格**。包裝之後 `isTemplate == false`，顏色原封不動。
+- **作法**：`NSImage(size: N, flipped: false) { r in source.draw(in: r); return true }`。
+  出貨的那顆 renderer 畫進一個大畫布，**不是第二份畫法** ——
+  這個 repo 為「手工重畫一份」付過兩次代價（mockup 的 line cap 與單色 bug）。
+- ⚠️ **也不可以改用 `IconRenderer`。** 它畫的是 app 圖示：`innerLitFraction` 寫死、
+  永遠畫一隻 agent、用自己的 hex 三元組而不是 `QuotaPalette`，檔頭自己寫著
+  「不是某個當下的讀數」。拿它當主角＝在使用者找真讀數的地方畫一個很像真的假讀數。
+  它證明的只有一件事：這套幾何從 22pt 放到 1024px 是乾淨的。
+
+**50. popover 開著的時候改版面，下一跳才可以指派 `contentSize`。**
+
+- **量到的**〔實測 2026-09-22，`--probe-panel-switch`，n≥2、兩個方向〕：
+
+  | | fittingSize | contentSize | window |
+  |---|---|---|---|
+  | 穩定（完整） | 595 | 595 | 621 |
+  | 同一個 tick | 595（**舊值**） | 595 | 621 |
+  | `main.async` 一跳之後 | **300（新值）** | 595 | **326（也跟上了）** |
+  | 100ms / 1.5s 之後 | 300 | 595 | 326 |
+
+- **一跳就夠。** 不要用計時器賭，也**不要在 Core 複製一份高度計算** ——
+  那會變成規矩 2 的第二份字面量，而且它會與真正的版面無聲地漂開。
+- ⚠️ **`window` 那一欄自己就跟上了**，所以視覺上不補指派也是對的。
+  補是為了讓 `contentSize` 這個屬性不要過期 —— `panelSize()` 的螢幕高度夾限（規矩 27）會去讀它。
+- ⚠️ 這一條之所以有答案，是因為**在寫程式之前先量**：當時 `PanelStyle` 還不存在，
+  診斷就先用一個 `@State` 在既有的兩個 view 之間切來量同一個機制。
+  「先實作再撞上」會讓這個問題在半路變成一個計時器的猜謎。
+
 ### 工具鏈與診斷
 
 **28. 診斷指令不可以說謊：註解說它畫了什麼就必須真的畫（用 `exit(1)` 的自我斷言釘住，不是用註解）；配色一律用 `--dark` 檢查；`--render` 必須寫 1x / 2x / 8x，判配色要看 2x；合成資料要在輸出裡講明它是合成的；trace 類直接寫 fd 1 不用 `print`；「只在有變化時印」的變化鍵不可含任何秒數。**
@@ -984,6 +1019,8 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 | `--dump` | 資料層看到的真實世界（兩個額度來源怎麼挑、session、agent 樹、歷史、展望與拒絕理由） | 任何 UI 的事 |
 | `--render <dir> --dark` | 選單列圖示每個狀態長什麼樣（1x / 2x / 8x） | 它在真的選單列上會不會被別的項目擠掉 |
 | `--render-panel <f> --dark` | 面板畫出來長什麼樣、自然高度幾 pt | session 列（另外輸出 `panel-rows.png`）、`Menu` 之類離屏會壞的元件 |
+| `--render-panel … --panel simple\|full` | 兩種版面各自長什麼樣（**只覆寫記憶體，不碰偏好檔**）。⚠️ 簡易版面沒有 session 清單，所以它**不**另外渲染 `panel-rows.png` 也不 `splice()` | 切換那一下順不順 —— 那要 `--probe-panel-switch` |
+| `--probe-panel-switch` | popover 開著時翻版面，`fittingSize` / `contentSize` / `window` 在四個時點各是多少（規矩 50） | 使用者按不按得到那顆鍵 |
 | `--render-panel … --chart daily\|cumulative` | 額度底下那兩種圖各自長什麼樣（**只覆寫記憶體，不碰偏好檔**） | 哪一種比較好用 —— 那是使用者的事 |
 | `--render-panel … --demo-finish` | 完成那一列的版面，**並自己斷言列高 Δ=0pt**（不是 0 就 exit 1） | 那一列在真的有完成時會不會出現 |
 | `--render-alert <f> --dark` | T1 浮窗五種情況的版面 | 它會不會真的出現在螢幕上 |
