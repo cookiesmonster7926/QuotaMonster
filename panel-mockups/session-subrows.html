@@ -1,0 +1,126 @@
+<!DOCTYPE html><html lang="zh-Hant"><head><meta charset="utf-8">
+<title>session 子列 — 什麼還沒好</title>
+<style>
+ :root{--bg:#131316;--fg:#e8e8ea;--dim:#8a8a90;--line:#2a2a2f;--accent:#2975F2;
+       --card:#f2f2f4;--cardfg:#1c1c1e;--cardsub:#8a8a90;--red:#D12121;--green:#219952}
+ *{box-sizing:border-box}
+ body{margin:0;padding:38px;background:var(--bg);color:var(--fg);
+      font:14px/1.7 -apple-system,"PingFang TC",sans-serif}
+ h1{font-size:19px;margin:0 0 6px} h2{font-size:15px;margin:0 0 4px}
+ p{color:var(--dim);max-width:74ch;margin:0 0 6px;font-size:13px}
+ .warn{color:#ffb454}
+ .opt{border-top:1px solid var(--line);padding:26px 0;margin-top:22px}
+ /* 面板 380pt 寬，2x 顯示 */
+ .panel{width:380px;background:#fff;color:var(--cardfg);border-radius:10px;
+        padding:12px;font-size:12px;margin-top:10px}
+ .row{background:var(--card);border-radius:8px;padding:9px 11px;margin-bottom:8px}
+ .hd{display:flex;align-items:center;gap:6px}
+ .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none}
+ .nm{font-weight:600;font-size:12.5px}
+ .pj{color:var(--cardsub);font-family:ui-monospace,monospace;font-size:10px}
+ .sp{margin-left:auto;color:var(--accent);font-weight:600;font-size:10px;letter-spacing:.5px}
+ .age{color:var(--cardsub);font-size:10px}
+ .ctx{display:flex;align-items:center;gap:6px;margin-top:5px;font-size:10px;color:var(--cardsub)}
+ .bar{flex:1;height:3px;background:#e2e2e6;border-radius:2px;overflow:hidden}
+ .bar i{display:block;height:100%;background:var(--green);width:77%}
+ .sub{display:flex;align-items:center;gap:6px;margin-top:5px;padding-left:3px;
+      border-left:1px solid #d8d8dc;font-size:10.5px}
+ .sub .k{font-family:ui-monospace,monospace;font-size:8.5px;color:#fff;
+         background:#9a9aa0;border-radius:3px;padding:0 4px;line-height:14px;flex:none}
+ .sub .k.wf{background:#6b5bd6}
+ .sub .k.ag{background:#4a8fb5}
+ .sub .id{font-family:ui-monospace,monospace;font-size:9px;color:#a5a5ab}
+ .sq{display:flex;gap:2px;margin-left:auto}
+ .sq i{width:5px;height:7px;border-radius:1px;background:var(--accent)}
+ .sq i.done{background:#6bbf7f}
+ .cnt{font-family:ui-monospace,monospace;font-size:9.5px;color:var(--cardsub)}
+ .fold{margin-top:6px;padding-left:3px;border-left:1px solid #d8d8dc;
+       font-size:10px;color:#a5a5ab}
+ .fold b{color:var(--red);font-weight:400}
+ .pale{opacity:.45}
+ .note{font-size:12px;color:var(--dim);margin-top:10px;max-width:66ch}
+ .note b{color:#ffb454;font-weight:600}
+</style></head><body>
+<h1>session 子列：怎麼看得出「什麼還沒好」</h1>
+<p>現在的樣子（最上面那個）：兩隻已經做完的 agent 還掛在列表上，灰點，
+跟「還在跑」長得一樣；而真正還沒好的 workflow 反而被收進「另有 N 個已完成」那一行裡。</p>
+<p class="warn">⚠️ 新前提：一般 agent 的完成狀態**讀得到**（實測 100% 覆蓋，
+背景走母 transcript 的 task-notification、前景走 tool_result 的 status），
+狀態有 completed / failed / killed。所以下面三個都建立在「分得出做完沒」之上。</p>
+
+<div class="opt">
+<h2>現在（對照組）</h2>
+<div class="panel"><div class="row">
+  <div class="hd"><span class="dot"></span><span class="nm">修t2</span>
+    <span class="pj">usage</span><span class="sp">BUSY</span><span class="age">83h</span></div>
+  <div class="ctx">ctx<span class="bar"><i></i></span>77% <span>1M</span></div>
+  <div class="sub"><span style="width:4px;height:4px;border-radius:50%;background:#b0b0b6"></span>
+    Verify AGENTS counter live<span class="id" style="margin-left:auto">general-purpose</span></div>
+  <div class="sub"><span style="width:4px;height:4px;border-radius:50%;background:#b0b0b6"></span>
+    Demo subagent for panel<span class="id" style="margin-left:auto">general-purpose</span></div>
+  <div class="fold">另有 8 個 workflow 已完成</div>
+</div></div>
+<p class="note">兩隻做完的 agent 佔了兩行，而「還沒好的是什麼」看不出來。</p>
+</div>
+
+<div class="opt">
+<h2>A —— 只留還沒好的，其餘全部收合（含 agent）</h2>
+<div class="panel"><div class="row">
+  <div class="hd"><span class="dot"></span><span class="nm">修t2</span>
+    <span class="pj">usage</span><span class="sp">BUSY</span><span class="age">83h</span></div>
+  <div class="ctx">ctx<span class="bar"><i></i></span>77% <span>1M</span></div>
+  <div class="sub"><span class="k wf">WF</span>Build
+    <span class="id">wf_5a0dae95</span>
+    <span class="sq"><i class="done"></i><i class="done"></i><i></i><i></i></span>
+    <span class="cnt">2/4</span></div>
+  <div class="sub"><span class="k ag">AG</span>Verify AGENTS counter live
+    <span class="id" style="margin-left:auto">general-purpose</span></div>
+  <div class="fold">已完成 8 個 workflow · 2 個 agent · <b>2 個失敗</b></div>
+</div></div>
+<p class="note">有自己一行的＝<b>還沒好</b>。做完的全部進最後那一行。
+左邊那個小標籤說得出是 workflow 還是 agent。</p>
+</div>
+
+<div class="opt">
+<h2>B —— 同 A，但用文字標而不是色塊</h2>
+<div class="panel"><div class="row">
+  <div class="hd"><span class="dot"></span><span class="nm">修t2</span>
+    <span class="pj">usage</span><span class="sp">BUSY</span><span class="age">83h</span></div>
+  <div class="ctx">ctx<span class="bar"><i></i></span>77% <span>1M</span></div>
+  <div class="sub"><span class="id" style="width:52px">workflow</span>Build
+    <span class="id">wf_5a0dae95</span>
+    <span class="sq"><i class="done"></i><i class="done"></i><i></i><i></i></span>
+    <span class="cnt">2/4</span></div>
+  <div class="sub"><span class="id" style="width:52px">agent</span>Verify AGENTS counter live
+    <span class="id" style="margin-left:auto">general-purpose</span></div>
+  <div class="fold">已完成 8 個 workflow · 2 個 agent · <b>2 個失敗</b></div>
+</div></div>
+<p class="note">比 A 安靜，但那一欄固定寬度會吃掉描述的空間（描述本來就常被截斷）。</p>
+</div>
+
+<div class="opt">
+<h2>C —— 一行講完，不列細項</h2>
+<div class="panel"><div class="row">
+  <div class="hd"><span class="dot"></span><span class="nm">修t2</span>
+    <span class="pj">usage</span><span class="sp">BUSY</span><span class="age">83h</span></div>
+  <div class="ctx">ctx<span class="bar"><i></i></span>77% <span>1M</span></div>
+  <div class="sub"><span class="k wf">還沒好</span>1 個 workflow（2/4）· 1 個 agent
+    <span class="cnt" style="margin-left:auto">已完成 10 · <b style="color:var(--red)">失敗 2</b></span></div>
+</div></div>
+<p class="note">最省高度（一個 session 固定兩行）。代價：看不出<b>哪一個</b>還沒好，
+而你原本的抱怨正是「不知道是什麼還沒好」—— 這個選項只解決了一半。</p>
+</div>
+
+<div class="opt">
+<h2>沒有東西在跑時，三個選項長什麼樣</h2>
+<div class="panel"><div class="row">
+  <div class="hd"><span style="width:7px;height:7px;border-radius:50%;background:#b0b0b6"></span>
+    <span class="nm">修t2</span><span class="pj">usage</span>
+    <span class="sp" style="color:#a5a5ab">IDLE</span><span class="age">2h</span></div>
+  <div class="ctx">ctx<span class="bar"><i style="width:22%"></i></span>22% <span>1M</span></div>
+  <div class="fold">已完成 8 個 workflow · 2 個 agent · <b>2 個失敗</b></div>
+</div></div>
+<p class="note">三個選項在這種情況下一模一樣：只剩收合那一行。
+<b>這才是常態</b> —— 多數時間什麼都沒在跑，而現在的版本在這種時候還是會列出一堆灰點。</p>
+</div>
+</body></html>

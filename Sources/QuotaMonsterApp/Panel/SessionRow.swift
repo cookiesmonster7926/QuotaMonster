@@ -39,14 +39,20 @@ struct SessionRow: View {
                 // 只是把還在跑的那一個推出畫面。
                 let live = tree.workflows.filter { $0.runningCount > 0 }
                 let tally = WorkflowTally(tree.workflows)
+                // ⚠️ 2026-09-22：agent 也收合。以前**每一隻**都列出來，而
+                // `isFresh` 只濾掉「不是這一輪的」—— 於是這個 session 開過的每一隻
+                // 都一直掛著，全是灰點。使用者回報的正是這件事：
+                // 「顯示成 subagent 就會讓使用者不知道到底是什麼還沒好」。
+                // **有自己一行的＝還沒好**，其餘進收合那一行。
+                let agents = AgentTally(tree.agents)
 
                 ForEach(live, id: \.workflowId) { wf in
                     workflowRow(wf)
                 }
-                ForEach(Array(tree.agents.enumerated()), id: \.offset) { _, a in
+                ForEach(agents.outstanding, id: \.meta.agentId) { a in
                     agentRow(a)
                 }
-                if !tally.collapsed.isEmpty {
+                if !tally.collapsed.isEmpty || agents.collapsedText != nil {
                     HStack(spacing: 6) {
                         Rectangle().fill(.quaternary).frame(width: 1).padding(.leading, 2)
                         // ⚠️ 這一行本來寫「另有 N 個 workflow 已完成」，把失敗的也
@@ -61,6 +67,13 @@ struct SessionRow: View {
                             Text(part.text)
                                 .font(.system(size: 9.5))
                                 .foregroundStyle(tallyColour(part.outcome))
+                        }
+                        if let ended = agents.collapsedText {
+                            if !tally.collapsed.isEmpty {
+                                Text("·").font(.system(size: 9.5)).foregroundStyle(.quaternary)
+                            }
+                            // ⚠️ 用詞是**已結束**不是已完成 —— 判準與理由見 `AgentTally`。
+                            Text(ended).font(.system(size: 9.5)).foregroundStyle(.tertiary)
                         }
                         Spacer()
                     }
@@ -227,9 +240,20 @@ struct SessionRow: View {
     }
 
     /// 扇出先給「形狀」再給名字：一排 pip 讓你在讀到任何文字之前就知道進度。
+    /// 種類標籤。⚠️ **載重的**：使用者回報「顯示成 subagent 就不知道是什麼還沒好」——
+    /// 兩種子列長得不一樣但沒有一個字說得出哪個是哪個。
+    private func kindBadge(_ text: String, _ colour: Color) -> some View {
+        Text(text)
+            .font(.system(size: 8, weight: .semibold, design: .monospaced))
+            .foregroundStyle(.white)
+            .padding(.horizontal, 3).padding(.vertical, 0.5)
+            .background(RoundedRectangle(cornerRadius: 2.5).fill(colour))
+    }
+
     private func workflowRow(_ wf: WorkflowGroup) -> some View {
         HStack(spacing: 6) {
             Rectangle().fill(.quaternary).frame(width: 1).padding(.leading, 2)
+            kindBadge("WF", Color(red: 0.42, green: 0.36, blue: 0.84))
             Text(wf.latestPhase ?? "workflow")
                 .font(.system(size: 10.5, weight: .medium))
             Text(wf.workflowId)
@@ -253,6 +277,7 @@ struct SessionRow: View {
     private func agentRow(_ a: AgentNode) -> some View {
         HStack(spacing: 6) {
             Rectangle().fill(.quaternary).frame(width: 1).padding(.leading, 2)
+            kindBadge("AG", Color(red: 0.29, green: 0.56, blue: 0.71))
             Circle().fill(colour(a.runState)).frame(width: 4, height: 4)
             Text(a.meta.description)
                 .font(.system(size: 10.5)).lineLimit(1)

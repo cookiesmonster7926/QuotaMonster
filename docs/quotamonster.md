@@ -42,6 +42,13 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 每一條都在 2026-09-19 對照過當時的原始碼。
 
 
+> ⚠️ **編號是按「發現的先後」給的，分節是按「主題」分的**，所以同一個子節裡的
+> 編號不連號，而且子節之間的區間會重疊（資料層 6–38、Agent 13–37…）。
+> 想確認總數請數條目，不要看「最後一條是幾號」。
+>
+> 〔2026-09-22 這一段是補的〕在那之前，31–39 全部被插在「顯示」子節裡，
+> 造成兩次編號倒退 —— 一個 subagent 在數規矩時抓到的。
+
 ### 貫穿全專案
 
 **1. 「不存在」不等於「那個狀態不成立」，而且要分兩層：看到它、但它不在那個狀態 → 正面證據，當場處理；整個沒看到它 → 不是證據，要寬限期或切斷。**
@@ -115,6 +122,107 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 - **付過的代價**：有 —— 這條規則就是為一次已經發生的外洩補的。
 
 
+**31. 「檔案什麼時候寫的」不等於「這組數字什麼時候量的」。statusline payload 裡
+有 7 天窗口卻沒有 5 小時窗口時，那筆讀數的年紀**沒有可計算的上界**，必須降成
+`.expired`；「窗口過期」這件事全 repo 只有 `WindowExpiry` 一份定義，兩個 reader 共用；
+`.expired` 的快照不產生歷史取樣點。**
+
+- **為什麼**：〔實測 2026-09-21，讀 Claude Code 2.1.277 二進位〕payload 的
+  `rate_limits` 不是每次渲染去問來的，是從行程記憶體的 `Eu.rawUtilization` 重發，
+  而那個欄位**只有 API 回應才更新**（`function k2(){return xPr(Eu.rawUtilization)}`）。
+  渲染由 UI 事件觸發，可以完全不帶新的回應 —— 所以檔案可以很新、數字可以很舊。
+  `u0t` 是逐窗口判斷的（`e.resets_at>r`），五小時窗口最多活五小時，它一旦消失
+  就證明 `rawUtilization` 至少從某個五小時窗口結束前就沒更新過。
+- **代價**：〔實測〕`usage-history.jsonl` 在 09-21 19:30:51 寫下 `{"5h":null,"7d":0}`，
+  **三秒後**寫下 `{"5h":20,"7d":13}`。同一個未重置的七天窗口不可能三秒內從 0 變成 13。
+- **第二份定義的代價**：`ClaudeJSONUsageReader.window` 以前不檢查 `resets_at` 過期，
+  `StatusLineCacheReader.window` 會檢查。〔實測〕`~/.claude.json` 的 `fetchedAtMs`
+  從 09-17 23:43 凍住四天，那個來源一直吐同一組 `30/19` —— 而歷史檔 09-20 15:25
+  那**唯一一筆**取樣點逐字等於那個凍住的檔案。四天的歷史裡有一天是假的。
+- ⚠️ 刻意**重用** `.expired` 而不是新增一個 Freshness case：全 Sources 有 22 處在問
+  `== .expired`（不上色、不預測、不發通知、降調），新增 case 會讓那 22 處**靜靜地**
+  把它當成可信 —— 那正是這個 bug 本來的樣子。完整 switch 只有 2 處，保護不了那 22 處。
+- ✅ **〔已量到 2026-09-22〕**「閒置後的第一次渲染會帶出舊數字」不再是推論：
+  `trace-usage.log` 621 次渲染裡，閒置 1.5 小時後回來的前 **4 次渲染、83 秒**
+  都在報 1.5 小時前的舊值，然後 7d 在**一秒內**從 19 跳到 28。詳見第五節 A2。
+- ⚠️〔推論，未實測〕天生沒有五小時窗口的帳號會被這條規則永久降級。沒見過這種帳號。
+
+**33. `~/.claude.json` 的 `cachedUsageUtilization` 不可以再被當成額度來源。
+statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面都必須說得出
+「去裝 tee」以及確切的指令。**
+
+- **為什麼**：〔實測 2026-09-21，單一機器〕那個檔案還在被 Claude Code 持續重寫
+  （mtime 是當下），但 `fetchedAtMs` **凍在 3.9 天前**。把 tee 的快取目錄移開
+  實跑 `--dump`，兩個窗口都變成「沒有讀數」。repo 舊文件寫「實測可以整整 16 小時
+  不更新」—— 那個數字已經樂觀得不成比例。
+- **代價**：規矩 31 讓 `ClaudeJSONUsageReader` 開始擋過期窗口之後，那個來源回 nil
+  → `pick()` 回 nil → `usage` 是 nil → 面板原本那句「沒裝 statusline tee」
+  **整個消失**，只剩「無讀數」三個字。老使用者沒差（有 tee），
+  新使用者第一眼看到的就是它。文案與「該不該出現」都搬進 `UsageSourceCaption`（Core）。
+- ⚠️ 同一條規矩的另一半：**tee 有在寫就不准說「沒裝」**。叫一個已經裝好的人
+  再裝一次是最糟的謊 —— 他會去重裝一個沒壞的東西，然後開始懷疑其餘每一句話。
+  這一條有測試逐一走過 freshness × source 的組合釘住。
+
+**34. 「沒有 statusLine」與「statusLine 形狀看不懂」是兩件事。前者可以從零建立，
+後者一律拒絕。**
+
+- **為什麼**：規矩「看不懂的設定一律拒絕，不猜」擋的是「看不懂既有的設定卻硬要包」。
+  **沒有東西可以保留，就沒有東西會被猜壞。** 而規矩 33 讓「裝不了 tee」等於
+  「這個 app 沒有額度功能」，所以把沒有自訂狀態列的使用者擋在門外的代價太高。
+- **從零建立的做法**：在 JSON 最前面**插入**一段（`insert_status_line`），
+  不用 `json.dumps` 重寫整個檔 —— 那會把使用者的縮排、鍵的順序、尾端換行全換掉。
+- ⚠️ **`--uninstall` 要把整段拿掉，不是把 command 還原成空字串。**
+  「原本沒有」與「原本是空的」是兩件事；後者會留下一個 command 是 `""` 的
+  statusLine，Claude Code 拿空命令去跑，狀態列整條變空白。
+  記號是 `quotamonster-tee.original` 裡的空字串。
+
+**35. 註冊表的 `name` 只有在 `nameSource != "derived"` 時才是使用者看過的名字。
+`derived` 是 Claude Code 從 cwd 湊的佔位名，顯示它等於顯示一個使用者不認得的字串。**
+
+- **實測 2026-09-22**（四個同時存在的 session）：
+
+  | session | registry `name` | `nameSource` | transcript 的 `aiTitle` |
+  |---|---|---|---|
+  | a28a5af5 | `usage-ff` | derived | `修t2` |
+  | eb209917 | `rl-b5` | derived | `Q-learning 環境 setup` |
+  | d8258fe6 | `Q-learning 環境 setup` | **auto** | 同左 |
+  | 2d765b86（VS Code 外掛）| `rl-1b` | derived | `0922作業` |
+
+- **怎麼撈**：transcript 裡的 `{"type":"ai-title","aiTitle":"…"}`，取尾端**最後**一筆。
+  尾端大小沿用 `WaitingContextReader.tailBytes`（64KB）—— 不發明新門檻。
+  〔實測〕最後一筆離檔尾 176 / 2,529 / 15,666 bytes（n=3），餘裕充足。
+- ⚠️ **只在 `derived` 時才去讀。** `auto` 代表那個名字有來歷，蓋掉它是把已知的事實
+  換成猜測；`nameSource` 是 nil（未知）時同理。讀 transcript 是 I/O，
+  有測試**數呼叫次數**釘住「用不到就一次都不准發生」。
+- ⚠️ 每 60 秒才重撈一次（`SessionTitle.refreshInterval`）。面板每 3 秒刷新，
+  而標題幾乎不動 —— 每次都讀 64KB 是為了一個不變的字串每秒讀幾十 KB。
+- ⚠️ **這不是 VS Code 專屬的修補。** 起點是「外掛的 session 顯示成 rl-1b」，
+  但四個 session 有三個是 `derived`，終端機的也一樣。
+
+**36. VS Code 外掛的 session 不會產生 statusline payload，所以它對額度數字沒有任何貢獻。**
+
+- 〔實測 2026-09-22〕session `2d765b86` 已經活了 2 小時、正在工作，
+  tee 快取裡**一個 payload 都沒有**；同時間終端機的 session 每次渲染都有。
+  外掛有自己的一套 UI（模型選擇器、計時器），不呼叫 `statusLine` 命令。
+- **後果**：`context_window.used_percentage` 只存在於 payload 裡，磁碟上沒有第二處 ——
+  所以外掛的 session 永遠沒有 ctx 壓力細條。而配合規矩 33
+  （`~/.claude.json` 已經不再更新），**只用外掛的使用者完全拿不到額度數字**。
+- ⚠️ 這一條**修不了**（我們無法讓外掛去跑 statusline），只能寫在文件裡。
+
+**38. 「那一天沒有用量」與「那一天我們沒在看」必須分得開，而且心跳要寫在
+**另一個檔案**。**
+
+- **為什麼分得開很重要**：`usage-history.jsonl` 是事件驅動的，
+  「某一天一行都沒有」是雙關 —— 可能沒用，也可能 app 沒開。
+  每日長條圖把後者畫成 0%，就是把「我沒在看」講成「你沒有用」。
+- **為什麼是另一個檔案**：這一步（Stage 7 步驟 10）當初被擱置的理由是
+  「它會改變『檔案裡沒有那一行』的意思，而那是**不可逆的語意變更**」。
+  那個反對是對的。寫進 `watch-log.jsonl` 之後 `usage-history.jsonl` 的語意
+  一個字都沒動，要反悔只要刪掉那個檔 —— **不可逆的那一半被移除了**。
+- 心跳 300 秒一次（288 行／天 × 30 天 ≈ 190KB；日界歸屬誤差上限 = 一天的 0.35%）。
+  開機標記另計：心跳的空隙**推不出**「重開了」還是「機器睡著了」，
+  睡醒不會有 boot。
+
 ### Agent 樹與 workflow
 
 **13. T2「整批排空」的正面證據是 run 狀態檔（`<sessionId>/workflows/<wf_id>.json` 存在且 status ∈ {completed,failed,killed}），不是 journal 的 `finishedCount == total`。數字比對降為第二道防線，且 `total` 與 `peakFinished` 都取看過的最大值（單調不減）。**
@@ -141,6 +249,29 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 - **證據**：NotificationEngine.swift:290-323、445、487-490；NotificationEvent.swift:118-143；docs/build-log.md:1027-1029、1035-1036、1435-1439
 - **付過的代價**：有 —— `runStatus` 這個欄位有自己的 retrospective（2026-09-18_quotamonster_aborted-workflow-phantom-agents.md）：真實資料驗證時抓到一個被 TaskStop 停掉的 run 顯示成「5 隻執行中」。另外修的順序不能顛倒（先修觸發點、再裝在場閘）—— 加了在場閘之後會響的那幾聲**剛好都是你在座位上**的時候，降低音量的同時提高了每一聲的殺傷力。
 
+
+**37. 一般 Agent subagent 的「在跑」是**推定**的，必須有自己的狀態、
+自己的誤差數字，而且畫面上分得出來。**
+
+- **為什麼只能推定**：〔實測 2026-09-22〕workflow subagent 有 `journal.jsonl`
+  （`started` / `result` / `failed` / `launched`），狀態是**讀到的**；
+  一般 Agent subagent 只有 `.meta.json`，欄位是 `agentType` / `description` /
+  `toolUseId` / `spawnDepth` / `requestShape` —— **一個狀態欄位都沒有**。
+  唯一還在動的是它的 transcript（實測一隻在跑的 agent 五秒內 286KB → 306KB）。
+- **窗口 120 秒是量出來的**：〔實測，32 個 agent transcript／4,687 個相鄰寫入間隔〕
+  中位數 0.4s、p90 4.5s、p99 57.6s；>60s 佔 0.96%、**>120s 佔 0.45%**、>180s 佔 0.24%。
+  也就是約 **0.45%** 的觀測時刻會把「還在想」誤判成「停了」。
+- ⚠️ **兩個方向的錯不對稱**：少報（還在想卻說停了）可接受；
+  謊報（被殺掉卻說還在跑，最長一個窗口）是付出去的代價。
+  這個 repo 原本選「寧可少報，不要謊報」，2026-09-22 使用者拍板換成
+  「代理量測 + 誤差已知」—— 條件是誤差量得出來、畫面上分得出來。
+- ⚠️ 所以它是**獨立的 `AgentRunState.likelyRunning`**，不與 journal 讀到的
+  `.running` 合併。面板那顆點降到 `opacity(0.45)`，`--dump` 印「（推定在跑）」，
+  而「N 隻在跑」後面接「其中 M 隻是由 transcript 活動推定的」。
+- ⚠️ **推不出來時留在 `unknown`，絕不猜 `finished`。** 「沒有在寫字」不是
+  「做完了」的證據（規矩：不存在 ≠ 那個狀態不成立）。有測試逐一釘住
+  「一般 agent 永遠不可以被標成 finished 或 running」。
+- 〔查過〕`NotificationEngine` 不消費 `runState`，所以 T2 的行為完全沒有變。
 
 ### 通知層 T1／T2／T3
 
@@ -219,138 +350,6 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 - **付過的代價**：有 —— 使用者回報面板上緣蓋到選單列。可能原因至少四個而且都合理，所以先寫了 `--probe-popover` 把數字印出來才動手（用猜的會修錯地方）。
 
 
-**31. 「檔案什麼時候寫的」不等於「這組數字什麼時候量的」。statusline payload 裡
-有 7 天窗口卻沒有 5 小時窗口時，那筆讀數的年紀**沒有可計算的上界**，必須降成
-`.expired`；「窗口過期」這件事全 repo 只有 `WindowExpiry` 一份定義，兩個 reader 共用；
-`.expired` 的快照不產生歷史取樣點。**
-
-- **為什麼**：〔實測 2026-09-21，讀 Claude Code 2.1.277 二進位〕payload 的
-  `rate_limits` 不是每次渲染去問來的，是從行程記憶體的 `Eu.rawUtilization` 重發，
-  而那個欄位**只有 API 回應才更新**（`function k2(){return xPr(Eu.rawUtilization)}`）。
-  渲染由 UI 事件觸發，可以完全不帶新的回應 —— 所以檔案可以很新、數字可以很舊。
-  `u0t` 是逐窗口判斷的（`e.resets_at>r`），五小時窗口最多活五小時，它一旦消失
-  就證明 `rawUtilization` 至少從某個五小時窗口結束前就沒更新過。
-- **代價**：〔實測〕`usage-history.jsonl` 在 09-21 19:30:51 寫下 `{"5h":null,"7d":0}`，
-  **三秒後**寫下 `{"5h":20,"7d":13}`。同一個未重置的七天窗口不可能三秒內從 0 變成 13。
-- **第二份定義的代價**：`ClaudeJSONUsageReader.window` 以前不檢查 `resets_at` 過期，
-  `StatusLineCacheReader.window` 會檢查。〔實測〕`~/.claude.json` 的 `fetchedAtMs`
-  從 09-17 23:43 凍住四天，那個來源一直吐同一組 `30/19` —— 而歷史檔 09-20 15:25
-  那**唯一一筆**取樣點逐字等於那個凍住的檔案。四天的歷史裡有一天是假的。
-- ⚠️ 刻意**重用** `.expired` 而不是新增一個 Freshness case：全 Sources 有 22 處在問
-  `== .expired`（不上色、不預測、不發通知、降調），新增 case 會讓那 22 處**靜靜地**
-  把它當成可信 —— 那正是這個 bug 本來的樣子。完整 switch 只有 2 處，保護不了那 22 處。
-- ✅ **〔已量到 2026-09-22〕**「閒置後的第一次渲染會帶出舊數字」不再是推論：
-  `trace-usage.log` 621 次渲染裡，閒置 1.5 小時後回來的前 **4 次渲染、83 秒**
-  都在報 1.5 小時前的舊值，然後 7d 在**一秒內**從 19 跳到 28。詳見第五節 A2。
-- ⚠️〔推論，未實測〕天生沒有五小時窗口的帳號會被這條規則永久降級。沒見過這種帳號。
-
-**33. `~/.claude.json` 的 `cachedUsageUtilization` 不可以再被當成額度來源。
-statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面都必須說得出
-「去裝 tee」以及確切的指令。**
-
-- **為什麼**：〔實測 2026-09-21，單一機器〕那個檔案還在被 Claude Code 持續重寫
-  （mtime 是當下），但 `fetchedAtMs` **凍在 3.9 天前**。把 tee 的快取目錄移開
-  實跑 `--dump`，兩個窗口都變成「沒有讀數」。repo 舊文件寫「實測可以整整 16 小時
-  不更新」—— 那個數字已經樂觀得不成比例。
-- **代價**：規矩 31 讓 `ClaudeJSONUsageReader` 開始擋過期窗口之後，那個來源回 nil
-  → `pick()` 回 nil → `usage` 是 nil → 面板原本那句「沒裝 statusline tee」
-  **整個消失**，只剩「無讀數」三個字。老使用者沒差（有 tee），
-  新使用者第一眼看到的就是它。文案與「該不該出現」都搬進 `UsageSourceCaption`（Core）。
-- ⚠️ 同一條規矩的另一半：**tee 有在寫就不准說「沒裝」**。叫一個已經裝好的人
-  再裝一次是最糟的謊 —— 他會去重裝一個沒壞的東西，然後開始懷疑其餘每一句話。
-  這一條有測試逐一走過 freshness × source 的組合釘住。
-
-**34. 「沒有 statusLine」與「statusLine 形狀看不懂」是兩件事。前者可以從零建立，
-後者一律拒絕。**
-
-- **為什麼**：規矩「看不懂的設定一律拒絕，不猜」擋的是「看不懂既有的設定卻硬要包」。
-  **沒有東西可以保留，就沒有東西會被猜壞。** 而規矩 33 讓「裝不了 tee」等於
-  「這個 app 沒有額度功能」，所以把沒有自訂狀態列的使用者擋在門外的代價太高。
-- **從零建立的做法**：在 JSON 最前面**插入**一段（`insert_status_line`），
-  不用 `json.dumps` 重寫整個檔 —— 那會把使用者的縮排、鍵的順序、尾端換行全換掉。
-- ⚠️ **`--uninstall` 要把整段拿掉，不是把 command 還原成空字串。**
-  「原本沒有」與「原本是空的」是兩件事；後者會留下一個 command 是 `""` 的
-  statusLine，Claude Code 拿空命令去跑，狀態列整條變空白。
-  記號是 `quotamonster-tee.original` 裡的空字串。
-
-**32. shell 腳本裡 `$VAR` 後面若直接接非 ASCII 字元，一律寫成 `${VAR}`。**
-
-- **為什麼**：〔實測〕macOS 內建的 `/bin/bash` 是 3.2.57，配 `LANG=*.UTF-8` 時會把
-  全形標點的第一個 byte 併進變數名：`bash -c 'set -u; V=1; echo "是 $V，但"'`
-  → `V\xef: unbound variable`。這個 repo 的 shell 腳本**全部是中文註解與中文輸出**，
-  所以這不是理論風險。`${V}` 版本正常。
-- **怎麼檢查**：非註解行 grep `\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7f{]`。
-
-**35. 註冊表的 `name` 只有在 `nameSource != "derived"` 時才是使用者看過的名字。
-`derived` 是 Claude Code 從 cwd 湊的佔位名，顯示它等於顯示一個使用者不認得的字串。**
-
-- **實測 2026-09-22**（四個同時存在的 session）：
-
-  | session | registry `name` | `nameSource` | transcript 的 `aiTitle` |
-  |---|---|---|---|
-  | a28a5af5 | `usage-ff` | derived | `修t2` |
-  | eb209917 | `rl-b5` | derived | `Q-learning 環境 setup` |
-  | d8258fe6 | `Q-learning 環境 setup` | **auto** | 同左 |
-  | 2d765b86（VS Code 外掛）| `rl-1b` | derived | `0922作業` |
-
-- **怎麼撈**：transcript 裡的 `{"type":"ai-title","aiTitle":"…"}`，取尾端**最後**一筆。
-  尾端大小沿用 `WaitingContextReader.tailBytes`（64KB）—— 不發明新門檻。
-  〔實測〕最後一筆離檔尾 176 / 2,529 / 15,666 bytes（n=3），餘裕充足。
-- ⚠️ **只在 `derived` 時才去讀。** `auto` 代表那個名字有來歷，蓋掉它是把已知的事實
-  換成猜測；`nameSource` 是 nil（未知）時同理。讀 transcript 是 I/O，
-  有測試**數呼叫次數**釘住「用不到就一次都不准發生」。
-- ⚠️ 每 60 秒才重撈一次（`SessionTitle.refreshInterval`）。面板每 3 秒刷新，
-  而標題幾乎不動 —— 每次都讀 64KB 是為了一個不變的字串每秒讀幾十 KB。
-- ⚠️ **這不是 VS Code 專屬的修補。** 起點是「外掛的 session 顯示成 rl-1b」，
-  但四個 session 有三個是 `derived`，終端機的也一樣。
-
-**36. VS Code 外掛的 session 不會產生 statusline payload，所以它對額度數字沒有任何貢獻。**
-
-- 〔實測 2026-09-22〕session `2d765b86` 已經活了 2 小時、正在工作，
-  tee 快取裡**一個 payload 都沒有**；同時間終端機的 session 每次渲染都有。
-  外掛有自己的一套 UI（模型選擇器、計時器），不呼叫 `statusLine` 命令。
-- **後果**：`context_window.used_percentage` 只存在於 payload 裡，磁碟上沒有第二處 ——
-  所以外掛的 session 永遠沒有 ctx 壓力細條。而配合規矩 33
-  （`~/.claude.json` 已經不再更新），**只用外掛的使用者完全拿不到額度數字**。
-- ⚠️ 這一條**修不了**（我們無法讓外掛去跑 statusline），只能寫在文件裡。
-
-**37. 一般 Agent subagent 的「在跑」是**推定**的，必須有自己的狀態、
-自己的誤差數字，而且畫面上分得出來。**
-
-- **為什麼只能推定**：〔實測 2026-09-22〕workflow subagent 有 `journal.jsonl`
-  （`started` / `result` / `failed` / `launched`），狀態是**讀到的**；
-  一般 Agent subagent 只有 `.meta.json`，欄位是 `agentType` / `description` /
-  `toolUseId` / `spawnDepth` / `requestShape` —— **一個狀態欄位都沒有**。
-  唯一還在動的是它的 transcript（實測一隻在跑的 agent 五秒內 286KB → 306KB）。
-- **窗口 120 秒是量出來的**：〔實測，32 個 agent transcript／4,687 個相鄰寫入間隔〕
-  中位數 0.4s、p90 4.5s、p99 57.6s；>60s 佔 0.96%、**>120s 佔 0.45%**、>180s 佔 0.24%。
-  也就是約 **0.45%** 的觀測時刻會把「還在想」誤判成「停了」。
-- ⚠️ **兩個方向的錯不對稱**：少報（還在想卻說停了）可接受；
-  謊報（被殺掉卻說還在跑，最長一個窗口）是付出去的代價。
-  這個 repo 原本選「寧可少報，不要謊報」，2026-09-22 使用者拍板換成
-  「代理量測 + 誤差已知」—— 條件是誤差量得出來、畫面上分得出來。
-- ⚠️ 所以它是**獨立的 `AgentRunState.likelyRunning`**，不與 journal 讀到的
-  `.running` 合併。面板那顆點降到 `opacity(0.45)`，`--dump` 印「（推定在跑）」，
-  而「N 隻在跑」後面接「其中 M 隻是由 transcript 活動推定的」。
-- ⚠️ **推不出來時留在 `unknown`，絕不猜 `finished`。** 「沒有在寫字」不是
-  「做完了」的證據（規矩：不存在 ≠ 那個狀態不成立）。有測試逐一釘住
-  「一般 agent 永遠不可以被標成 finished 或 running」。
-- 〔查過〕`NotificationEngine` 不消費 `runState`，所以 T2 的行為完全沒有變。
-
-**38. 「那一天沒有用量」與「那一天我們沒在看」必須分得開，而且心跳要寫在
-**另一個檔案**。**
-
-- **為什麼分得開很重要**：`usage-history.jsonl` 是事件驅動的，
-  「某一天一行都沒有」是雙關 —— 可能沒用，也可能 app 沒開。
-  每日長條圖把後者畫成 0%，就是把「我沒在看」講成「你沒有用」。
-- **為什麼是另一個檔案**：這一步（Stage 7 步驟 10）當初被擱置的理由是
-  「它會改變『檔案裡沒有那一行』的意思，而那是**不可逆的語意變更**」。
-  那個反對是對的。寫進 `watch-log.jsonl` 之後 `usage-history.jsonl` 的語意
-  一個字都沒動，要反悔只要刪掉那個檔 —— **不可逆的那一半被移除了**。
-- 心跳 300 秒一次（288 行／天 × 30 天 ≈ 190KB；日界歸屬誤差上限 = 一天的 0.35%）。
-  開機標記另計：心跳的空隙**推不出**「重開了」還是「機器睡著了」，
-  睡醒不會有 boot。
-
 **39. 每日長條圖的一天切在 `resetsAt` 的鐘點，不是午夜；而且「不知道」不可以
 畫成 0%。**
 
@@ -392,6 +391,14 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 
 
 ---
+
+**32. shell 腳本裡 `$VAR` 後面若直接接非 ASCII 字元，一律寫成 `${VAR}`。**
+
+- **為什麼**：〔實測〕macOS 內建的 `/bin/bash` 是 3.2.57，配 `LANG=*.UTF-8` 時會把
+  全形標點的第一個 byte 併進變數名：`bash -c 'set -u; V=1; echo "是 $V，但"'`
+  → `V\xef: unbound variable`。這個 repo 的 shell 腳本**全部是中文註解與中文輸出**，
+  所以這不是理論風險。`${V}` 版本正常。
+- **怎麼檢查**：非註解行 grep `\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7f{]`。
 
 ## 二、寫下來的拒絕
 
@@ -677,6 +684,33 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 一個每天被看見的視覺元素，靠的是一句沒有被驗證過的註解在維持。
 現在有 5 則像素測試釘住它（把暗軌加回去會紅 4 則）。
 
+**29. 原文說**：第五節 D 段（結構性做不到）：「**一般 Agent 扇出永遠不會發 T2**
+—— `AgentTreeBuilder` 把每一隻一般 subagent 都寫成 `.unknown`，沒有正面證據
+就不宣告完成。」以及 `AgentRunState.unknown` 的檔頭：「背景啟動的 agent
+**根本不回報完成**。」
+
+**資料說**：〔實測 2026-09-22，33 隻一般 agent，**100% 覆蓋**〕證據一直都在
+母 transcript 裡，只是沒有人去找：
+
+| | 幾隻 | 完成訊號 |
+|---|---|---|
+| 背景（`isAsync: true`） | 24 | `<task-notification>` 帶 `<task-id>{agentId}</task-id>` 與 `<status>` |
+| 前景 | 9 | 該次 `tool_result` 的 `toolUseResult.status == "completed"` |
+
+`<status>` 實測有三種：`completed`（720）、`failed`（14）、`killed`（6）。
+
+「背景啟動的 agent 根本不回報完成」的觀察本身沒錯 —— `tool_result` 當下回的是
+`status: async_launched`。錯在**停在那裡**：完成是後來以另一種記錄抵達的。
+
+**代價**：這個結論被寫進「結構性做不到」那一節，而那一節的意思是
+「不要再試了」。一條寫錯的「做不到」比一個待辦更貴 —— 待辦會被撿起來，
+「做不到」不會。
+
+⚠️ **這個發現還沒有被實作**：要用它得掃母 transcript，而它可以到 13MB
+（尾端 64KB 只涵蓋約 15 筆記錄）。需要「記住 byte offset、只讀新增部分」那套機器。
+`AgentTally` 這一版仍然只用 `AgentActivity` 的活動代理，所以收合那一行說
+「已結束」不說「已完成」。
+
 ## 四、診斷指令對照
 
 **哪一支回答哪一個問題**是關鍵，因為它們看起來都像「印一些東西出來」。
@@ -794,6 +828,11 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
   緩解方案是 `statusLine.refreshInterval`（官方設定，最小 1 秒），
   但那會改變使用者狀態列的更新節奏 —— **要先問過**。
 
+- **一般 Agent 的真實完成狀態**（`completed` / `failed` / `killed`）。
+  證據實測 100% 覆蓋（第三節第 29 條），但要掃母 transcript ——
+  它可以到 13MB，尾端 64KB 只涵蓋約 15 筆記錄。需要「記住 byte offset、
+  只讀新增部分」那套機器。做完之後：面板收合那一行可以從「已結束 N 隻」
+  升級成「已完成 N · 失敗 M」，而且 **T2 可以對一般 Agent 扇出生效**。
 - **已經在跑的 session 不會立刻開始寫 tee 快取**（見上）。
 - ~~**一般 Agent subagent 看不出在不在跑**~~ —— **已做（2026-09-22）**，
   改用 transcript 活動的代理量測（規矩 37），窗口 120 秒。
@@ -838,9 +877,12 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 
 ### D. 結構性做不到的（不是沒做）
 
-- **一般 Agent 扇出永遠不會發 T2** —— `AgentTreeBuilder` 把每一隻一般 subagent
-  都寫成 `.unknown`，沒有正面證據就不宣告完成。〔實測〕251 隻 subagent 裡
-  31 隻是這一類。這是 Stage 2 的已知缺口，不是通知層的 bug。
+- ~~**一般 Agent 扇出永遠不會發 T2**~~ —— ⚠️ **這一條錯了，已移出本節**
+  （見第三節「被推翻」第 29 條）。〔實測 2026-09-22，100% 覆蓋〕完成的正面證據
+  一直都在母 transcript 裡：背景 agent 走 `<task-notification>` 的 `<status>`、
+  前景 agent 走 `tool_result` 的 `toolUseResult.status`。
+  **還沒實作**（要掃 13MB 的 transcript，需要 byte offset 那套機器），
+  所以它現在屬於第五節 B「還沒做的功能」，不是這裡。
 - **Focus／勿擾讀不到**（`Assertions.json` 受 TCC 保護，也沒有公開 API），
   所以手動靜音是唯一的防線。
 - **osascript 的署名永遠是「指令碼編輯器」**，而且**偵測不到**使用者有沒有在
