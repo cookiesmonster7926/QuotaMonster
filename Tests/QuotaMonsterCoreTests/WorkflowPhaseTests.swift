@@ -35,7 +35,13 @@ struct WorkflowPhaseTests {
         let wfDir = sessionDir.appendingPathComponent("subagents/workflows/\(workflowId)")
         try fm.createDirectory(at: wfDir, withIntermediateDirectories: true)
 
-        let sessionStart = Date().addingTimeInterval(-3600)
+        // ⚠️ 這個 helper 的檔案是**用真實時間**建的（mtime 就是現在），
+        // 所以餵給 build 的 `now` 也必須是真實時間 —— 餵 `Fixture.now`
+        // （2026-09-17 那個固定值）會讓每個檔案看起來都在「未來好幾天」，
+        // 而 `isFresh` 的未來上界會把它們全部擋掉。
+        // 〔2026-09-22 補上那個上界時三則測試因此紅，這一行是修法〕
+        let clock = Date()
+        let sessionStart = clock.addingTimeInterval(-3600)
         var lines: [String] = [#"{"type":"launched"}"#]
 
         for s in spawns {
@@ -81,7 +87,7 @@ struct WorkflowPhaseTests {
         try Data().write(to: transcript)
         let paths = SessionPaths(transcript: transcript, sessionDirectory: sessionDir)
         return AgentTreeBuilder().build(paths: paths, sessionId: sessionId,
-                                        sessionStartedAt: sessionStart, now: Fixture.now)
+                                        sessionStartedAt: sessionStart, now: clock)
             .workflows.first
     }
 

@@ -104,3 +104,26 @@ struct AgentActivityClockTests {
         #expect(AgentActivity.futureTolerance == AgentActivity.window)
     }
 }
+
+/// `isFresh` 的未來上界 —— 與 `AgentActivity` 用同一個容差。
+@Suite("Agent 存活閘 — 壞掉的時間戳")
+struct AgentFreshnessClockTests {
+    @Test("mtime 在遙遠未來的檔案不算「這一輪的」")
+    func absurdlyFutureIsNotFresh() throws {
+        let dir = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-fresh-\(UUID().uuidString)")
+        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        let f = dir.appendingPathComponent("agent-x.jsonl")
+        try "{}".write(to: f, atomically: true, encoding: .utf8)
+        let now = Fixture.now, start = now.addingTimeInterval(-600)
+
+        // 正常：現在寫的 → 是這一輪的
+        try FileManager.default.setAttributes([.modificationDate: now], ofItemAtPath: f.path)
+        #expect(AgentTreeBuilder.isFresh(agentId: "x", in: dir, since: start, now: now))
+
+        // ⚠️ 2099 年：沒有上界的話它會**永遠**通過，而且沒有東西會清掉它。
+        try FileManager.default.setAttributes(
+            [.modificationDate: now.addingTimeInterval(80 * 365 * 86400)], ofItemAtPath: f.path)
+        #expect(AgentTreeBuilder.isFresh(agentId: "x", in: dir, since: start, now: now) == false)
+    }
+}

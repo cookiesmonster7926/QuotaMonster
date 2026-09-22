@@ -27,26 +27,26 @@ public struct AgentTreeBuilder: Sendable {
     public func build(paths: SessionPaths, sessionId: String,
                       sessionStartedAt: Date, now: Date) -> AgentTree {
         let toolUseIds = Self.toolUseIds(inTranscript: paths.transcript)
-        let plain = plainAgents(in: paths.subagents, since: sessionStartedAt)
+        let plain = plainAgents(in: paths.subagents, since: sessionStartedAt, now: now)
         return AgentTree(
             sessionId: sessionId,
             agents: forest(from: plain, in: paths.subagents,
                            transcriptToolUseIds: toolUseIds, now: now),
             workflows: workflowGroups(in: paths.subagents, runs: paths.workflowRuns,
-                                      since: sessionStartedAt)
+                                      since: sessionStartedAt, now: now)
         )
     }
 
     // ── 一般 agent ─────────────────────────────────────────────
 
     /// `subagents/` 這一層（不遞迴）的 meta，且通過「比 session 新」這一閘。
-    private func plainAgents(in subagents: URL, since start: Date) -> [AgentMeta] {
+    private func plainAgents(in subagents: URL, since start: Date, now: Date) -> [AgentMeta] {
         let fm = FileManager.default
         guard let names = try? fm.contentsOfDirectory(atPath: subagents.path) else { return [] }
         return names
             .compactMap { metaReader.read(subagents.appendingPathComponent($0)) }
             .filter { !$0.isWorkflowAgent }
-            .filter { Self.isFresh(agentId: $0.agentId, in: subagents, since: start) }
+            .filter { Self.isFresh(agentId: $0.agentId, in: subagents, since: start, now: now) }
             .sorted { $0.agentId < $1.agentId }
     }
 
@@ -84,7 +84,8 @@ public struct AgentTreeBuilder: Sendable {
 
     // ── workflow agent ─────────────────────────────────────────
 
-    private func workflowGroups(in subagents: URL, runs: URL, since start: Date) -> [WorkflowGroup] {
+    private func workflowGroups(in subagents: URL, runs: URL, since start: Date,
+                                now: Date) -> [WorkflowGroup] {
         let fm = FileManager.default
         let root = subagents.appendingPathComponent("workflows")
         guard let ids = try? fm.contentsOfDirectory(atPath: root.path) else { return [] }
@@ -96,7 +97,7 @@ public struct AgentTreeBuilder: Sendable {
             let journal = journalReader.read(dir.appendingPathComponent("journal.jsonl"))
             let metas = names
                 .compactMap { metaReader.read(dir.appendingPathComponent($0)) }
-                .filter { Self.isFresh(agentId: $0.agentId, in: dir, since: start) }
+                .filter { Self.isFresh(agentId: $0.agentId, in: dir, since: start, now: now) }
                 .sorted { $0.agentId < $1.agentId }
             guard !metas.isEmpty else { return nil }
 
@@ -134,11 +135,17 @@ public struct AgentTreeBuilder: Sendable {
         return AgentActivity.isLikelyRunning(lastWrite: mtime as? Date, now: now)
     }
 
-    static func isFresh(agentId: String, in directory: URL, since start: Date) -> Bool {
+    static func isFresh(agentId: String, in directory: URL, since start: Date,
+                        now: Date) -> Bool {
         let jsonl = directory.appendingPathComponent("agent-\(agentId).jsonl")
         guard let attrs = try? FileManager.default.attributesOfItem(atPath: jsonl.path),
               let mtime = attrs[.modificationDate] as? Date
         else { return false }
+        // ⚠️ 上界不可省。〔code review 2026-09-22〕mtime 在 2099 的檔案會**永遠**
+        // 通過這一關，而且沒有任何東西會把它清掉 —— 那一列會卡在名單上不會消失。
+        // 同一個不對稱在這個 repo 出現第三次（`StatusLineCacheReader:73` 夾了、
+        // `WindowExpiry.horizon` 有、`AgentActivity.futureTolerance` 今天補了）。
+        guard mtime.timeIntervalSince(now) <= AgentActivity.futureTolerance else { return false }
         return mtime > start
     }
 
