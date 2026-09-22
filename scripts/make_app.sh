@@ -44,6 +44,31 @@ cp "$ROOT/Resources/Info.plist" "$STAGE/Contents/Info.plist"
 # ⚠️ 十個尺寸**各自原生渲染**，不是從 1024 縮下來的。全程 NSBezierPath，
 #    在目標尺寸重畫比降取樣清楚（16/32 差最多）。
 # ⚠️ 用剛建好的那個 binary 來畫，不是 ~/Applications 裡那個舊的。
+# ── statusline tee 的安裝腳本 ────────────────────────────────────
+# ⚠️ **為什麼要打進 bundle**：面板的空狀態提示會叫使用者去跑這支腳本，
+# 而**下載 DMG 的人沒有 repo**（code review 2026-09-22 抓到：在那之前提示寫的是
+# `bash scripts/install_statusline_tee.sh`，新使用者唯一的指引不可執行）。
+#
+# ⚠️ 目錄結構要保留：install_statusline_tee.sh 用 `$(dirname $0)/..` 當 ROOT，
+# 再去找 `$ROOT/scripts/quotamonster-tee.sh`。放成 Resources/scripts/ 剛好對得上。
+#
+# ⚠️ 代價（已知）：bundle 裡這一份會與 repo 漂開。DMG 使用者沒有 repo 所以不受影響，
+# 從原始碼建置的人跑的是 repo 那一份。所以漂開不會造成兩份同時生效。
+echo "▸ bundling scripts"
+# ⚠️ **只打包使用者真的會跑的那兩支。** 第一版用 `*.sh` 全複製，結果
+# make_app.sh / make_dmg.sh 與三支測試腳本都進了使用者的 .app ——
+# 那是沒有理由的表面積，而且會讓人以為那些是給他用的。
+BUNDLED_SCRIPTS=(install_statusline_tee.sh quotamonster-tee.sh)
+mkdir -p "$STAGE/Contents/Resources/scripts"
+for name in "${BUNDLED_SCRIPTS[@]}"; do
+  cp "$ROOT/scripts/${name}" "$STAGE/Contents/Resources/scripts/${name}"
+  # 自我斷言：複製要逐 byte 相同，不然使用者跑的是一份殘檔。
+  if ! cmp -s "$ROOT/scripts/${name}" "$STAGE/Contents/Resources/scripts/${name}"; then
+    echo "✗ ${name} 複製後與原檔不同" >&2; exit 1
+  fi
+done
+echo "  ${#BUNDLED_SCRIPTS[@]} 支腳本（只有使用者會跑的那兩支）"
+
 echo "▸ rendering icon"
 ICONSET="$ROOT/.build/app/AppIcon.iconset"
 rm -rf "${ICONSET}"

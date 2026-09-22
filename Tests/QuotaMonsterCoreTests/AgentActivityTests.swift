@@ -79,3 +79,28 @@ struct AgentActivityTests {
         #expect(tree.likelyRunningAgentCount == 1, "但要說得出其中幾隻是推定的")
     }
 }
+
+/// 未來的時間戳要有上界 —— 〔code review 2026-09-22 抓到〕。
+@Suite("Agent 活動代理 — 壞掉的時間戳")
+struct AgentActivityClockTests {
+    let now = Fixture.now
+
+    @Test("未來一點點算還在跑（時鐘往回跳、跨機器同步）")
+    func slightlyFutureIsStillRunning() {
+        #expect(AgentActivity.isLikelyRunning(lastWrite: now.addingTimeInterval(60), now: now))
+    }
+
+    @Test("⚠️ 太未來就是壞掉的時間戳，不是訊號 —— 否則那一列永遠不會消失")
+    func absurdlyFutureIsRejected() {
+        #expect(AgentActivity.isLikelyRunning(
+            lastWrite: now.addingTimeInterval(AgentActivity.futureTolerance + 1), now: now) == false)
+        // 2099 年的檔案
+        #expect(AgentActivity.isLikelyRunning(
+            lastWrite: now.addingTimeInterval(80 * 365 * 86400), now: now) == false)
+    }
+
+    @Test("容差就是窗口本身 —— 不發明第二個數字")
+    func toleranceReusesTheWindow() {
+        #expect(AgentActivity.futureTolerance == AgentActivity.window)
+    }
+}

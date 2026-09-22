@@ -124,3 +124,82 @@ struct SessionTitleTests {
         #expect(SessionTitle.aiTitle(inTail: "") == nil)
     }
 }
+
+/// 同名的 session 要分得開。
+///
+/// ### 為什麼這不是邊緣案例
+/// 〔實測 2026-09-22〕**5 個存活 session 裡有 4 個落在同名配對中（80%）**：
+/// ```
+/// a28a5af5 usage  registry=usage-ff  aiTitle=修t2                  ← 同名
+/// c3929492 usage  registry=usage-c9  aiTitle=修t2                  ←
+/// eb209917 RL     registry=rl-b5     aiTitle=Q-learning 環境 setup  ← 同名
+/// d8258fe6 RL     registry=Q-learning 環境 setup（auto）             ←
+/// 2d765b86 RL     registry=rl-1b     aiTitle=0922作業
+/// ```
+/// 原因是 fork／resume 同一段對話會沿用同一個 `aiTitle` —— 那是常態不是例外。
+/// 使用者看到兩列一模一樣，第一反應是「這是不是壞了」。
+///
+/// ⚠️ 這是 2026-09-22 引入 `aiTitle` 時造成的回歸。註冊表的 derived 名
+/// （`usage-ff` / `usage-c9`）本來就是唯一的，所以接上去就分得開。
+@Suite("Session 顯示名 — 同名")
+struct SessionTitleDisambiguationTests {
+
+    func item(_ id: String, _ title: String, _ key: String?) -> SessionTitle.Titled {
+        SessionTitle.Titled(id: id, title: title, uniqueKey: key)
+    }
+
+    @Test("不同名的完全不動")
+    func uniqueTitlesAreUntouched() {
+        let out = SessionTitle.disambiguate([item("1", "修t2", "usage-ff"),
+                                             item("2", "0922作業", "rl-1b")])
+        #expect(out["1"] == "修t2")
+        #expect(out["2"] == "0922作業")
+    }
+
+    @Test("同名的兩個各自接上唯一鍵")
+    func duplicatesGetTheirKey() {
+        let out = SessionTitle.disambiguate([item("1", "修t2", "usage-ff"),
+                                             item("2", "修t2", "usage-c9")])
+        #expect(out["1"] == "修t2 · usage-ff")
+        #expect(out["2"] == "修t2 · usage-c9")
+        #expect(out["1"] != out["2"], "接完之後一定要真的不一樣")
+    }
+
+    @Test("三個以上同名也要全部接上")
+    func threeWayDuplicate() {
+        let out = SessionTitle.disambiguate([item("1", "x", "a"), item("2", "x", "b"),
+                                             item("3", "x", "c")])
+        #expect(Set(out.values).count == 3)
+    }
+
+    @Test("⚠️ 唯一鍵**本身**就是顯示名時不要接 —— 不可以變成「A · A」")
+    func doesNotAppendWhenTitleAlreadyIsTheKey() {
+        // 實測會發生：d8258fe6 的 registry name 是 auto 的「Q-learning 環境 setup」，
+        // 而它就是顯示名；旁邊 eb209917 的 aiTitle 也是同一個字串。
+        let out = SessionTitle.disambiguate([
+            item("1", "Q-learning 環境 setup", "rl-b5"),
+            item("2", "Q-learning 環境 setup", "Q-learning 環境 setup")])
+        #expect(out["1"] == "Q-learning 環境 setup · rl-b5")
+        #expect(out["2"] == "Q-learning 環境 setup")
+        #expect(out["1"] != out["2"])
+    }
+
+    @Test("沒有唯一鍵就接不了 —— 維持原樣，不要編一個出來")
+    func missingKeyIsLeftAlone() {
+        let out = SessionTitle.disambiguate([item("1", "x", nil), item("2", "x", nil)])
+        #expect(out["1"] == "x")
+        #expect(out["2"] == "x")
+    }
+
+    @Test("只有一邊有唯一鍵時，只接那一邊 —— 那樣就已經分得開了")
+    func onlyOneSideHasAKey() {
+        let out = SessionTitle.disambiguate([item("1", "x", "k1"), item("2", "x", nil)])
+        #expect(out["1"] == "x · k1")
+        #expect(out["2"] == "x")
+    }
+
+    @Test("空清單不會爆")
+    func emptyIsFine() {
+        #expect(SessionTitle.disambiguate([]).isEmpty)
+    }
+}

@@ -101,8 +101,24 @@ final class DataStore {
     /// 註冊表的 `name` 在 `nameSource == "derived"` 時是 Claude Code 從 cwd 湊的
     /// 佔位名（`rl-1b`、`usage-ff`）——**使用者從來沒有看過它**。
     /// 他真正看到的（VS Code 分頁上的 `0922作業`、終端機的 `修t2`）在 transcript 裡。
-    /// 判準全部在 `SessionTitle`（Core，13 則測試）；這裡只負責 I/O 與節流。
+    ///
+    /// ⚠️ 還要處理**同名**：〔實測 2026-09-22〕5 個存活 session 裡 4 個同名
+    /// （fork／resume 沿用同一個 `aiTitle`）。判準全部在 `SessionTitle`（Core）。
     func displayName(for session: ClaudeSession) -> String {
+        resolvedNames[session.sessionId] ?? rawTitle(for: session)
+    }
+
+    /// 這一輪所有存活 session 的顯示名，同名的已經接上唯一鍵。
+    /// ⚠️ 必須一次算完整批 —— 「同名」是**整批**的性質，一個一個算看不出來。
+    private var resolvedNames: [String: String] {
+        SessionTitle.disambiguate(sessions.map {
+            SessionTitle.Titled(id: $0.session.sessionId,
+                                title: rawTitle(for: $0.session),
+                                uniqueKey: $0.session.name)
+        })
+    }
+
+    private func rawTitle(for session: ClaudeSession) -> String {
         let fallback = session.name ?? String(session.sessionId.prefix(8))
         guard SessionTitle.isPlaceholder(session.nameSource) else { return fallback }
         return SessionTitle.display(name: session.name, nameSource: session.nameSource,
@@ -187,6 +203,26 @@ final class DataStore {
     private var statusLineCache: URL { StatusLineCacheReader.defaultDirectory(home: home) }
     private var historyFile: URL { UsageHistory.defaultURL(home: home) }
     private var watchLogFile: URL { WatchLog.defaultURL(home: home) }
+
+    /// 面板要印給使用者照做的那一行安裝指令。
+    ///
+    /// ⚠️〔code review 2026-09-22〕這裡原本寫死 repo 相對路徑
+    /// `bash scripts/install_statusline_tee.sh --apply`，而**下載 DMG 的人沒有 repo** ——
+    /// 新使用者唯一會看到的指引因此不可執行。`make_app.sh` 現在把 `scripts/`
+    /// 打進 `Contents/Resources/`，這裡解析出絕對路徑。
+    ///
+    /// ⚠️ 純 CLI binary（`--render-panel` 那條路）沒有 bundle，
+    /// 那時退回 repo 相對路徑 —— 在那個情境下它是對的。
+    var installCommand: String {
+        if let url = Bundle.main.resourceURL?
+            .appendingPathComponent("scripts/install_statusline_tee.sh"),
+           FileManager.default.isReadableFile(atPath: url.path) {
+            // 路徑含空白（~/Applications/QuotaMonster.app 不會，但使用者可能改名），
+            // 所以一定要引號。
+            return "bash \"\(url.path)\" --apply"
+        }
+        return "bash scripts/install_statusline_tee.sh --apply"
+    }
 
     /// 每日長條圖的七根。⚠️ 判準全部在 `DailyUsage`（Core），這裡只餵資料。
     /// 沒有 7 天窗口的重置時間就畫不出來 —— 那不是「全部 0%」，是「沒有這張圖」。

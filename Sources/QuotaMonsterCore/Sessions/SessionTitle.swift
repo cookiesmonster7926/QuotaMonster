@@ -79,6 +79,42 @@ public enum SessionTitle {
         return found
     }
 
+    // ── 同名 ───────────────────────────────────────────────────
+
+    public struct Titled: Equatable, Sendable {
+        public let id: String
+        public let title: String
+        /// 註冊表的 `name`。它是唯一的（`usage-ff` / `usage-c9` / `rl-b5`），
+        /// 所以同名時接上去就分得開。`nil` 代表接不了。
+        public let uniqueKey: String?
+        public init(id: String, title: String, uniqueKey: String?) {
+            self.id = id; self.title = title; self.uniqueKey = uniqueKey
+        }
+    }
+
+    /// 同名的 session 各自接上唯一鍵；不同名的完全不動。
+    ///
+    /// ⚠️ **這不是邊緣案例。**〔實測 2026-09-22〕5 個存活 session 裡有 4 個
+    /// 落在同名配對中（80%）—— fork／resume 同一段對話會沿用同一個 `aiTitle`。
+    /// 使用者看到兩列一模一樣，第一反應是「這是不是壞了」。
+    /// 這是 2026-09-22 引入 `aiTitle` 時造成的回歸。
+    ///
+    /// ⚠️ 唯一鍵**本身**就是顯示名時不接（否則會變成「A · A」）——
+    /// 實測會發生：`nameSource == "auto"` 的那個 session，它的 registry name
+    /// 就是顯示名，而旁邊那個的 `aiTitle` 剛好是同一個字串。
+    public static func disambiguate(_ items: [Titled]) -> [String: String] {
+        var count: [String: Int] = [:]
+        for i in items { count[i.title, default: 0] += 1 }
+        var out: [String: String] = [:]
+        for i in items {
+            guard count[i.title, default: 0] > 1,
+                  let key = i.uniqueKey, key != i.title
+            else { out[i.id] = i.title; continue }
+            out[i.id] = "\(i.title) · \(key)"
+        }
+        return out
+    }
+
     /// 換行轉空白、去頭尾空白、截斷。面板那一列只有一行。
     public static func clean(_ s: String) -> String {
         let flat = s.replacingOccurrences(of: "\n", with: " ")

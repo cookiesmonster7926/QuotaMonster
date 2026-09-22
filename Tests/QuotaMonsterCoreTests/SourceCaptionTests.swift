@@ -40,9 +40,9 @@ struct SourceCaptionTests {
 
     @Test("完全沒有讀數而且沒有 tee → 空狀態提示要說得出確切的指令")
     func noReadingGivesAnActionableHint() {
-        let h = UsageSourceCaption.setupHint(usage: nil, source: nil, statusLinePayloadCount: 0)
+        let h = UsageSourceCaption.setupHint(usage: nil, source: nil, statusLinePayloadCount: 0, installCommand: "bash /x/install_statusline_tee.sh --apply")
         let hint = try! #require(h)
-        #expect(hint.contains("install_statusline_tee"))
+        #expect(hint.contains("install_statusline_tee"), "指令由呼叫端給，這裡只驗它有被放進去")
         // ⚠️〔實測 2026-09-21〕~/.claude.json 那個來源已經不更新了
         //（檔案一直被重寫，但 fetchedAtMs 凍了 3.9 天），所以提示不可以把 tee
         // 講成「可選的加強」—— 它是額度數字的**唯一**來源。
@@ -54,18 +54,35 @@ struct SourceCaptionTests {
         let c = UsageSourceCaption.text(usage: nil, source: nil, statusLinePayloadCount: 2)
         #expect(c.contains("還沒帶到額度"))
         #expect(UsageSourceCaption.setupHint(usage: nil, source: nil,
-                                             statusLinePayloadCount: 2) == nil,
+                                             statusLinePayloadCount: 2, installCommand: "bash /x/install_statusline_tee.sh --apply") == nil,
                 "tee 明明在寫卻叫他重裝，是最糟的謊")
     }
 
     @Test("有讀數的時候永遠不出現空狀態提示")
     func noHintWhenThereIsAReading() {
+        // ⚠️ 這一則原本全部餵 `statusLinePayloadCount: 1`，於是**永遠停在第一道閘**
+        // （payload 不是 0 就直接回 nil），第二道閘「有活讀數就不提示」一次都沒被走到。
+        // 〔突變驗證抓到〕把那道閘拿掉，一則測試都沒紅。
+        // 現在兩種都餵：payload 有的、以及 payload 沒有但讀數是活的。
         for f: Freshness in [.live, .aging(minutes: 9), .expired] {
             for src: UsageSource in [.statusLine, .claudeJSON] {
                 #expect(UsageSourceCaption.setupHint(usage: snapshot(f), source: src,
-                                                     statusLinePayloadCount: 1) == nil)
+                                                     statusLinePayloadCount: 1,
+                                             installCommand: "bash /x/install_statusline_tee.sh --apply") == nil,
+                        "tee 有在寫就不該叫他去裝")
             }
         }
+        // 沒有 payload、但讀數還活著（例如 ~/.claude.json 剛更新過）→ 也不該提示。
+        for f: Freshness in [.live, .aging(minutes: 9)] {
+            #expect(UsageSourceCaption.setupHint(usage: snapshot(f), source: .claudeJSON,
+                                                 statusLinePayloadCount: 0,
+                                             installCommand: "bash /x/install_statusline_tee.sh --apply") == nil,
+                    "數字是活的就沒有東西要修，提示只會變成雜訊")
+        }
+        // 對照組：同樣沒有 payload，但讀數過期 → **要**提示（證明上面不是恆真）
+        #expect(UsageSourceCaption.setupHint(usage: snapshot(.expired), source: .claudeJSON,
+                                             statusLinePayloadCount: 0,
+                                             installCommand: "bash /x/install_statusline_tee.sh --apply") != nil)
     }
 
     // ── 有讀數：既有行為不可退步 ──────────────────────────────────
@@ -104,7 +121,8 @@ struct SourceCaptionTests {
                                         statusLinePayloadCount: 0)
         #expect(c.contains("沒裝 statusline tee"))
         let h = UsageSourceCaption.setupHint(usage: snapshot(.expired), source: .claudeJSON,
-                                             statusLinePayloadCount: 0)
+                                             statusLinePayloadCount: 0,
+                                             installCommand: "bash /x/install_statusline_tee.sh --apply")
         #expect(h != nil, "過期又沒有 tee，等於沒有活的數字 —— 這種人最需要提示")
     }
 

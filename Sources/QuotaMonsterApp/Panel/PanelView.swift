@@ -105,7 +105,8 @@ struct PanelView: View {
             // 這裡只負責畫。
             if let hint = UsageSourceCaption.setupHint(
                 usage: store.usage, source: store.usageSource,
-                statusLinePayloadCount: store.statusLinePayloadCount) {
+                statusLinePayloadCount: store.statusLinePayloadCount,
+                installCommand: store.installCommand) {
                 Text(hint)
                     .font(.system(size: 9.5))
                     .foregroundStyle(.secondary)

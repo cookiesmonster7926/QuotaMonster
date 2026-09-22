@@ -37,10 +37,24 @@ public enum AgentActivity {
 
     /// - Parameter lastWrite: transcript 的 mtime。`nil` 代表**讀不到** ——
     ///   那是「不知道」，不是「停了」，所以不推定（規矩：不存在 ≠ 那個狀態不成立）。
+    /// 未來的時間戳可以往前多遠還算數。
+    ///
+    /// ⚠️ **沒有上界就是一個永遠不會消失的列。** 時鐘往回跳幾秒、檔案從別台機器
+    /// 同步過來，那些是真的、該當成「還在跑」；但一個 mtime 在 2099 的檔案
+    /// 會**永遠**被推定在跑，而且沒有任何東西會把它清掉。
+    ///
+    /// 〔code review 2026-09-22 抓到〕`StatusLineCacheReader:73` 早就夾住了
+    /// （`min(mtime ?? now, now)`，而且註解寫明理由），`WindowExpiry` 也有
+    /// `horizon`。這裡與 `AgentTreeBuilder.isFresh` 當初都沒有 —— 同一個
+    /// 不對稱在這個 repo 已經出現第三次。
+    public static let futureTolerance: TimeInterval = window
+
     public static func isLikelyRunning(lastWrite: Date?, now: Date) -> Bool {
         guard let lastWrite else { return false }
-        // ⚠️ 未來的時間戳（時鐘往回跳、檔案從別台機器同步過來）算**還在跑**。
-        // 猜錯的方向要選「訊號還在」，與 `FinishGlow.at` 同一條原則。
-        return now.timeIntervalSince(lastWrite) < window
+        let age = now.timeIntervalSince(lastWrite)
+        // 未來一點點算「還在跑」—— 猜錯的方向要選「訊號還在」，
+        // 與 `FinishGlow.at` 同一條原則。但太未來就是壞掉的時間戳，不是訊號。
+        guard age > -futureTolerance else { return false }
+        return age < window
     }
 }

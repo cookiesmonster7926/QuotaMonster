@@ -159,13 +159,24 @@ enum Dump {
         print("         \(summary.blocked) 個在等你 · \(summary.working) 個工作中 · \(summary.idle) 個閒置")
         // ⚠️ 與面板同一套判準（`SessionTitle`）。診斷若顯示 `rl-1b` 而面板顯示
         // `0922作業`，使用者會以為兩邊看的不是同一個 session —— 規矩 28。
-        func shownName(_ session: ClaudeSession) -> String {
+        func rawTitle(_ session: ClaudeSession) -> String {
             let fallback = session.name ?? String(session.sessionId.prefix(8))
             guard SessionTitle.isPlaceholder(session.nameSource) else { return fallback }
             let title = resolverForTitles.transcript(sessionId: session.sessionId,
                                                      projectsRoot: projectsForTitles)
                 .flatMap { SessionTitle.aiTitle(inTranscript: $0) }
             return title ?? fallback
+        }
+        // ⚠️ 同名要接上唯一鍵，而且**必須與面板同一套判準** ——
+        // 診斷顯示兩個「修t2」而面板顯示「修t2 · usage-ff」，
+        // 使用者會以為兩邊看的不是同一批東西（規矩 28）。
+        let shown = SessionTitle.disambiguate(live.map {
+            SessionTitle.Titled(id: $0.session.sessionId,
+                                title: rawTitle($0.session),
+                                uniqueKey: $0.session.name)
+        })
+        func shownName(_ session: ClaudeSession) -> String {
+            shown[session.sessionId] ?? rawTitle(session)
         }
 
         for s in live {

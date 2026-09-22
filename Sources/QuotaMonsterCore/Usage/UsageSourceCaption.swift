@@ -59,12 +59,22 @@ public enum UsageSourceCaption {
     ///
     /// 「該動手」＝沒有任何活的讀數，而且快取目錄裡一個 payload 都沒有。
     /// 只要 tee 有在寫，就一律回 nil —— 那時候問題不在安裝，叫他重裝只會更糟。
+    /// - Parameter installCommand: 要印給使用者照做的那一行。
+    ///
+    ///   ⚠️ **由呼叫端給，Core 不可以自己編。**〔code review 2026-09-22〕
+    ///   這裡原本寫死「`bash scripts/install_statusline_tee.sh --apply`」——
+    ///   那是 repo 相對路徑，而**下載 DMG 的人沒有 repo**（實測 `.app` 裡
+    ///   只有 `AppIcon.icns`）。新使用者唯一會看到的指引因此不可執行。
+    ///
+    ///   修法是把 `scripts/` 打進 bundle，由 App 層解析出真正的絕對路徑。
+    ///   Core 不知道 bundle 是什麼，所以那個字串只能從外面進來。
     public static func setupHint(usage: UsageSnapshot?, source: UsageSource?,
-                                 statusLinePayloadCount: Int) -> String? {
+                                 statusLinePayloadCount: Int,
+                                 installCommand: String) -> String? {
         guard statusLinePayloadCount == 0 else { return nil }
         let hasLiveReading = usage != nil && usage?.freshness != .expired
         guard !hasLiveReading else { return nil }
         return "額度數字的唯一來源是 statusline tee（~/.claude.json 已經不再更新）。"
-             + "安裝：bash scripts/install_statusline_tee.sh --apply"
+             + "安裝：\(installCommand)"
     }
 }
