@@ -746,6 +746,42 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 
 ---
 
+**17. 自動更新（Sparkle）先不做 —— 但理由不是「做不到」，是那把金鑰。**
+
+- ⚠️ **先講清楚它是做得到的**，免得下一個人以為這條是在說不可行。
+  〔實測 2026-09-23，讀 Sparkle 2.x 原始碼〕`SUUpdateValidator` 的判斷是
+  `if (passedDSACheck || passedCodeSigning)` —— **兩者擇一**即可，
+  原始碼的註解寫明為什麼：「We allow failure of one of them, because this allows
+  key rotation without breaking chain of trust.」
+  這個專案是 ad-hoc 簽章（`Signature=adhoc`、`TeamIdentifier=not set`，實測），
+  designated requirement 是那一次建置的 cdhash，所以 `passedCodeSigning`
+  **永遠**過不了 —— 整條信任鏈由 EdDSA 獨力承擔，而那是 Sparkle 自己的 ed25519
+  金鑰，與 Apple 完全無關。Sparkle 的拒絕訊息自己點名：
+  「If no Apple Code Signing certificate is available, **adhoc signing can be used at minimum**.」
+- 另外兩個我以為會擋的也都不擋（實測）：沒有 Team ID 時 `validateConnection:`
+  直接回 `SetNoRequirementSuccess` 而不是失敗；`~/Applications` 不需要管理員權限
+  （`/Applications` 需要）。而且 **Sparkle 會拿掉 `com.apple.quarantine`** ——
+  也就是說手動裝過一次之後，往後的更新再也不會撞到那個「已損毀」對話框。
+- **不做的理由只有一個，但它不可逆**：EdDSA 私鑰**永久且無法輪替**。
+  Sparkle 為金鑰遺失準備的救援路徑（`andMatchesDeveloperIDTeamFromOldBundleURL:`）
+  要從舊 bundle 讀 Team ID 來組 Developer ID requirement —— ad-hoc 沒有 Team ID，
+  **那條路對這個專案是關著的**。私鑰一掉，所有已安裝的複本永遠再也更新不了。
+  所以「金鑰存在哪裡、怎麼備份」這個決定比程式碼重要，要先有答案才動工。
+- **Homebrew 出局，三個各自獨立的理由**〔實測 2026-09-23〕：
+  官方 cask 的門檻是「225 stars 或 90 forks/watchers」且「30 天內的 repo 通常不受理」；
+  `Acceptable-Casks` 現在把通過 Gatekeeper 列為**硬性要求**，而
+  `gktool scan` 對這個 app 回 exit 70。自建 tap 繞得過審核但**不解決問題**：
+  Homebrew 沒有自動升級，使用者還是要打 `brew upgrade`，而且它現在是
+  **故意**加上 quarantine 的（`--no-quarantine` 已於 2026-07-30 移除）——
+  體驗比現在的 DMG 更差。
+- **自己寫更新器也否決了。** 機制全部驗證可行（行程能在自己的 bundle 被換掉時存活、
+  URLSession 下載的檔案不帶 quarantine、ditto 打包保得住 ad-hoc 的 cdhash），
+  但它是**唯一一個沒辦法用更新來修的元件**：v0.4.0 的更新器有 bug，
+  就永遠在所有裝了 v0.4.0 的機器上跑。而這個 app 是 `LSUIElement`，
+  更新失敗的樣子是**選單列上什麼都沒有** —— 沒有視窗、沒有 Dock 圖示、沒有錯誤訊息。
+- **所以 0.4.0 做的是「只提示，不自動裝」**（規矩 51 / 52）。
+  它把「使用者永遠不知道」變成「知道」，而且不必先賭上那把金鑰。
+
 ## 三、被推翻過的（推翻本身就是知識）
 
 ⚠️ **下面每一條在 `docs/build-log.md` 裡都還留著原文。**
