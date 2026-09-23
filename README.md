@@ -139,8 +139,20 @@ wrapper 自己印出 `Opus 5 (1M context) · ctx 26% · 5h 31% · 7d 15%`。
 
 ## 隱私
 
-**這個 app 不連網。** 〔實測〕`git grep -nE "URLSession|URLRequest|NWConnection|socket\(" -- Sources/`
-零命中。它只讀本機檔案、只寫自己的快取。完整清單見 [SECURITY.md](.github/SECURITY.md)。
+**這個 app 只發一種網路請求，而且關得掉：**每隔幾小時去 GitHub 問一次有沒有新版。
+
+```
+GET https://api.github.com/repos/cookiesmonster7926/QuotaMonster/releases/latest
+```
+
+送出去的就是這個請求本身 —— 沒有識別碼、沒有遙測、沒有崩潰回報。
+它**不會**自動下載或自動安裝任何東西：有新版時面板上多一行字，點了用瀏覽器打開
+release 頁面，要不要裝還是你決定。
+偏好設定裡可以關掉，關掉之後它一個請求都不會發出。
+
+〔實測〕`git grep -nE "URLSession|URLRequest|NWConnection|socket\(" -- Sources/`
+只命中 `ReleaseChecker.swift` 一個檔案（0.3.0 以前是零命中）。
+其餘它只讀本機檔案、只寫自己的快取。完整清單見 [SECURITY.md](.github/SECURITY.md)。
 
 ---
 
@@ -182,7 +194,7 @@ bash scripts/test_statusline_tee.sh         # shell 層：狀態列一個 byte �
 bash scripts/test_install_statusline_tee.sh
 ```
 
-**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 50 條不可違反的規矩、
+**接手前請讀 [`docs/quotamonster.md`](docs/quotamonster.md)** —— 52 條不可違反的規矩、
 16 條寫下來的拒絕、33 處「曾經這樣想、後來被資料推翻」，每一條都附證據。
 
 > ⚠️ **`docs/build-log.md` 是施工紀錄，不是現況。** 它裡面有**已知是錯的敘述**

@@ -133,6 +133,18 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 下拉面板畫哪一種版面。nil ＝ 沒調過，用 `PanelStyle.standard`。
     public var panelStyle: PanelStyle?
 
+    /// 要不要每隔幾小時去 GitHub 問一次「有沒有新版」。
+    ///
+    /// ⚠️ **這一格與其他五格不同：它決定 app 會不會連網。**
+    /// 這個 app 在 0.3.0 之前完全沒有任何網路呼叫，而 README 與 SECURITY.md
+    /// 都寫著這件事、還附了讓讀者自己驗證的 `grep`。所以它不是口味，是**性質**。
+    ///
+    /// 預設**開**，理由是「使用者永遠不知道有新版」本身就是一個問題，
+    /// 而這個檢查送出去的東西只有一個 HTTP GET（沒有任何識別碼、沒有遙測）。
+    /// 但它必須關得掉，而且關掉之後 app 一個網路呼叫都不會發出 ——
+    /// 那是 SECURITY.md 那個承諾在 0.3.0 之後唯一還能成立的形式。
+    public var checksForUpdates: Bool?
+
     public init(alertSound: AlertSoundChoice? = nil, morningHour: Int? = nil,
                 contextYellow: Int? = nil, contextRed: Int? = nil,
                 quotaCritical: Double? = nil, quotaTight: Double? = nil) {

@@ -19,9 +19,24 @@
 
 ## 一分鐘版本
 
-- **送出去的東西：沒有。** 整個 `Sources/` 與 `scripts/` 裡沒有任何一個網路 API
-  （`URLSession` / `URLRequest` / `Network` / socket / curl / wget 全部 0 筆命中）〔讀碼〕。
-  沒有遙測、沒有崩潰回報、沒有自動更新，也沒有任何地方會去讀你的 API key。
+- **送出去的東西：一個 HTTP GET，而且關得掉。**
+  ⚠️ **這一條在 0.4.0 變了**（0.3.0 以前是「沒有網路連線」）。
+  現在 app 每隔幾小時會去問一次 GitHub 有沒有新版：
+
+  ```
+  GET https://api.github.com/repos/cookiesmonster7926/QuotaMonster/releases/latest
+  ```
+
+  **送出去的內容就是這個請求本身** —— 沒有任何識別碼、沒有版本號、沒有查詢參數、
+  沒有 cookie、沒有 User-Agent 以外的東西。GitHub 看得到的是你的 IP 與時間
+  （任何一次瀏覽 github.com 也一樣）。回應只被讀四個欄位：
+  `tag_name` / `html_url` / `draft` / `prerelease`。
+  **仍然沒有**遙測、沒有崩潰回報、沒有自動下載或自動安裝，
+  也沒有任何地方會去讀你的 API key。
+  **關掉的方法**：偏好設定 →「每隔幾小時看看有沒有新版」→ 關。
+  關掉之後這個 app 一個網路請求都不會發出。
+  〔讀碼〕全 repo 只有 `Sources/QuotaMonsterApp/App/ReleaseChecker.swift` 一個檔案
+  碰得到網路 API，而它只在那個偏好是開的時候才會被呼叫。
 - **讀：** `~/.claude.json`、`~/.claude/sessions/`、`~/.claude/projects/` 的一部分
   （transcript 只讀檔尾），加上它自己的 Application Support 目錄。
 - **寫：** 只寫 `~/Library/Application Support/QuotaMonster/` 底下。
@@ -124,13 +139,22 @@ bug 修好之前，早一步用寬權限建出來了；新建的目錄應該是 
 
 ## 4. 它送出哪些東西
 
-**沒有網路連線。** 查證方式（你自己跑一次，應該 0 筆命中）：
+**一個 HTTP GET，關得掉。** 查證方式（你自己跑一次）：
 
 ```bash
 git grep -nE 'URLSession|URLRequest|NSURLConnection|import Network|NWConnection|socket\(' -- Sources scripts
 ```
 
-唯一離開 app 行程的資料是**本機通知**：`/usr/bin/osascript` 的
+⚠️ **應該只命中 `Sources/QuotaMonsterApp/App/ReleaseChecker.swift`。**
+（0.3.0 以前這裡是 0 筆命中。這一條在 0.4.0 變了 —— 見「一分鐘版本」。）
+命中任何**第二個**檔案都是一個回報給我們的理由。
+
+那個請求是 `GET https://api.github.com/repos/cookiesmonster7926/QuotaMonster/releases/latest`，
+每隔至少 6 小時一次，只在偏好設定裡那一格是開的時候才發。
+它不下載也不安裝任何東西 —— 有新版的時候面板上多一行字，點了會用瀏覽器打開
+release 頁面，之後就跟今天一樣由你自己決定要不要裝。
+
+其餘離開 app 行程的資料是**本機通知**：`/usr/bin/osascript` 的
 `display notification`，三個欄位（內文、標題、副標題），送進你自己機器的通知中心。
 兩件相關的事：
 
@@ -249,7 +273,7 @@ bash scripts/install_statusline_tee.sh --uninstall --apply   # 還原
 # 它碰哪些路徑
 git grep -n 'claude\|Application Support' -- Sources scripts
 
-# 有沒有網路（應該 0 筆）
+# 有沒有網路（應該只命中 ReleaseChecker.swift 一個檔案；0.3.0 以前是 0 筆）
 git grep -nE 'URLSession|URLRequest|import Network|NWConnection|socket\(' -- Sources scripts
 
 # 有沒有碰鑰匙圈（應該 0 筆）

@@ -5,6 +5,41 @@
 
 ## [未發布]
 
+## [0.4.0] — 2026-09-23
+
+**這一版改變了這個 app 是什麼**，所以先講那件事。
+
+### ⚠️ 這個 app 現在會連網了（一個請求，關得掉）
+
+0.3.0 以前它一個網路 API 都沒有，而 README 與 SECURITY.md 把那件事寫給你看、
+還附了讓你自己跑的 `grep`。現在它每隔至少 6 小時會去問一次：
+
+```
+GET https://api.github.com/repos/cookiesmonster7926/QuotaMonster/releases/latest
+```
+
+- 送出去的**就是這個請求本身** —— 沒有識別碼、沒有版本號、沒有遙測、沒有崩潰回報
+- 回應只讀四個欄位：`tag_name` / `html_url` / `draft` / `prerelease`
+- **不會自動下載或自動安裝任何東西**：有新版時面板上多一行字，
+  點了用瀏覽器打開 release 頁面，要不要裝還是你決定
+- **偏好設定裡可以關掉**，關掉之後它一個請求都不會發出
+- 〔讀碼〕全 repo 只有 `ReleaseChecker.swift` 一個檔案碰得到網路 API，
+  文件請你跑的那個 grep 現在宣告「應該只命中這一個檔案」
+
+### 新增
+
+- **有新版的時候面板會說。** 點了打開 release 頁面。
+  ⚠️ 已經是最新的時候**什麼都不說** —— 沒有新聞不是新聞。
+  ⚠️ 但**超過三天問不到**的時候會說出來，而且那句話裡不會出現「最新」兩個字：
+  沉默會被讀成「你是最新的」，而那正是要擋的誤讀。
+- 偏好設定第七格：「每隔幾小時看看有沒有新版」。
+- 診斷 `--probe-update [--as <版本>]`（真的問一次）與
+  `--render-panel --demo-update` / `--demo-outage`（看那一條的版面）。
+
+⚠️ **0.3.0 以前的版本不會知道有新版** —— 檢查程式碼在 0.4.0 才進去。
+這一次還是要手動下載，之後就不用了。
+
+
 ## [0.3.0] — 2026-09-23
 
 一個新的看法：**簡易版面**。
@@ -154,7 +189,8 @@
   而且 7 天窗口是滾動的、5 小時窗口每五小時歸零 —— 兩條線都不能直接差分成
   「今天用了多少」。「那根長條代表什麼」這個問題還沒有答案。
 
-[未發布]: https://github.com/cookiesmonster7926/QuotaMonster/compare/v0.3.0...HEAD
+[未發布]: https://github.com/cookiesmonster7926/QuotaMonster/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/cookiesmonster7926/QuotaMonster/compare/v0.3.0...v0.4.0
 [0.3.0]: https://github.com/cookiesmonster7926/QuotaMonster/compare/v0.2.0...v0.3.0
 [0.2.0]: https://github.com/cookiesmonster7926/QuotaMonster/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/cookiesmonster7926/QuotaMonster/releases/tag/v0.1.0

@@ -76,6 +76,7 @@ final class DataStore {
     /// 才能讓「建得出 DataStore 就一定有偏好」是結構上的事。
     init(home: URL = FileManager.default.homeDirectoryForCurrentUser) {
         self.home = home
+        self.updates = ReleaseChecker(home: home)
         loadPreferences()
     }
     private let usageReader = ClaudeJSONUsageReader()
@@ -252,6 +253,74 @@ final class DataStore {
     /// 下拉面板畫哪一種版面。
     var panelStyle: PanelStyle { preferences.panelStyle ?? .standard }
 
+    // ── 有沒有新版 ─────────────────────────────────────────────
+
+    /// ⚠️ 整個 app 唯一會連網的東西。見 `ReleaseChecker` 的檔頭。
+    @ObservationIgnored private let updates: ReleaseChecker
+    @ObservationIgnored private var updateTimer: Timer?
+    /// 面板上那一行（nil ＝ 不說話）。Observable 要看得到它變，所以另外存一份。
+    private(set) var updateCaption: String?
+    private(set) var updateURL: String?
+
+    /// 要不要去問。**預設開**，但關得掉 —— 關掉之後一個網路呼叫都不會發出。
+    var checksForUpdates: Bool { preferences.checksForUpdates ?? true }
+
+    func setChecksForUpdates(_ on: Bool) {
+        var p = preferences
+        p.checksForUpdates = on
+        setPreferences(p)
+        if on { checkForUpdatesIfDue() } else { updateCaption = nil; updateURL = nil }
+    }
+
+    /// 這個 app 自己的版本。
+    ///
+    /// ⚠️ **不是 .app bundle 的時候回 nil，於是整條檢查都不會跑。**
+    /// 診斷指令（`--dump` / `--render-panel`…）就是那種情況 ——
+    /// 一個診斷工具不該因為被跑了一次就送出網路請求。
+    var currentVersion: ReleaseVersion? {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String)
+            .flatMap(ReleaseVersion.init)
+    }
+
+    /// ⚠️ **刻意不在 `refresh()` 裡。** 那個迴圈每 3 秒跑一次、穩態 62.8 毫秒
+    /// （規矩 47），而網路請求的延遲是它的幾百倍而且會失敗。
+    /// 這裡自己用一個 15 分鐘的計時器去問 `UpdateCheck.shouldCheck`
+    /// （真正的節奏是小時級；計時器密一點只是為了讓睡醒之後很快補上）。
+    private func startUpdateChecks() {
+        checkForUpdatesIfDue()
+        updateTimer?.invalidate()
+        updateTimer = Timer.scheduledTimer(withTimeInterval: 900, repeats: true) { [weak self] _ in
+            Task { @MainActor in self?.checkForUpdatesIfDue() }
+        }
+    }
+
+    /// 塞一個**合成**的更新提示，只給 `--render-panel --demo-update` 用。
+    /// ⚠️ 合成的，不是真的 —— 診斷端會把這件事印出來（規矩 28）。
+    func seedSyntheticUpdate(_ status: UpdateStatus) {
+        updateCaption = UpdateCaption.text(status, lastSuccess: Date(), now: Date())
+        if case .available(_, let url) = status { updateURL = url } else { updateURL = nil }
+    }
+
+    /// 合成一個「已經三天問不到」。同上，只給診斷用。
+    func seedSyntheticOutage() {
+        updateCaption = UpdateCaption.text(.unknown(.offline),
+                                           lastSuccess: Date().addingTimeInterval(-10 * 86400),
+                                           now: Date())
+        updateURL = nil
+    }
+
+    private func checkForUpdatesIfDue() {
+        guard checksForUpdates, let current = currentVersion else { return }
+        let now = Date()
+        guard updates.shouldCheck(now: now) else { return }
+        Task { @MainActor in
+            await updates.check(current: current, now: now)
+            updateCaption = UpdateCaption.text(updates.status,
+                                               lastSuccess: updates.lastSuccess, now: Date())
+            if case .available(_, let url) = updates.status { updateURL = url } else { updateURL = nil }
+        }
+    }
+
     /// 切換版面。⚠️ 走 `setPreferences` 所以會落地 —— 這是使用者直接下的指令。
     func setPanelStyle(_ s: PanelStyle) {
         var p = preferences
@@ -295,6 +364,8 @@ final class DataStore {
     static let sampleWindow: TimeInterval = 24 * 3600
 
     func start() {
+        // ⚠️ 只有真的 `start()` 才會連網 —— 診斷指令走的是 `refresh()`，碰不到這裡。
+        startUpdateChecks()
         // 再讀一次：init 之後、start 之前有可能被另一個行程改過
         // （例如使用者在上一次執行裡改了設定）。成本是一次小檔案讀取。
         loadPreferences()

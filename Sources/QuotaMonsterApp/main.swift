@@ -232,6 +232,13 @@ if let i = CommandLine.arguments.firstIndex(of: "--bench-refresh") {
     exit(0)
 }
 
+if CommandLine.arguments.contains("--probe-update") {
+    let app = NSApplication.shared
+    app.setActivationPolicy(.accessory)
+    Task { @MainActor in await ProbeUpdate.run() }
+    app.run()
+}
+
 if CommandLine.arguments.contains("--dump") {
     Dump.run()
     exit(0)

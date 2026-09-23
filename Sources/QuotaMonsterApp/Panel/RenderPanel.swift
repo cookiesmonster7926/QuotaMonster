@@ -82,6 +82,19 @@ enum RenderPanel {
         }
         FileHandle.standardError.write(
             Data("面板版面：\(store.panelStyle.label)（\(store.panelStyle.rawValue)）\n".utf8))
+        // `--demo-update` 塞一筆合成的「有新版」，讓那一條的版面看得到。
+        if CommandLine.arguments.contains("--demo-update") {
+            store.seedSyntheticUpdate(.available(ReleaseVersion("9.9.9")!,
+                                                 url: "https://example.invalid"))
+            FileHandle.standardError.write(
+                Data("⚠️ 「有新版 9.9.9」那一條是**合成**的，不是真的檢查結果\n".utf8))
+        }
+        // `--demo-outage` 塞一筆合成的「一直問不到」。
+        if CommandLine.arguments.contains("--demo-outage") {
+            store.seedSyntheticOutage()
+            FileHandle.standardError.write(
+                Data("⚠️ 「更新檢查連不上」那一條是**合成**的\n".utf8))
+        }
         // `--chart daily|cumulative` 只覆寫記憶體，不碰使用者的偏好檔。
         if let i = CommandLine.arguments.firstIndex(of: "--chart"),
            CommandLine.arguments.count > i + 1,

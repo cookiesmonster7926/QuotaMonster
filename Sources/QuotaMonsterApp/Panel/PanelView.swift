@@ -48,6 +48,8 @@ struct PanelView: View {
             case .full:   fullContent
             case .simple: SimplePanelBody(store: store, onDark: onDark)
             }
+            // ⚠️ 兩種版面共用 —— 有新版這件事與你在看哪一頁無關。
+            updateBanner
             Divider().opacity(0.5)
             // ⚠️ footer **兩頁共用**，切換鍵才會落在同一個像素上。
             footer
@@ -510,6 +512,39 @@ struct PanelView: View {
             .buttonStyle(.plain)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
+    }
+
+    /// 「有新版」那一條。**不說話的時候整個不畫**（沒有新聞不是新聞）。
+    ///
+    /// ⚠️ 文案與「該不該說」的判斷都在 Core（`UpdateCaption`），這裡只畫。
+    /// 那裡守著這個功能唯一真正危險的地方：**把「問不到」畫成「你是最新的」**。
+    @ViewBuilder private var updateBanner: some View {
+        if let text = store.updateCaption {
+            Divider().opacity(0.5)
+            Button {
+                if let u = store.updateURL, let url = URL(string: u) {
+                    NSWorkspace.shared.open(url)
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: store.updateURL == nil
+                          ? "exclamationmark.triangle" : "arrow.down.circle")
+                        .font(.system(size: 10.5))
+                    Text(text).font(.system(size: 10.5, weight: .medium))
+                        .fixedSize(horizontal: false, vertical: true)
+                        .multilineTextAlignment(.leading)
+                    Spacer(minLength: 0)
+                }
+                // ⚠️ 有新版用 accent，問不到用 secondary —— **不可以用琥珀**，
+                // 那是「要你輸入」專屬的（規矩 24）。問不到也不是壞消息，是沒有消息。
+                .foregroundStyle(store.updateURL == nil ? AnyShapeStyle(.secondary)
+                                                        : AnyShapeStyle(Color.accentColor))
+            }
+            .buttonStyle(.plain)
+            // 問不到的時候按了也沒用，所以那時候不給按。
+            .disabled(store.updateURL == nil)
+            .padding(.horizontal, 14).padding(.vertical, 8)
+        }
     }
 
     /// 在簡易與完整之間切換。
