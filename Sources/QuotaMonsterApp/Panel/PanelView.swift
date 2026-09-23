@@ -316,11 +316,12 @@ struct PanelView: View {
         .frame(height: 3)
     }
 
+    /// ⚠️ 措辭在 Core（`ResetCaption`），**這裡不可以再寫一份**。
+    /// 簡易版面剛做出來時自己寫了第二份，字彙、契約、時鐘三個方向同時漂開。
+    /// ⚠️ 時鐘也從 `Date()` 換成 `store.lastRefresh` —— 兩頁要傳同一個瞬間，
+    /// 否則切換版面時同一個倒數會跳一分鐘。整頁本來就是同一拍的快照。
     private func resetText(_ w: UsageWindow?) -> String {
-        guard let r = w?.resetsAt else { return " " }
-        guard let left = ResetTimestamp.remaining(until: r, now: Date()) else { return "已重置" }
-        let h = Int(left) / 3600, m = (Int(left) % 3600) / 60
-        return h > 0 ? "剩 \(h)h \(m)m" : "剩 \(m)m"
+        ResetCaption.countdown(resetsAt: w?.resetsAt, now: store.lastRefresh)
     }
 
     /// 說出新鮮度，也說出**來源** —— 兩個來源的「舊」代表完全不同的事情。

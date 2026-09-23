@@ -30,19 +30,33 @@ struct SimplePanelBody: View {
                 BigGlyph(state: store.glyph, side: Self.glyphSide,
                          ink: onDark ? .white : .black)
                 VStack(alignment: .leading, spacing: 12) {
-                    readout("5 小時視窗 · 已用", store.usage?.fiveHour, store.glyph.fiveHourTier)
+                    // ⚠️ `.help()` 不是裝飾，是那個箭頭的**付款方式**。
+                    // `OutlookCaption.arrow` 讓「持平」與「資料不夠」都畫成空字串，
+                    // 而它自己的檔頭寫著「說不出最近節奏時要**講出來**，不是安靜地省略」——
+                    // 完整面板用 `.help(evidence)` 付這筆錢（PanelView）。
+                    // 〔code review 2026-09-23〕簡易頁把箭頭搬過來了卻沒搬這個出口，
+                    // 於是 `BurnRefusal` 那八種具名拒絕在這一頁全部到不了畫面。
+                    // 成本 0pt。
+                    readout("5 小時視窗 · 已用", store.usage?.fiveHour,
+                            store.glyph.fiveHourTier, caption: fiveHourCaption)
+                        .help(OutlookCaption.evidence(fiveHourOutlook))
                     Rectangle().fill(.quaternary).frame(height: 0.5)
-                    readout("7 天 · 全模型 · 已用", store.usage?.sevenDay, store.glyph.sevenDayTier)
+                    readout("7 天 · 全模型 · 已用", store.usage?.sevenDay,
+                            store.glyph.sevenDayTier)
                 }
                 Spacer(minLength: 0)
             }
-            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 8)
-
-            HStack {
-                Spacer()
+            .padding(.horizontal, 16).padding(.top, 14).padding(.bottom, 12)
+            // ⚠️ 新鮮度掛成 overlay，**不佔版面高度**。
+            // 原本它自己一整列（約 24pt），而那一列只有右邊約 40pt 有字 ——
+            // 那才是「圖示下方那塊空白」裡唯一真的被浪費掉的部分。
+            // ⚠️ 也**不可以**塞進 `readout` 裡：那整個掛著
+            // `.opacity(freshness == .expired ? 0.5 : 1)`，
+            // 於是「讀數已過期」這五個字會剛好在它成立的那一刻被調暗。
+            .overlay(alignment: .topTrailing) {
                 Text(freshnessText).font(.system(size: 10)).foregroundStyle(.tertiary)
+                    .padding(.trailing, 16).padding(.top, 14)
             }
-            .padding(.horizontal, 16).padding(.bottom, 10)
 
             // 沒裝 tee 的話，這一頁也要說得出原因 —— 判斷在 Core，這裡只畫。
             if let hint = UsageSourceCaption.setupHint(
@@ -76,7 +90,8 @@ struct SimplePanelBody: View {
     /// 過期時是「數字照印、不上色、整區 `opacity(0.5)`」（＝完整面板今天的行為），
     /// **不是畫「—」**。「—」只保留給 usage 真的沒有那個窗口。
     /// 那是規矩 1 的兩層：看到它但它舊了 ≠ 整個沒看到它。
-    private func readout(_ title: String, _ w: UsageWindow?, _ tier: QuotaTier?) -> some View {
+    private func readout(_ title: String, _ w: UsageWindow?, _ tier: QuotaTier?,
+                         caption: String? = nil) -> some View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title).font(.system(size: 11, weight: .medium)).foregroundStyle(.secondary)
             HStack(alignment: .firstTextBaseline, spacing: 2) {
@@ -89,7 +104,8 @@ struct SimplePanelBody: View {
                     Text("%").font(.system(size: 12, weight: .medium)).foregroundStyle(.secondary)
                 }
             }
-            Text(resetText(w)).font(.system(size: 10)).foregroundStyle(.tertiary).lineLimit(1)
+            Text(caption ?? resetText(w)).font(.system(size: 10))
+                .foregroundStyle(.tertiary).lineLimit(1).minimumScaleFactor(0.8)
         }
         .opacity(store.usage?.freshness == .expired ? 0.5 : 1)
     }
@@ -127,6 +143,25 @@ struct SimplePanelBody: View {
 
     // ── 小工具 ─────────────────────────────────────────────────
 
+    /// 5 小時那一欄的註腳：倒數 ＋ **投射**。
+    ///
+    /// ⚠️ 這是簡易頁原本丟掉的東西裡最值錢的一個：這一頁說得出「用掉多少」，
+    /// 說不出「燒多快」。而它**不需要那塊空白** —— 它是那個數字的投影，
+    /// 接在那個數字的註腳後面才對；放到左邊去等於把投影和被投影的數字拆到兩欄。
+    /// 字串由 Core 組（`OutlookCaption`，投射說不出話時一個位元組不差地退回倒數）。
+    /// ⚠️ 存成一個值，不是在 caption 裡即用即丟 —— `.help()` 也要吃它。
+    /// measuredAt 是讀數被抓下來的那一刻，不是現在。見 `UsageProjection`。
+    private var fiveHourOutlook: UsageOutlook? {
+        guard let u = store.usage else { return nil }
+        return UsageOutlook.fiveHour(u.fiveHour, freshness: u.freshness,
+                                     measuredAt: u.fetchedAt, samples: store.recentSamples)
+    }
+
+    private var fiveHourCaption: String {
+        OutlookCaption.fiveHour(resetText: resetText(store.usage?.fiveHour),
+                                outlook: fiveHourOutlook)
+    }
+
     private var freshnessText: String {
         guard let u = store.usage else { return "沒有讀數" }
         switch u.freshness {
@@ -136,12 +171,13 @@ struct SimplePanelBody: View {
         }
     }
 
-    /// 沒有重置時間就畫「—」，不要畫「剩 0m」。
+    /// ⚠️ 措辭在 Core（`ResetCaption`），**這裡不可以再寫一份**。
+    /// 〔code review 2026-09-23〕這裡原本是自己寫的第二份，三個方向都漂了：
+    /// 「重置時間已過」不在 `OutlookCaption` 記載的契約集合裡（於是耗盡那一格
+    /// 的「N 後恢復」會消失）、`mins > 0` 把「還剩 30 秒」講成「已經過了」、
+    /// 時鐘與完整面板不同所以同一個倒數差一分鐘。
     private func resetText(_ w: UsageWindow?) -> String {
-        guard let r = w?.resetsAt else { return "—" }
-        let mins = Int(r.timeIntervalSince(store.lastRefresh) / 60)
-        guard mins > 0 else { return "重置時間已過" }
-        return mins >= 60 ? "剩 \(mins / 60)h \(mins % 60)m" : "剩 \(mins)m"
+        ResetCaption.countdown(resetsAt: w?.resetsAt, now: store.lastRefresh)
     }
 }
 
