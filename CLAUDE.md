@@ -18,6 +18,18 @@ rm -rf .build && swift build -c release     # 增量建置的 Build complete 是
 bash scripts/make_app.sh                    # 組 .app 並裝到 ~/Applications
 ```
 
+## 開發流程
+
+**main 受保護：一律開分支、走 PR，`build + test (arm64)` 綠了才能 merge（只開 squash）。
+連管理員也不能直推** —— 直推會被 `protected branch hook declined` 擋下來，那不是權限壞了。
+
+- 推分支：`git push -u origin <分支>`。
+  ⚠️ **永遠不用 `git push --all` 或 `--mirror`** —— 它們會把本機**所有**分支推上這個 public repo，
+  包括不該公開的。
+- 任務是這個 repo 的 issue；PR 內文用 `Fixes #N` 關掉它。
+- 排程（日期、sprint、版本目標日）在維護者的私人 Project。
+  **issue、PR、commit 訊息、文件裡都不寫排程日期** —— 寫了就等於公開了。
+
 ## 這個專案最容易踩的三個坑
 
 1. **決策只能放 `QuotaMonsterCore`。**
