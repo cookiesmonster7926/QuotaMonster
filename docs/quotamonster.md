@@ -80,6 +80,8 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
   先寫鎖住搬移前行為的測試，`--render-panel --dark` 前後逐像素相同（合成家目錄，四種情境）。
   〔突變驗證〕9 條全紅；其中「elapsed 改回搬移前的 `Int(...)`」讓測試行程以 signal 5 中止 ——
   搬移前那一行在 Core 裡就是規矩 10 的違反，只是存活判定在實際路徑上替它擋住了。
+  那 9 條沒有涵蓋 elapsed 的捨入方向：非負值上 `.towardZero` 與 `.down` 一樣，
+  改成 `.rounded(.down)` 原本全部照綠；補了負的時間差（`-0.4s` → 「0s」）之後才紅。
 
 **5. 註解與文件裡「實測」「代理量測」「推論」「文件說」是四件不同的事，不可以混用；把品味寫成機制論也是一種說謊。**
 
@@ -241,7 +243,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 **14. `latestPhase` 來自 journal.jsonl 的行序（最後一個 `started` 行的 phase），不是從 `metas` 挑一隻；而且它是「最新的那個邊緣」，不是「現在正在跑哪一階段」，nil ＝ journal 沒說。journal 的 `spawns` 是有序陣列，不可以換成 Set 或 Dictionary。**
 
 - **為什麼**：〔實測〕`started` 行**沒有任何時間戳**（key 組合固定是 type/key/agentId/label/phase），而檔案是 append-only —— 行序是那個檔案裡唯一的時間資訊。`metas` 是按 agentId 排序的，而 agentId 是隨機 hex，取 `metas.first` 等於擲骰子：〔實測 2026-09-19〕這台機器 36 個 workflow 有 15 個因此報錯階段，而那個字串就畫在面板上。叫「最新的邊緣」是因為 workflow 的 `pipeline()` 沒有 barrier，多個階段真的會同時在跑，一個單數字串必然丟掉其中一個。階段要**領先**存活閘：`isFresh` 看的 `agent-<id>.jsonl` 比 `.meta.json` 晚落地〔實測 n=343，全部晚，中位 0.092s、最大 0.431s〕。
-- **證據**：WorkflowJournalReader.swift:23-33、35-45；AgentTreeBuilder.swift:106-112；AgentTree.swift:41-47；WorkflowPhaseTests.swift:105-132；消費者 SessionRow.swift:205、Dump.swift:189
+- **證據**：WorkflowJournalReader.swift:23-33、35-45；AgentTreeBuilder.swift:106-112；AgentTree.swift:41-47；WorkflowPhaseTests.swift:105-132；消費者 SessionRow.swift（`wf.latestPhase ?? "workflow"` 那一行）、Dump.swift（`wf.latestPhase.map` 那一行）
 - **付過的代價**：有 —— 錯的階段已經畫在使用者眼前一段時間（「三項裡唯一使用者今天就看得到的」）。`FinishSignal.swift:46` 現在直接寫著「不是字典序、不是第一個。`latestPhase` 那一課的學費已經付過了」。
 
 **15. `runDuration` 是 run 自己量的時間（磁碟上的 `durationMs` ÷1000），不是「這個 group 被觀察了多久」。分界線釘死：`status` 讀不到 → 完全不發（它是排空的正面證據）；`duration` 讀不到 → 照發，那一格 nil（它只是附屬資訊）。**

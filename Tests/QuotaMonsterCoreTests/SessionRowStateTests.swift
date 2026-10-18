@@ -66,6 +66,17 @@ struct SessionElapsedTests {
         #expect(l(90_000) == "25h")
     }
 
+    /// 負的時間差到得了：〔推論〕`DataStore.refresh()` 先取 `now`、之後才讀註冊表，
+    /// 面板用同一個 `now`（`lastRefresh`）畫；這一拍之間才註冊的 session，`startedAt` 比 `now` 晚
+    /// 不到一秒。非負值上 `.towardZero` 與 `.down` 結果相同，只有這裡分得出捨入方向。
+    /// 這裡鎖的是搬移前 `Int(...)` 的行為（往零截斷），不是在說負值該怎麼顯示。
+    @Test("負的時間差往零截斷（照搬 Int(...)，不是 floor）")
+    func negativeIntervalTruncatesTowardZero() {
+        func l(_ s: TimeInterval) -> String { SessionElapsed.label(startedAt: t0, now: t0 + s) }
+        #expect(l(-0.4) == "0s")
+        #expect(l(-59.9) == "-59s")
+    }
+
     /// 規矩 10：`Int(Double)` 超出範圍會 trap 掉整個行程，而 `startedAt`
     /// 來自磁碟上的 JSON。搬移前是 `Int(now.timeIntervalSince(...))`，
     /// 存活判定（pid＋啟動時間 300 秒容差）實際上擋掉了荒謬的值，
