@@ -418,7 +418,9 @@ struct PanelView: View {
 
     private func estimatedHeight(of s: LiveSession) -> CGFloat {
         var h = RowMetrics.padding + RowMetrics.header
-        if store.statusLine[s.session.sessionId]?.contextUsedPercent != nil {
+        // 「ctx 那一行畫不畫」與 `SessionRow` 問同一支（`ContextGauge` 建不建得出來）。
+        if ContextGauge(store.statusLine[s.session.sessionId],
+                        thresholds: store.contextThresholds) != nil {
             h += RowMetrics.contextLine
         }
         if let tree = store.trees[s.session.sessionId] {
@@ -468,10 +470,7 @@ struct PanelView: View {
                                    context: store.statusLine[s.session.sessionId],
                                    finish: store.finishes[s.session.sessionId],
                                    now: store.lastRefresh,
-                                   contextYellow: store.preferences.contextYellow
-                                       ?? SessionRow.defaultContextYellow,
-                                   contextRed: store.preferences.contextRed
-                                       ?? SessionRow.defaultContextRed)
+                                   contextThresholds: store.contextThresholds)
                     }
                     if store.sessions.isEmpty {
                         Text("目前沒有執行中的 Claude Code session")

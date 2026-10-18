@@ -185,10 +185,7 @@ enum RenderPanel {
                            context: store.statusLine[s.session.sessionId],
                            finish: store.finishes[s.session.sessionId],
                            now: store.lastRefresh,
-                           contextYellow: store.preferences.contextYellow
-                               ?? SessionRow.defaultContextYellow,
-                           contextRed: store.preferences.contextRed
-                               ?? SessionRow.defaultContextRed)
+                           contextThresholds: store.contextThresholds)
             }
         }
         .padding(12)
