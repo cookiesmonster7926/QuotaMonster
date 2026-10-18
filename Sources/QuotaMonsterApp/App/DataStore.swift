@@ -305,7 +305,9 @@ final class DataStore {
     ///
     /// ⚠️ 不是只塞一次：popover 展開時 `PanelView.task` 會呼叫 `refresh()`，
     /// 那一拍會把 session 換回註冊表讀到的。所以 `refresh()` 看到它就用它，
-    /// 不讀註冊表、也不建樹 —— 量到的是合成資料的面板，不是一半真一半假的。
+    /// 不讀註冊表、也不建樹 —— session 清單不會一半真一半假。
+    /// ⚠️ 只有 session 與 agent 樹是合成的：這個分支在讀完額度、歷史**之後**才 return，
+    /// 所以額度區、新鮮度說明、每日長條仍是這台機器當下的資料。
     /// 診斷端要把「這是合成的」印出來（規矩 28）。
     @ObservationIgnored private var syntheticSessions: (sessions: [LiveSession],
                                                         trees: [String: AgentTree])?
