@@ -497,7 +497,8 @@ struct NotificationDedupTests {
 /// 「排空」只能用**正面證據**定義。
 ///
 /// `AgentTreeBuilder` 把每一隻一般 Agent subagent 都寫成 `.unknown`，而
-/// `WorkflowJournalReader` 讀不到 journal 時整組也是 `.unknown`。
+/// journal（`WorkflowJournalWatcher`）**從來沒讀到過**時整組也是 `.unknown`
+/// （讀過之後讀不到時，寬限期內沿用已知的事，過了才變回 `.unknown`，見 `AgentTreeBuilder.journalUnreadableGrace`）。
 /// 用「沒有人在跑」當條件，等於把「讀不到」當成「跑完了」——
 /// 那會在 workflow 剛建好目錄、journal 還沒寫出來的那一拍發一則「全部完成」。
 @Suite("NotificationEngine — T2 扇出整批排空")
@@ -626,7 +627,7 @@ struct NotificationT2Tests {
         var e = NotificationEngine()
         _ = e.update(input(tree([.running, .running])), now: at(0))
         _ = e.update(input(tree([.finished, .running])), now: at(3))
-        _ = e.update(input(tree([.unknown, .running])), now: at(6))    // journal 暫時讀不到
+        _ = e.update(input(tree([.unknown, .running])), now: at(6))    // journal 讀不到超過寬限期
         _ = e.update(input(tree([.finished, .finished], runStatus: "completed")), now: at(9))
         #expect(e.flush(now: at(13)).count == 1)
     }

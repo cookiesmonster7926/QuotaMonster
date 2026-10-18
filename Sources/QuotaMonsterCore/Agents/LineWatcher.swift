@@ -45,7 +45,17 @@ public struct LineWatcher<Facts: LineFacts>: Sendable {
     /// 上一次 `sweep()` 之後被 `update` 問過的那些。
     private var touched: Set<URL> = []
 
+    /// 每份檔案**連續**讀不到幾次了。讀到一次就拿掉。
+    private var misses: [URL: Int] = [:]
+
     public init() {}
+
+    /// `url` 最近連續幾次讀不到。0 ＝ 上一次讀到了（或從沒問過）。
+    ///
+    /// `update` 回答的是「我們知道什麼」，這一格回答「那是多久以前看到的」——
+    /// 兩層的分界（看到了但不在那個狀態／整個沒看到）要靠呼叫端拿它來切。
+    /// 目前用它的是 `AgentTreeBuilder` 的 journal 寬限期（`journalUnreadableGrace`）。
+    public func unreadableStreak(of url: URL) -> Int { misses[url] ?? 0 }
 
     /// 現在記著幾份檔案。只給測試與 `--dump` 用。
     public var watchedCount: Int { knowledge.count }
@@ -62,16 +72,22 @@ public struct LineWatcher<Facts: LineFacts>: Sendable {
     /// 讀掉 `url` 新增的部分，回傳「到目前為止我們知道的事實」。
     ///
     /// ⚠️ **讀不到的時候不會抹掉已經知道的事。** 「我們沒看到」不是「它沒發生」——
-    /// 兩層的分界在下一層（`TranscriptCursor.Read.unreadable`）還在，
-    /// 需要分辨的呼叫端去那裡問。這一層回答的是「我們知道什麼」。
+    /// 但也**不是**「它還是那樣」。這一層只負責不遺忘；連續讀不到幾次記在
+    /// `unreadableStreak(of:)`，要不要、什麼時候切斷，是呼叫端的判斷
+    /// （transcript 那一份刻意不切，見規矩 47；journal 那一份有寬限期，見 `AgentTreeBuilder`）。
+    ///
+    /// ⚠️ 讀不到的那一拍**也算被問過**（`touched`）：否則每拍都 `sweep()` 的呼叫端
+    /// 會在讀不到的那一拍把知識與游標一起丟掉，下一拍再讀不到就回空的事實。
     public mutating func update(_ url: URL) -> Facts {
         touched.insert(url)
         var cursor = cursors[url] ?? TranscriptCursor()
         defer { cursors[url] = cursor }
 
         guard case .advanced(let lines, let fromStart) = cursor.read(url) else {
+            misses[url, default: 0] += 1
             return knowledge[url] ?? Facts()
         }
+        misses[url] = nil
         // 從頭開始 ＝ 第一次看到，或它被整個重寫了。兩種都要換一份新的事實。
         var facts = fromStart ? Facts() : (knowledge[url] ?? Facts())
         facts.ingest(lines)
@@ -85,6 +101,7 @@ public struct LineWatcher<Facts: LineFacts>: Sendable {
     public mutating func keep(only urls: Set<URL>) {
         cursors = cursors.filter { urls.contains($0.key) }
         knowledge = knowledge.filter { urls.contains($0.key) }
+        misses = misses.filter { urls.contains($0.key) }
         // 只用 `keep(only:)`、從不 `sweep()` 的呼叫端（transcript 那一份）也不可以讓它一直長。
         touched.formIntersection(urls)
     }

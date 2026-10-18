@@ -85,10 +85,12 @@ struct WorkflowJournalWatcherTests {
 
     // ── 被重寫 ─────────────────────────────────────────────────
 
-    @Test("⚠️ run 被還原時 journal 就地整份重寫 —— 事實整份換掉，不累加")
+    @Test("⚠️ 就地整份重寫成更長、開頭不同的檔案 —— 事實整份換掉，不累加")
     func anInPlaceRestoreReplacesTheFacts() throws {
-        // 〔讀碼 2.1.302：writeRestored〕重寫的內容是 restoring + 記錄 + restored。
-        // 是不是 rename 上去的沒有量到，照最壞的情況：同一個 inode、而且變長了。
+        // 通用的最壞情況（同一個 inode、變長、開頭不同），內容借 restoring…restored 的形狀。
+        // ⚠️ 〔讀碼 2.1.302〕`writeRestored` **不會**重寫一份以 `launched` 開頭的 journal
+        // （那種 journal 算「已還原完成」）—— 所以這一則測的不是讀碼看到的那條路，
+        // 是指紋擋得住的那一類。讀碼看到的那條路見下一則。
         let url = try file(launched + started("old", "Build"))
         var w = WorkflowJournalWatcher()
         #expect(w.update(url).started == ["old"])
@@ -105,6 +107,37 @@ struct WorkflowJournalWatcherTests {
         #expect(j.started == ["new1", "new2"])
         #expect(j.running == ["new2"])
         #expect(j.latestPhase == "Audit")
+
+        // 重寫之後回到增量：下一拍一行都不重新解析。
+        let parsed = w.linesIngested
+        #expect(w.update(url).started == ["new1", "new2"])
+        #expect(w.linesIngested == parsed, "重寫之後每一拍都被當成重寫、整份重新解析")
+    }
+
+    @Test("半還原 → 全還原（讀碼看到的那一條就地重寫）：開頭不變，指紋抓不到，被當成追加")
+    func aHalfRestoreCompletedInPlaceReadsAsAnAppend() throws {
+        // 〔讀碼 2.1.302〕`writeRestored` 只在 journal 不在、或第一行是 `restoring` 而且沒有
+        // `restored`（上一次只還原到一半）時才整份重寫。後者的舊檔與新檔都以 `restoring`
+        // 開頭、接著同一批記錄，所以前 256 byte 多半一樣 —— **指紋不保證抓得到**。
+        // 這一則把那個限制釘住：舊檔恰好是新檔的 byte 前綴時，增量讀的結果剛好是對的。
+        // 〔未驗證〕真實的半還原檔是不是新檔的前綴（是的話才會對）沒有量過。
+        let restoring = #"{"type":"restoring"}"# + "\n"
+        let half = restoring + launched + started("a", "Build")
+        let url = try file(half)
+        var w = WorkflowJournalWatcher()
+        #expect(w.update(url).started == ["a"])
+        let parsed = w.linesIngested
+
+        let h = try FileHandle(forWritingTo: url)
+        try h.truncate(atOffset: 0)
+        try h.write(contentsOf: Data((half + started("b", "Audit") + #"{"type":"restored"}"# + "\n").utf8))
+        try h.close()
+
+        let j = w.update(url)
+        #expect(j.started == ["a", "b"])
+        #expect(j.latestPhase == "Audit")
+        // 被當成追加：只解析了新增的兩行，不是整份重讀。
+        #expect(w.linesIngested == parsed + 2)
     }
 
     @Test("被換成另一個檔案（rename 上去）—— 一樣整份換掉")
@@ -125,6 +158,42 @@ struct WorkflowJournalWatcherTests {
         _ = w.update(url)
         try FileManager.default.removeItem(at: url)
         #expect(w.update(url).started == ["a"])
+    }
+
+    @Test("⚠️ 讀不到的那一拍也算「有被問過」—— sweep 不可以趁機把已經知道的事丟掉")
+    func anUnreadableTickSurvivesASweep() throws {
+        // 「整個沒看到」不是「沒有事實」。讀不到的那一拍要是不算被問過，
+        // 每拍都 sweep 的正式路徑（DataStore、TraceAlerts）會把知識與游標一起丟掉，
+        // 連續第二拍讀不到時就回空的 journal —— 等於把「沒看到」講成「什麼都沒有」。
+        let url = try file(launched + started("a", "Build"))
+        var w = WorkflowJournalWatcher()
+        _ = w.update(url)
+        w.sweep()
+        try FileManager.default.removeItem(at: url)
+        #expect(w.update(url).started == ["a"])
+        w.sweep()
+        #expect(w.update(url).started == ["a"])
+        #expect(w.watchedCount == 1)
+    }
+
+    @Test("連續讀不到幾次是數得出來的；讀到一次就歸零")
+    func unreadableStreakCountsConsecutiveMisses() throws {
+        let url = try file(launched + started("a", "Build"))
+        var w = WorkflowJournalWatcher()
+        _ = w.update(url)
+        #expect(w.unreadableStreak(of: url) == 0)
+
+        let saved = try Data(contentsOf: url)
+        try FileManager.default.removeItem(at: url)
+        _ = w.update(url)
+        #expect(w.unreadableStreak(of: url) == 1)
+        w.sweep()                                   // 每拍都 sweep 也不可以把計數清掉
+        _ = w.update(url)
+        #expect(w.unreadableStreak(of: url) == 2)
+
+        try saved.write(to: url)
+        _ = w.update(url)
+        #expect(w.unreadableStreak(of: url) == 0)
     }
 
     // ── 清理 ───────────────────────────────────────────────────
@@ -219,6 +288,39 @@ struct AgentTreeBuilderJournalTests {
         #expect(tree.workflows.isEmpty)
         #expect(journals.watchedCount == 0)
         #expect(journals.linesIngested == 0)
+    }
+
+    @Test("⚠️ journal 讀過之後讀不到：寬限期內沿用已知的事，過了就切斷成「不明」，不是一直「執行中」")
+    func anUnreadableJournalIsCutOffAfterAGrace() throws {
+        // 「整個沒看到」要寬限期或切斷（~/CLAUDE.md 的兩層規矩）。
+        // 沒有切斷的話，讀不到那一刻還在 running 裡的 agent 會一直被算成「執行中」，
+        // 直到 session 結束 —— 新鮮度閘看的是 agent-*.jsonl，不是 journal。
+        let s = try session(stale: false)
+        var journals = WorkflowJournalWatcher()
+        let builder = AgentTreeBuilder()
+        func tick() -> AgentTree {
+            let t = builder.build(paths: s.paths, sessionId: sessionId, facts: TranscriptFacts(),
+                                  journals: &journals, sessionStartedAt: s.start, now: s.now)
+            journals.sweep()                        // 與 DataStore 一樣，每拍結束 sweep
+            return t
+        }
+        #expect(tick().workflows.first?.runningCount == 2)
+
+        let saved = try Data(contentsOf: s.journal)
+        try FileManager.default.removeItem(at: s.journal)
+        // 寬限期內：短暫的空窗不閃成「不明」。
+        for _ in 0..<AgentTreeBuilder.journalUnreadableGrace {
+            #expect(tick().workflows.first?.runningCount == 2)
+        }
+        // 過了寬限期：與「從來沒讀到過」一樣 —— 全部「不明」、沒有階段。
+        let cut = try #require(tick().workflows.first)
+        #expect(cut.runningCount == 0)
+        #expect(cut.agents.allSatisfy { $0.runState == .unknown })
+        #expect(cut.latestPhase == nil)
+
+        // 又讀得到了：事實回來。
+        try saved.write(to: s.journal)
+        #expect(tick().workflows.first?.runningCount == 2)
     }
 
     @Test("活著的 workflow 往 journal 追加的行，下一拍接得上")

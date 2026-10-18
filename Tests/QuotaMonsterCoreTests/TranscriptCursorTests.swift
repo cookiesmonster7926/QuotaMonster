@@ -119,6 +119,20 @@ struct TranscriptCursorTests {
 
     // ── 檔案被重寫 ─────────────────────────────────────────────
 
+    /// 重寫之後，游標要**回到增量模式**：再讀一次是 0 行、不是從頭；追加一行只交出那一行。
+    ///
+    /// ⚠️ 這一步是 code review 補上的。原本每一則重寫測試都只在重寫之後讀**一次** ——
+    /// 把重寫時的 `head = Data()` 刪掉，指紋就永遠是舊檔案的開頭，之後**每一拍**都被當成重寫、
+    /// 整份重新解析（正是這個游標要修掉的成本），而事實照樣是對的，所以全部測試照樣綠。
+    func expectBackToIncremental(_ c: inout TranscriptCursor, _ url: URL,
+                                 sourceLocation: SourceLocation = #_sourceLocation) throws {
+        #expect(c.read(url) == .advanced(lines: [], fromStart: false),
+                "重寫之後的下一拍又被當成重寫 —— 指紋沒有從新檔案重新長", sourceLocation: sourceLocation)
+        try append("z\n", to: url)
+        #expect(c.read(url) == .advanced(lines: ["z"], fromStart: false),
+                "重寫之後的追加沒有被當成追加", sourceLocation: sourceLocation)
+    }
+
     @Test("檔案變短 —— 整份重讀，並標明是從頭開始")
     func aTruncatedFileIsReReadFromTheStart() throws {
         let url = try file("aaaa\nbbbb\ncccc\n")
@@ -130,6 +144,7 @@ struct TranscriptCursorTests {
         }
         #expect(lines == ["x"])
         #expect(fromStart)
+        try expectBackToIncremental(&c, url)
     }
 
     @Test("⚠️ 檔案被換掉、大小剛好一樣 —— 只有 inode 測得出來")
@@ -149,6 +164,7 @@ struct TranscriptCursorTests {
         // 只看 size 的實作會回 0 行（沒長大），只看 mtime 的實作也可能回 0 行。
         #expect(lines == ["cccc", "dddd"])
         #expect(fromStart)
+        try expectBackToIncremental(&c, url)
     }
 
     // ── 就地重寫（同一個 inode、沒有變短）─────────────────────────
@@ -168,9 +184,11 @@ struct TranscriptCursorTests {
 
     @Test("⚠️ 就地重寫成更長的檔案 —— inode 與 size 都測不出來，只有開頭測得出來")
     func anInPlaceRewriteThatGrewIsCaughtByItsHead() throws {
-        // workflow 的 run 被還原時，Claude Code 會把 journal 整份重寫成
-        // restoring + 原本的記錄 + restored〔讀碼 2.1.302：writeRestored〕。
-        // 它是不是 rename 上去的**沒有量到** —— 照最壞的情況寫：同一個 inode、而且變長了。
+        // 通用的最壞情況：同一個 inode、變長了、**開頭不一樣**。inode 與 size 都測不出來。
+        // ⚠️ 這**不是** `writeRestored` 會走的那個轉換。〔讀碼 2.1.302〕它只在 journal 不在、
+        // 或第一行就是 `restoring` 而且沒有 `restored`（上一次只還原到一半）時才寫；
+        // 以 `launched` 開頭的 journal 不會被它重寫。半還原 → 全還原那一種開頭多半不變，
+        // 指紋**抓不到**，見 WorkflowJournalWatcherTests 的 aHalfRestoreCompletedInPlaceReadsAsAnAppend。
         let url = try file(#"{"type":"launched"}"# + "\n" + #"{"type":"started","agentId":"a"}"# + "\n")
         var c = TranscriptCursor()
         _ = c.read(url)
@@ -187,6 +205,7 @@ struct TranscriptCursorTests {
         #expect(fromStart)
         #expect(lines.count == 4)
         #expect(lines.first == #"{"type":"restoring"}"#)
+        try expectBackToIncremental(&c, url)
     }
 
     @Test("開頭的指紋要跟著長 —— 第一次只讀到幾個 byte，之後的就地重寫照樣要抓到")
@@ -208,6 +227,7 @@ struct TranscriptCursorTests {
         }
         #expect(fromStart)
         #expect(lines == [#"{"type":"restoring"}"#])
+        try expectBackToIncremental(&c, url)
     }
 
     // ── 讀不到 ─────────────────────────────────────────────────

@@ -127,6 +127,22 @@ public struct AgentTreeBuilder: Sendable {
 
     // ── workflow agent ─────────────────────────────────────────
 
+    /// journal 讀過之後**連續**讀不到幾次之內，沿用上一次讀到的事實。超過就切斷。
+    ///
+    /// ### 為什麼要切斷
+    /// 「整個沒看到」不是「它還在那個狀態」（`~/CLAUDE.md` 的兩層規矩）。
+    /// 新鮮度閘看的是 `agent-*.jsonl`，不是 journal —— 所以一份讀不到的 journal 每拍
+    /// 都還會被問到、`sweep()` 不會放掉它。不切斷的話，讀不到那一刻還在 `running` 裡的
+    /// agent 會一直被算成「執行中」，直到 session 結束。切斷之後的樣子與
+    /// 「從來沒讀到過」一樣：全部 `.unknown`、沒有階段（run 已終結時照樣是 `.finished`）。
+    ///
+    /// ### 為什麼不是 0（讀不到就切）
+    /// 〔讀碼 2.1.302〕`writeRestored` 在 storageV5 時先 `backend.delete` 再 `backend.append`；
+    /// 那個 backend 是不是直接刪檔再建檔〔未驗證〕，是的話中間有一個讀不到的空窗。
+    /// 一拍的空窗就閃成「不明」再閃回來，是在對一件沒有變的事改口。
+    /// 2 是〔推論〕：一拍 3 秒，兩拍 ≈ 6 秒蓋得住那種空窗；**沒有量過**真實的空窗多長。
+    public static let journalUnreadableGrace = 2
+
     private func workflowGroups(in subagents: URL, runs: URL,
                                 journals: inout WorkflowJournalWatcher,
                                 since start: Date, now: Date) -> [WorkflowGroup] {
@@ -152,8 +168,15 @@ public struct AgentTreeBuilder: Sendable {
             // 〔實測 2026-09-22〕它是改造後剩下的 62.8 毫秒的主要來源；〔實測 2026-10-19，
             // 合成的家目錄，數字與條件見 docs/quotamonster.md 第五節 B〕同一種狀態的穩態中位
             // 從 67.9–128.0 毫秒降到 7.5–13.5 毫秒。
-            // 搬到閘後面不改變任何輸出：閘沒過的 group 本來就是 nil。
-            let journal = journals.update(dir.appendingPathComponent("journal.jsonl"))
+            // 「搬到閘後面」這一步本身不改變任何輸出：閘沒過的 group 本來就是 nil。
+            // ⚠️ 但換成游標**有**改變輸出，見 docs/quotamonster.md 第五節 B 的「行為改變」：
+            // 讀過之後讀不到時沿用已知的事（有寬限期，見 `journalUnreadableGrace`）、
+            // 沒換行的最後一行要等換行、UTF-8 改成逐行寬鬆解碼。
+            let journalURL = dir.appendingPathComponent("journal.jsonl")
+            var journal = journals.update(journalURL)
+            if journals.unreadableStreak(of: journalURL) > Self.journalUnreadableGrace {
+                journal = WorkflowJournal()
+            }
 
             // run 已經終結（completed / failed / killed）時，journal 的
             // 「started 但沒 result」是中止造成的殘影，不是還在跑。

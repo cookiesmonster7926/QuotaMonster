@@ -671,7 +671,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   4. **它幾乎不會觸發。** 全機器**有史以來只有 6 個真正的扇出批次**，其中 3 個還藏在 subagent 自己的 transcript 裡（從頂層 session 看不到）。三週的重度使用會響幾次。
 
 - **所以**：讀到的下場**只拿來顯示**（面板收合那一行、`--dump`），不拿來發聲。顯示錯了看得見，發聲錯了是一聲謊報。
-- **證據**：AgentTally.swift、AgentOutcome.swift、TranscriptWatcher.swift；NotificationEngine.swift:487-490；WorkflowTally.swift:16-18；本節第三段的四項量測
+- **證據**：AgentTally.swift、AgentOutcome.swift、LineWatcher.swift（`TranscriptWatcher` 是其中的 typealias）；NotificationEngine.swift:487-490；WorkflowTally.swift:16-18；本節第三段的四項量測
 
 **2. 「狀態不明」的 workflow 不併進「已完成」。**
 
@@ -1271,15 +1271,35 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
     再寫這一筆（寫一半的殘片因此變成一行壞掉的 JSON，被跳過 —— 與整份讀的舊實作一樣）。
     **但有一條整份重寫的路**：run 被還原（`writeRestored`）、而 journal 不在或上一次只還原到
     一半時，整份寫成 `{"type":"restoring"}` + 記錄 + `{"type":"restored"}`。
+    「只還原到一半」＝第一行是 `restoring` 而且沒有 `restored`（`restoreState()`）；
+    其他一律算 complete、**不重寫** —— 以 `launched` 開頭的 journal 不會走這條路。
     那一次是 rename 上去還是就地寫，在壓縮過的程式碼裡對不上名字 ——〔未驗證〕。
-  - 所以**照最壞的情況設計**：`TranscriptCursor` 另外記住檔案開頭 256 byte 當指紋，
-    每次讀之前比一次。同一個 inode、而且**變長了**的就地重寫（inode 與 size 都測不出來）
-    也會退回整份重讀，事實整份換掉。〔推論〕仍然抓不到的：開頭不變、後面被改掉的就地重寫
-    —— 程式碼裡目前沒看到這種寫法。這個指紋對 transcript 一樣生效（規矩 47）。
-  - ⚠️ **行為改變一處**：沒有換行結尾的最後一行要等到換行才算，整份讀的舊實作會照算。
-    真實 journal 117/117 以換行結尾，所以只差在「正好讀到寫一半」的那一拍。
-    ⚠️ 測試的 fixture 與 `WorkflowPhaseTests` 的 helper 原本**沒有**結尾換行
-    （真實形狀沒有一個長這樣）—— 已改成與真實一致，否則最後一個 spawn 會被當成半行。
+  - 兩種觸發各自的下場：**journal 不在** —— 沒有舊檔可比，重建之後 inode 多半不同，
+    inode 那一關就抓到了。**半還原 → 全還原** —— 讀碼裡**唯一**的就地重寫候選，
+    舊檔與新檔都以 `restoring` 開頭、接著同一批記錄，**開頭多半一樣**。
+  - `TranscriptCursor` 另外記住檔案開頭 256 byte 當指紋，每次讀之前比一次。它擋的是
+    **通用的最壞情況**：同一個 inode、**變長了**、開頭不同（inode 與 size 都測不出來）——
+    退回整份重讀，事實整份換掉。⚠️ 它**不是**為上面那條讀碼路徑做的：半還原 → 全還原
+    正好落在它抓不到的那一種（開頭不變、後面改掉），被當成追加。〔推論〕舊檔恰好是新檔的
+    byte 前綴時，增量讀的結果剛好是對的；不是前綴（例如半還原之後又被追加過）就會從錯的
+    位移往下讀。真實的半還原檔是不是前綴〔未驗證〕—— 本機 117 個 journal 沒有一個有
+    `restoring` 行。這個限制釘在 `aHalfRestoreCompletedInPlaceReadsAsAnAppend`。
+    這個指紋對 transcript 一樣生效（規矩 47）。
+  - ⚠️ **行為改變三處**（輸出與整份讀的舊實作 `WorkflowJournalReader` 不同的地方）：
+    1. **沒有換行結尾的最後一行要等到換行才算**，舊實作會照算。
+       真實 journal 117/117 以換行結尾，所以只差在「正好讀到寫一半」的那一拍。
+       ⚠️ 測試的 fixture 與 `WorkflowPhaseTests` 的 helper 原本**沒有**結尾換行
+       （真實形狀沒有一個長這樣）—— 已改成與真實一致，否則最後一個 spawn 會被當成半行。
+    2. **讀過之後讀不到時，沿用已知的事，有寬限期**。舊實作讀不到就是空的 journal：
+       整組 `.unknown`、沒有階段。現在連續讀不到 `AgentTreeBuilder.journalUnreadableGrace`（2）
+       次之內沿用上一次讀到的 running / finished 與階段，超過就切斷成與舊實作一樣的
+       「不明」（run 已終結時照樣 `.finished`）。⚠️ 不可以沒有切斷：新鮮度閘看的是
+       `agent-*.jsonl` 不是 journal，讀不到的 journal 每拍照樣被問到、`sweep()` 不會放掉它，
+       讀不到那一刻還在跑的 agent 就會一直被算成「執行中」直到 session 結束 —— 把「整個沒看到」
+       當成「看到了、還在跑」（`~/CLAUDE.md` 的兩層規矩）。寬限期 2 是〔推論〕，見常數的註解。
+       「從來沒讀到過」仍然是 `.unknown`（T2 的前提不受影響）。
+    3. **UTF-8 改成逐行寬鬆解碼**（`String(decoding:as:)`）。舊實作 `String(contentsOf:encoding:.utf8)`
+       只要有一個不合法的 byte 整份就是空的；現在只有那一行壞掉、被跳過。真實 journal 沒見過不合法的 byte。
 
   **量到的**〔實測 2026-10-19，`--bench-refresh 30`，新舊兩個 release binary 交替跑〕
   ⚠️ 量的時候同一台機器上有其他 worktree 在建置，load average 4–10，同一個條件的數字
