@@ -55,6 +55,10 @@ final class DataStore {
         return QuotaThresholds(critical: c, tight: t)
     }
 
+    /// ctx 壓力的黃／紅門檻 —— 與 `quotaThresholds` 同一個做法：解析一次，消費者共用。
+    /// 解析規則（兩格各自 `?? 預設`）在 Core 的 `ContextThresholds.init(_:)`。
+    var contextThresholds: ContextThresholds { ContextThresholds(preferences) }
+
     var runningAgents: Int { trees.values.reduce(0) { $0 + $1.runningAgentCount } }
     var summary: SessionSummary { SessionSummary(sessions) }
     var glyph: GlyphState {

@@ -73,6 +73,15 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 - **為什麼**：一個新功能最容易造成的傷害不是算錯，是**安靜地改掉使用者已經每天在看的那一行** —— 放在 Core，「拒絕時與今天一模一樣」就是一個 `#expect`，不是一句承諾。`Package.swift` 今天只有一個 testTarget（`QuotaMonsterCoreTests`），所以這條是結構事實不是偏好。
 - **證據**：Package.swift:13-17；NotificationPresenter.swift:5-8；WorkflowTally.swift:9-10；OutlookCaption.swift:5-9；docs/build-log.md:1097、1211-1213
 - **付過的代價**：有 —— presenter 裡曾經有一個 `if batch.outcome == .completed`，它和在場判斷、預算一起被搬進 Core 才釘得住。
+- **後來搬進來的**：面板一列 session 的三個判斷原本留在 `SessionRow`（App 層）——
+  勾／BUSY／IDLE（`SessionRowStatus`，完成標記壓過註冊表的 status）、ctx 門檻與數字上不上色
+  （`ContextThresholds` / `ContextPressure` / `ContextGauge`，`?? 預設` 原本在三個 App 檔各寫一次）、
+  收合那一行的語氣（`TallyTone`，原本是兩支各自 switch 的函式）。搬的時候**行為不變**：
+  先寫鎖住搬移前行為的測試，`--render-panel --dark` 前後逐像素相同（合成家目錄，四種情境）。
+  〔突變驗證〕9 條全紅；其中「elapsed 改回搬移前的 `Int(...)`」讓測試行程以 signal 5 中止 ——
+  搬移前那一行在 Core 裡就是規矩 10 的違反，只是存活判定在實際路徑上替它擋住了。
+  那 9 條沒有涵蓋 elapsed 的捨入方向：非負值上 `.towardZero` 與 `.down` 一樣，
+  改成 `.rounded(.down)` 原本全部照綠；補了負的時間差（`-0.4s` → 「0s」）之後才紅。
 
 **5. 註解與文件裡「實測」「代理量測」「推論」「文件說」是四件不同的事，不可以混用；把品味寫成機制論也是一種說謊。**
 
@@ -234,7 +243,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 **14. `latestPhase` 來自 journal.jsonl 的行序（最後一個 `started` 行的 phase），不是從 `metas` 挑一隻；而且它是「最新的那個邊緣」，不是「現在正在跑哪一階段」，nil ＝ journal 沒說。journal 的 `spawns` 是有序陣列，不可以換成 Set 或 Dictionary。**
 
 - **為什麼**：〔實測〕`started` 行**沒有任何時間戳**（key 組合固定是 type/key/agentId/label/phase），而檔案是 append-only —— 行序是那個檔案裡唯一的時間資訊。`metas` 是按 agentId 排序的，而 agentId 是隨機 hex，取 `metas.first` 等於擲骰子：〔實測 2026-09-19〕這台機器 36 個 workflow 有 15 個因此報錯階段，而那個字串就畫在面板上。叫「最新的邊緣」是因為 workflow 的 `pipeline()` 沒有 barrier，多個階段真的會同時在跑，一個單數字串必然丟掉其中一個。階段要**領先**存活閘：`isFresh` 看的 `agent-<id>.jsonl` 比 `.meta.json` 晚落地〔實測 n=343，全部晚，中位 0.092s、最大 0.431s〕。
-- **證據**：WorkflowJournalReader.swift:23-33、35-45；AgentTreeBuilder.swift:106-112；AgentTree.swift:41-47；WorkflowPhaseTests.swift:105-132；消費者 SessionRow.swift:205、Dump.swift:189
+- **證據**：WorkflowJournalReader.swift:23-33、35-45；AgentTreeBuilder.swift:106-112；AgentTree.swift:41-47；WorkflowPhaseTests.swift:105-132；消費者 SessionRow.swift（`wf.latestPhase ?? "workflow"` 那一行）、Dump.swift（`wf.latestPhase.map` 那一行）
 - **付過的代價**：有 —— 錯的階段已經畫在使用者眼前一段時間（「三項裡唯一使用者今天就看得到的」）。`FinishSignal.swift:46` 現在直接寫著「不是字典序、不是第一個。`latestPhase` 那一課的學費已經付過了」。
 
 **15. `runDuration` 是 run 自己量的時間（磁碟上的 `durationMs` ÷1000），不是「這個 group 被觀察了多久」。分界線釘死：`status` 讀不到 → 完全不發（它是排空的正面證據）；`duration` 讀不到 → 照發，那一格 nil（它只是附屬資訊）。**
@@ -354,7 +363,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 **24. 黃／琥珀在這個 app 裡只代表「要你輸入」。額度色階（`QuotaPalette`）不得使用任何黃色，只有藍 → 綠 → 紅；沒有可信讀數就不上色（`quotaTier` 回 nil，圖示走單色）。唯一被授權的例外是面板的 ctx 壓力細條（70% 黃／90% 紅），因為它抄的是使用者自己狀態列腳本的色階。**
 
 - **為什麼**：整個 app 裡唯一有時限的訊號就是警示；把它的顏色拿去表示額度多寡會把那個訊號稀釋掉（使用者 2026-09-18 明確指定）。不上色那半條：綠色代表「還很寬裕」，對一個你自己都知道不可信的數字塗綠色是說謊 —— 這同時保留了第三種視覺狀態「單色＝這個數字不可信」。收合那一行的失敗用紅（借「壞消息」的既有語彙）、狀態不明用 secondary，一律不可以用琥珀／黃。
-- **證據**：GlyphState.swift:3-8、87-92；QuotaPalette.swift:12-27；GlyphRenderer.swift:22-26；SessionRow.swift:180-199；docs/build-log.md:1612-1617
+- **證據**：GlyphState.swift:3-8、87-92；QuotaPalette.swift:12-27；GlyphRenderer.swift:22-26；ContextPressure.swift（`ContextThresholds` 檔頭，門檻的唯一定義處）、SessionRow.swift（`colour(_: ContextPressure)`，只把級別翻成顏色）；docs/build-log.md:1612-1617
 - **付過的代價**：無（使用者指定，不是事後補的）。⚠️ 但 `GlyphRenderer.swift:28-33` 至今留著一段說 `tight` 是黃色的過時註解，見 overturned。
 
 **25. 「琥珀（有人在等你）」與「丁香紫（剛完成）」同時出現，要在型別上不可表示 —— 做成 `GlyphState.creatureGlow` 這個 computed property，不在管線某處降級。丟掉不是排隊：警示結束後不補眨眼。染了丁香紫就不可以走 template rendering；退色版是混向墨色，不是降不透明度。**
@@ -538,6 +547,9 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   少搬那一行，`BurnRefusal` 的八種具名拒絕在那一頁全部到不了畫面。成本 0pt。
 - ⚠️ **收合那一行的用詞與顏色必須與 `WorkflowTally` 完全一樣**（已完成 / 失敗 / 已停止 / 狀態不明，
   失敗紅、不明 secondary、其餘 tertiary）。同一件事兩套語彙，這個 repo 已經為它付過一次代價（規矩 43）。
+  語氣在 Core 的 `TallyTone`（兩邊都經過它），`TallyToneTests.sameWordSameTone` 從兩個 tally 的
+  `collapsed` 自己的用詞取配對來比 —— 不在測試裡另寫一張對照表，那張表會跟著實作一起錯。
+  ctx 窗口的「1M／200k」同理：面板與 `--dump` 共用 `ContextGauge.windowLabel`。
 
 **49. 放大的選單列標記一定要包一層 `NSImage` 重畫，不可以 `Image(nsImage:).resizable()`。**
 

@@ -302,7 +302,8 @@ enum Dump {
 
     static func describeContext(_ p: StatusLinePayload) -> String {
         guard let used = p.contextUsedPercent else { return "context —（尚無讀數）" }
-        let size = p.contextWindowSize.map { $0 >= 1_000_000 ? "1M" : "\($0 / 1000)k" } ?? "?"
+        // 與面板同一支（`ContextGauge.windowLabel`），不是第二份寫法（規矩 48）。
+        let size = p.contextWindowSize.map(ContextGauge.windowLabel) ?? "?"
         let tokens = p.totalInputTokens.map { " · \($0 / 1000)k tokens" } ?? ""
         return "context \(used)% of \(size)\(tokens)"
     }

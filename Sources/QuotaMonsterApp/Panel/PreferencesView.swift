@@ -225,8 +225,9 @@ struct PreferencesView: View {
     /// 授權的理由正是「它抄的是使用者自己的色階」。一旦這兩個數獨立於那份
     /// 腳本漂走，那個例外就失去理由，面板上會出現一個沒有依據的黃色。
     private var contextRow: some View {
-        let yellow = prefs.contextYellow ?? SessionRow.defaultContextYellow
-        let red = prefs.contextRed ?? SessionRow.defaultContextRed
+        // 與面板經過同一個解析點（`DataStore.contextThresholds`）—— 不另寫 `?? 預設`。
+        let t = store.contextThresholds
+        let yellow = t.yellow, red = t.red
         return VStack(alignment: .leading, spacing: 5) {
             label("對齊我的狀態列（context 壓力）",
                   "這兩個數要跟你自己的 statusline 腳本一樣，面板才是同一套語彙")
