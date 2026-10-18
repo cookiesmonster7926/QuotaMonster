@@ -47,6 +47,9 @@ public struct TranscriptFacts: Equatable, Sendable {
     /// 另一隻的第二次 `<result>` 開頭是「Correction to my previous report」。
     /// 「完成」的意思是「這一次停下來了」，不是「從此結束」。
     public private(set) var outcomes: [String: AgentOutcome] = [:]
+    /// 這一輪是誰開的。往前掃的時候順手記 —— 回合起點不必再從尾端往回搆
+    /// （第三節第 33 條）。它跟著這份事實一起在 transcript 被重寫時重來。
+    public private(set) var opener = TurnOpener()
 
     public init() {}
 
@@ -62,6 +65,7 @@ public struct TranscriptFacts: Equatable, Sendable {
         collectToolUseIds(d)
         collectSpawn(d)
         collectNotification(d)
+        opener.ingest(d)
     }
 
     // ── tool_use ───────────────────────────────────────────────

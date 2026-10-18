@@ -107,10 +107,9 @@ final class DataStore {
     /// 〔實測〕那是 `--bench-refresh` 的「第一拍」，之後每拍接近零。
     private var transcripts = TranscriptWatcher()
     private let completionReader = TurnCompletionReader()
-    /// 沉澱窗狀態機。I/O 三支注入，所以它本身是純的、測得到。
+    /// 沉澱窗狀態機。I/O 兩支注入、回合起點當資料傳進去，所以它本身是純的、測得到。
     @ObservationIgnored private lazy var completionTracker = CompletionTracker(
         readTail: { [r = completionReader] in r.read($0) },
-        readTurnStart: { [r = completionReader] in r.readTurnStart($0) },
         modifiedAt: { [r = completionReader] in r.modifiedAt($0) })
     /// sessionId → transcript。
     ///
@@ -532,17 +531,14 @@ final class DataStore {
             watched.insert(paths.transcript)
         }
         trees = built
-        // session 死了就放掉它的事實 —— 一份 16.1MB transcript 的 toolUseIds
-        // 不是可以忽略的記憶體（規矩 42 的記憶體版本）。
-        transcripts.keep(only: watched)
 
         // 完成偵測。**在通知之前**，因為選單列的 glyph 要讀 `finishes`。
         if detectsCompletions {
-            var transcripts: [String: URL] = [:]
+            var completionPaths: [String: URL] = [:]
             for s in sessions {
                 let id = s.session.sessionId
                 if let cached = transcriptPaths[id] {
-                    transcripts[id] = cached
+                    completionPaths[id] = cached
                     continue
                 }
                 // ⚠️ 不可以用 `resolver.locate()` —— 它硬性要求 `<sessionId>/` 目錄存在，
@@ -550,19 +546,37 @@ final class DataStore {
                 guard let url = resolver.transcript(sessionId: id, projectsRoot: projects)
                 else { continue }
                 transcriptPaths[id] = url
-                transcripts[id] = url
+                completionPaths[id] = url
             }
             let alive = Set(sessions.map(\.session.sessionId))
             transcriptPaths = transcriptPaths.filter { alive.contains($0.key) }
             titles = titles.filter { alive.contains($0.key) }
 
-            let out = completionTracker.update(CompletionInput(transcripts: transcripts), now: now)
+            // 回合起點從往前掃的游標拿（第三節第 33 條）。
+            // ⚠️ 上面建樹那一段只餵得到有 `<sessionId>/` 兄弟目錄的 session，
+            // 其餘的在這裡補讀 —— 否則它們的起點永遠是「整個沒看到」。
+            // 已經讀過的這一拍不重讀（同一拍多一次 open 是白花的）。
+            var openings: [String: TurnOpener.Answer] = [:]
+            for (id, url) in completionPaths {
+                if !watched.contains(url) {
+                    _ = transcripts.update(url)
+                    watched.insert(url)
+                }
+                openings[id] = transcripts.opening(of: url)
+            }
+
+            let out = completionTracker.update(
+                CompletionInput(transcripts: completionPaths, openings: openings), now: now)
             for f in out.finishes { finishes[f.sessionId] = f }
             // ⚠️ 「又動起來了」的證據是 **transcript 的 mtime 前進**，不是
             // `session.isWorking` —— 註冊表的 status 是黏著的（回合結束後七分鐘
             // 一直回報 shell），拿它當證據的話標記會在產生後的第一拍就被清掉。
             finishes = FinishCaption.prune(finishes, wrote: out.wrote, now: now)
         }
+        // session 死了就放掉它的事實 —— 一份 16.1MB transcript 的 toolUseIds
+        // 不是可以忽略的記憶體（規矩 42 的記憶體版本）。
+        // ⚠️ 要放在完成偵測**之後**：那一段補讀的 transcript 也在 `watched` 裡。
+        transcripts.keep(only: watched)
 
         // 通知在這裡驅動：這是這一拍裡 usage / sessions / trees 全部一致的第一個點。
         if deliversNotifications {

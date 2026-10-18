@@ -30,8 +30,13 @@ enum TraceFinishes {
 
         var tracker = CompletionTracker(
             readTail: { reader.read($0) },
-            readTurnStart: { reader.readTurnStart($0) },
             modifiedAt: { reader.modifiedAt($0) })
+        // 回合起點與正式路徑同一個來源：往前掃的游標（第三節第 33 條）。
+        var watcher = TranscriptWatcher()
+        var openings: [String: TurnOpener.Answer] = [:]
+        /// 每個標記產生**那一刻**算不出 ranFor 的原因。之後 opening 會變（人又打字了），
+        /// 拿現在的 opening 去解釋過去的標記會講錯原因。
+        var nilReasons: [String: String] = [:]
         var finishes: [String: SessionFinish] = [:]
         var lastLine: [String: String] = [:]
         var paths: [String: URL] = [:]
@@ -91,13 +96,25 @@ enum TraceFinishes {
                 }
             }
 
-            let out = tracker.update(CompletionInput(transcripts: transcripts), now: now)
+            openings = [:]
+            for (id, url) in transcripts {
+                _ = watcher.update(url)
+                openings[id] = watcher.opening(of: url)
+            }
+            watcher.keep(only: Set(transcripts.values))
+
+            let out = tracker.update(
+                CompletionInput(transcripts: transcripts, openings: openings), now: now)
             for f in out.finishes {
                 finishes[f.sessionId] = f
+                nilReasons[f.sessionId] = f.ranFor == nil ? whyNoRanFor(openings[f.sessionId]) : nil
                 let name = sessions.first { $0.session.sessionId == f.sessionId }?
                     .session.name ?? String(f.sessionId.prefix(8))
+                // ⚠️ 算不出來有五個原因，印出是哪一個（規矩 28：分不出原因的診斷
+                // 會讓人把「量到了」與「看得懂」混為一談）。
                 say("[\(stamp())] ✓ 完成  \(pad(name))"
-                      + "\(FinishCaption.ranFor(f.ranFor) ?? "跑了多久算不出來")")
+                      + (FinishCaption.ranFor(f.ranFor)
+                         ?? "跑了多久算不出來：\(nilReasons[f.sessionId] ?? "")"))
             }
             if !out.wrote.isEmpty {
                 let names = out.wrote.map { id in
@@ -126,7 +143,8 @@ enum TraceFinishes {
                     ? "最新的跑了 \(Int(r))s（夠久）"
                     : "最新的只跑了 \(Int(r))s < \(Int(FinishGlow.minimumInterestingRun))s"
             } else {
-                why = "最新的算不出跑多久（ranFor = nil）"
+                why = "最新的算不出跑多久（ranFor = nil："
+                    + "\(newest.flatMap { nilReasons[$0.sessionId] } ?? "原因沒記到")）"
             }
             let glowLine = "選單列 \(glow) · 手上有 \(finishes.count) 個標記 · \(why)"
             if lastLine["__glow"] != glowLine {
@@ -138,6 +156,17 @@ enum TraceFinishes {
         }
         say(String(repeating: "─", count: 72))
         say("追蹤結束，共 \(tick) 拍。手上有 \(finishes.count) 個完成標記。")
+    }
+
+    /// `ranFor == nil` 的原因。五種是五件不同的事，混成一句就回到 7/7 那天。
+    private static func whyNoRanFor(_ o: TurnOpener.Answer?) -> String {
+        switch o {
+        case nil:                    return "沒讀到這份 transcript（整個沒看到）"
+        case .noHumanYet:            return "讀到了，一則真人訊息都沒有"
+        case .humanWithoutTimestamp: return "最後一則真人訊息沒帶時刻"
+        case .wokenWithoutHuman:     return "這一輪不是人開的（講完後被通知／peer／排程叫醒）"
+        case .human:                 return "起點晚於完成時刻（時間戳不單調）"
+        }
     }
 
     private static func pad(_ s: String) -> String {

@@ -163,4 +163,28 @@ struct TurnCompletionReaderTests {
             + #""content":[{"type":"text"}]}}"#
         #expect(reader.read(try write([noTS])) == .inconclusive)
     }
+
+    // ── 本機唯讀計數找到的三種形狀（第三節第 33 條）─────────────
+
+    @Test("compact 摘要不是真人訊息 —— 它不是 isMeta，但也不是人打的")
+    func compactSummaryIsNotHuman() throws {
+        let summary = #"{"type":"user","isCompactSummary":true,"isVisibleInTranscriptOnly":true,"#
+            + #""timestamp":"2026-09-19T02:05:00.000Z","message":{"content":"This session is being continued."}}"#
+        #expect(reader.read(try write([assistant("end_turn"), summary])) != .unfinished)
+    }
+
+    @Test("`!` 指令的輸出不是真人訊息")
+    func bashOutputIsNotHuman() throws {
+        let out = #"{"type":"user","timestamp":"2026-09-19T02:05:00.000Z","#
+            + #""message":{"content":"<bash-stdout>ok</bash-stdout><bash-stderr></bash-stderr>"}}"#
+        #expect(reader.read(try write([assistant("end_turn"), out])) != .unfinished)
+    }
+
+    @Test("IDE 檔案標籤後面接著人打的字 —— 這一則是真人訊息，上一輪的 end_turn 不可以宣告完成")
+    func ideContextThenHumanTextIsHuman() throws {
+        let msg = #"{"type":"user","timestamp":"2026-09-19T02:05:00.000Z","message":{"content":["#
+            + #"{"type":"text","text":"<ide_opened_file>opened /x.swift</ide_opened_file>"},"#
+            + #"{"type":"text","text":"這裡怎麼了"}]}}"#
+        #expect(reader.read(try write([assistant("end_turn"), msg])) == .unfinished)
+    }
 }

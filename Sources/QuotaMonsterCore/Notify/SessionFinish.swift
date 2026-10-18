@@ -9,9 +9,12 @@ public struct SessionFinish: Equatable, Sendable {
     public let finishedAt: Date
     /// 這一輪跑了多久。
     ///
-    /// ⚠️ **nil 是「算不出來」，不是 0。**〔實測〕命中率 84.1%（111/132）——
-    /// 大約六分之一的完成不會有秒數，因為「安靜→又動起來」那一拍的 64KB 尾端裡
-    /// 沒有那一輪的起點。面板在 nil 時**整格不畫**，不可以畫成「跑了 0m 00s」。
+    /// ⚠️ **nil 是「算不出來」，不是 0。** 面板在 nil 時**整格不畫**，不可以畫成「跑了 0m 00s」。
+    ///
+    /// 起點來自往前掃的 `TurnOpener`（第三節第 33 條）。〔代理量測 2026-10-19，`--measure-ranfor`，
+    /// 90 份主 transcript、767 個完成〕算得出來的 73.5%；算不出來的幾乎全是
+    /// 「這一輪不是人開的」（被背景通知／peer／排程叫醒，26.3%）。
+    /// （舊作法的「〔實測〕命中率 84.1%（111/132）」已被取代，見同一條。）
     public let ranFor: TimeInterval?
 
     public init(sessionId: String, finishedAt: Date, ranFor: TimeInterval?) {

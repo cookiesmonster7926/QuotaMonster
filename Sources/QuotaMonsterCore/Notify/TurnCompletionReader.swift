@@ -56,24 +56,6 @@ public struct TurnCompletionReader: Sendable {
         return readout(transcript, bytes: Self.escalatedTailBytes)
     }
 
-    /// 尾端裡**最後一則真人訊息**的時刻 —— 「這一輪從什麼時候開始」的候選。
-    ///
-    /// ⚠️ 只在「安靜 → 又動起來」那一刻呼叫一次，不是每一拍。
-    /// 計畫書原本要求從 64KB 尾端回推到該輪第一則真人訊息，但〔實測 n=337〕
-    /// 回合起點到 end_turn 的 byte 距離中位數是 **114,059 B**，
-    /// 整個回合塞得進 64KB 的只有 **37.4%** —— 那條路做不到。
-    public func readTurnStart(_ transcript: URL) -> Date? {
-        guard let tail = WaitingContextReader.tail(of: transcript, bytes: Self.tailBytes) else {
-            return nil
-        }
-        let lines = Array(tail.split(separator: "\n", omittingEmptySubsequences: true))
-        for line in lines.reversed() {
-            guard let d = Self.object(line), Self.isHuman(d) else { continue }
-            return Self.timestamp(d)
-        }
-        return nil
-    }
-
     // ── 判讀 ───────────────────────────────────────────────────
 
     private func readout(_ transcript: URL, bytes: Int) -> TurnReadout {
@@ -121,9 +103,14 @@ public struct TurnCompletionReader: Sendable {
     // ── 「這是人打的嗎」——全 repo 只有這一份定義 ────────────────
 
     /// harness 注入、但長得像真人訊息的那些開頭。
+    ///
+    /// `<bash-stdout>`／`<bash-stderr>` 是 `!` 指令的**輸出**（command 輸出，不是人打的）。
+    /// 〔本機唯讀計數 2026-10-19〕它們總是緊跟在 `<bash-input>` 之後；`<bash-input>`
+    /// 是人打的那一行，所以**不在**這張表裡。
     static let harnessPrefixes = [
         "<task-notification>", "<local-command-stdout>", "<local-command-caveat>",
         "<command-message>", "<command-name>", "<system-reminder>", "<ide_opened_file>",
+        "<bash-stdout>", "<bash-stderr>",
     ]
 
     /// ⚠️ **`content` 是字串或 list 兩種形狀都要收。**
@@ -133,24 +120,36 @@ public struct TurnCompletionReader: Sendable {
     /// `list(text)` 144、`list(image,text)` 33 —— **貼截圖的訊息一定是 list**。
     /// 「字串＝真人、list＝harness」這個直覺**兩個方向都錯**：
     /// 照它寫會吞掉約四分之一的真人輸入，又會把 93 則 harness 訊息當成真人。
+    ///
+    /// 〔本機唯讀計數 2026-10-19，90 份主 transcript〕又找到兩種舊判讀判錯的形狀：
+    /// - **compact 摘要**（`isCompactSummary: true`，13 則）不是 `isMeta`，
+    ///   開頭也不是任何標籤 —— 舊判讀把它當成真人訊息。
+    /// - **IDE 開著的檔案**（7 則，全部是 list）：第一個 text 區塊是
+    ///   `<ide_opened_file>…`，**人打的字在後面的區塊**。舊判讀把所有區塊接起來
+    ///   看開頭，整則被當成 harness 注入吞掉。所以 list 要**逐塊**看：
+    ///   只要有一塊不是 harness 開頭，這一則就是人打的。
     static func isHuman(_ d: [String: Any]) -> Bool {
         guard d["type"] as? String == "user",
               d["isMeta"] as? Bool != true,
+              d["isCompactSummary"] as? Bool != true,
               let message = d["message"] as? [String: Any] else { return false }
 
-        let text: String
+        let texts: [String]
         if let s = message["content"] as? String {
-            text = s
+            texts = [s]
         } else if let blocks = message["content"] as? [[String: Any]] {
             // harness 餵回工具結果，不是人打的。
             if blocks.contains(where: { $0["type"] as? String == "tool_result" }) { return false }
-            text = blocks.compactMap { $0["text"] as? String }.joined(separator: " ")
+            texts = blocks.compactMap { $0["text"] as? String }
         } else {
             return false
         }
 
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        return !Self.harnessPrefixes.contains { trimmed.hasPrefix($0) }
+        let meaningful = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+                              .filter { !$0.isEmpty }
+        // 一個字都沒有（例如只貼了一張圖）：照舊算人打的。
+        guard !meaningful.isEmpty else { return true }
+        return meaningful.contains { text in !Self.harnessPrefixes.contains { text.hasPrefix($0) } }
     }
 
     static func object(_ line: Substring) -> [String: Any]? {

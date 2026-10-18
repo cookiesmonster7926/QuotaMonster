@@ -55,6 +55,15 @@ public struct TranscriptWatcher: Sendable {
         return facts
     }
 
+    /// `url` 這份 transcript 目前這一輪是誰開的。
+    ///
+    /// ⚠️ **nil ＝ 這份 transcript 我們從沒讀到過**（整個沒看到）——
+    /// 不是 `.noHumanYet`（讀到了、一則真人訊息都沒有）。`update` 讀不到時
+    /// 回一份空的事實給樹用，但那份**不會**被記住，所以這裡分得開。
+    public func opening(of url: URL) -> TurnOpener.Answer? {
+        knowledge[url]?.opener.answer
+    }
+
     /// 放掉不在名單裡的那些。session 死掉之後它的事實沒有人會再問，
     /// 而一份 16.1MB transcript 的 `toolUseIds` 不是可以忽略的記憶體。
     public mutating func keep(only urls: Set<URL>) {

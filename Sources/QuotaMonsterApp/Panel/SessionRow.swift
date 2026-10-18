@@ -124,7 +124,8 @@ struct SessionRow: View {
                         .font(.system(size: 10))
                         .foregroundStyle(SignalPalette.color(glow, onDark: scheme == .dark))
                     // ⚠️ 算不出跑多久就**整格不畫**。「跑了 0m 00s」看起來像一個
-                    // 量到的數字，而〔實測〕約六分之一的完成根本算不出來。
+                    // 量到的數字，而〔代理量測 2026-10-19〕約四分之一的完成算不出來
+                    // （幾乎全是被背景通知叫醒、不是人開的那一輪；第三節第 33 條）。
                     if let ran = FinishCaption.ranFor(finish.ranFor) {
                         Text(ran)
                             .font(.system(size: 10, design: .monospaced)).monospacedDigit()

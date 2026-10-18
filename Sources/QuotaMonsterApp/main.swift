@@ -201,6 +201,11 @@ if let i = CommandLine.arguments.firstIndex(of: "--trace-finishes") {
     exit(0)
 }
 
+if CommandLine.arguments.contains("--measure-ranfor") {
+    MeasureRanFor.run()
+    exit(0)
+}
+
 if let i = CommandLine.arguments.firstIndex(of: "--render-icon") {
     let dir = CommandLine.arguments.count > i + 1 ? CommandLine.arguments[i + 1] : "./AppIcon.iconset"
     _ = NSApplication.shared

@@ -1,9 +1,17 @@
 import Foundation
 
-/// 餵給沉澱窗的一拍：sessionId → 它的 transcript。
+/// 餵給沉澱窗的一拍：sessionId → 它的 transcript，以及這一拍往前掃到的回合起點。
 public struct CompletionInput: Equatable, Sendable {
     public let transcripts: [String: URL]
-    public init(transcripts: [String: URL]) { self.transcripts = transcripts }
+    /// sessionId → 這一輪是誰開的（`TranscriptWatcher.opening(of:)`）。
+    /// ⚠️ **沒有這個 key ＝ 整個沒看到**（watcher 沒讀到過那份 transcript），
+    /// 與 `.noHumanYet`（讀到了、沒有真人訊息）是兩件事。兩者的 `ranFor` 都是 nil，
+    /// 但診斷要分得開（規矩 28）。
+    public let openings: [String: TurnOpener.Answer]
+    public init(transcripts: [String: URL], openings: [String: TurnOpener.Answer] = [:]) {
+        self.transcripts = transcripts
+        self.openings = openings
+    }
 }
 
 /// 「哪個 session 剛剛講完了一輪。」
@@ -17,8 +25,9 @@ public struct CompletionInput: Equatable, Sendable {
 /// 一個跑 40 分鐘的 Bash 在架構上就不可能誤觸發，它只會多花一次 37µs 的讀取。
 ///
 /// ### 形狀
-/// 純狀態機，零 `Date()`、零計時器。I/O 三支全部當 closure 注入
-/// （形狀抄 `SessionStateResolver(isAlive:)`）。
+/// 純狀態機，零 `Date()`、零計時器。I/O 兩支當 closure 注入
+/// （形狀抄 `SessionStateResolver(isAlive:)`）；回合起點是**資料**，由呼叫端
+/// 從往前掃的 `TranscriptWatcher` 帶進來（`CompletionInput.openings`）。
 public struct CompletionTracker: Sendable {
 
     /// 連續多久沒有寫入才去讀尾端。
@@ -30,13 +39,6 @@ public struct CompletionTracker: Sendable {
     /// 〔實測，現場直接觀測〕一個跑到一半的 session 最長安靜 83.9 秒，離 90 只剩 6 秒。
     public static let settleWindow: TimeInterval = 90
 
-    /// 「安靜 → 又動起來」那一刻讀到的回合起點，比現在早超過這麼多就丟掉。
-    ///
-    /// ⚠️ **這個數字是選的，沒有資料能決定它。** 但沒有它的後果量得出來：
-    /// 用寬鬆的起點定義模擬出來的 `ranFor` p90 = 5,192 秒、max = 69,812 秒
-    /// （19.4 小時）〔實測，模擬〕—— 面板會定期顯示「跑了 19h 23m」。
-    public static let turnStartTolerance: TimeInterval = 15
-
     struct Watch: Equatable, Sendable {
         var lastModified: Date
         var quietSince: Date
@@ -45,21 +47,29 @@ public struct CompletionTracker: Sendable {
         var readThisQuiet: Bool
         /// 我們**第一次看到這個 session** 的時刻。跨重啟的守門靠它。
         let firstSeenAt: Date
-        var turnStart: Date?
         var lastAnnounced: Date?
     }
 
     private var watches: [String: Watch] = [:]
     private let readTail: @Sendable (URL) -> TurnReadout
-    private let readTurnStart: @Sendable (URL) -> Date?
     private let modifiedAt: @Sendable (URL) -> Date?
 
     public init(readTail: @escaping @Sendable (URL) -> TurnReadout,
-                readTurnStart: @escaping @Sendable (URL) -> Date?,
                 modifiedAt: @escaping @Sendable (URL) -> Date?) {
         self.readTail = readTail
-        self.readTurnStart = readTurnStart
         self.modifiedAt = modifiedAt
+    }
+
+    /// 這一輪跑了多久。只有「真人開的、有時刻、而且早於完成」才算得出來。
+    ///
+    /// ⚠️ 舊作法還有一道 15 秒的容忍度（`turnStartTolerance`），擋的是「寬鬆的起點定義」
+    /// 〔實測，模擬〕p90 = 5,192 秒、max = 69,812 秒。那個寬鬆來自**跨過上一輪**去找起點；
+    /// 現在跨過上一輪的情況本身就是 `.wokenWithoutHuman`，所以不再需要一個選出來的數字
+    /// 去猜「這個起點是不是太舊」—— 很長的回合就是很長。
+    public static func ranFor(opening: TurnOpener.Answer?, finishedAt: Date) -> TimeInterval? {
+        guard case .human(let start)? = opening else { return nil }
+        // `>` 那個判斷擋的是時間戳不單調〔實測〕3.91% 的相鄰行對為負。
+        return finishedAt > start ? finishedAt.timeIntervalSince(start) : nil
     }
 
     /// - Returns: 這一拍新產生的完成標記，以及**哪些 session 的 transcript 又被寫了**
@@ -78,19 +88,14 @@ public struct CompletionTracker: Sendable {
                 // 第一次看到：只記錄，不讀不發。我們沒有見證它完成。
                 watches[id] = Watch(lastModified: mtime, quietSince: now,
                                     confirmedQuiet: false, readThisQuiet: false,
-                                    firstSeenAt: now, turnStart: nil, lastAnnounced: nil)
+                                    firstSeenAt: now, lastAnnounced: nil)
                 continue
             }
 
             if mtime != watch.lastModified {
-                // 又動起來了。**從安靜轉為活躍的那一刻**才去問這一輪從哪裡開始 ——
-                // 計畫書那個「從 64KB 尾端回推到回合起點」做不到（〔實測〕整個回合
-                // 塞得進 64KB 的只有 37.4%）。
-                if watch.confirmedQuiet, watch.turnStart == nil,
-                   let candidate = readTurnStart(url),
-                   now.timeIntervalSince(candidate) <= Self.turnStartTolerance {
-                    watch.turnStart = candidate
-                }
+                // 又動起來了。⚠️ 這裡**不再**順便讀回合起點：舊作法只在「確認安靜之後
+                // 又動起來」那一刻往 64KB 尾端搆，回得快的人與長回合都搆不到
+                // （第三節第 33 條：7/7 算不出來）。起點改由往前掃的游標提供。
                 watch.lastModified = mtime
                 watch.quietSince = now
                 watch.confirmedQuiet = false
@@ -119,13 +124,9 @@ public struct CompletionTracker: Sendable {
                 let stillNews = now.timeIntervalSince(end.finishedAt) <= FinishGlow.goneSeconds
 
                 if witnessed, isNew, stillNews {
-                    // `>` 那個判斷擋的是時間戳不單調〔實測〕3.91% 的相鄰行對為負。
-                    let ranFor = watch.turnStart.flatMap {
-                        end.finishedAt > $0 ? end.finishedAt.timeIntervalSince($0) : nil
-                    }
+                    let ranFor = Self.ranFor(opening: input.openings[id], finishedAt: end.finishedAt)
                     finishes.append(SessionFinish(sessionId: id,
                                                   finishedAt: end.finishedAt, ranFor: ranFor))
-                    watch.turnStart = nil
                 }
                 // 記下來就不會每次沉澱都重判同一則。**去重靠身分（finishedAt），
                 // 不靠時間窗** —— 兩行式 end_turn 的間隔中位 12.2 秒、最大 51.8 秒，
