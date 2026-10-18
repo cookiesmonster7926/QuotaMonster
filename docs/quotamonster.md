@@ -21,7 +21,10 @@
 ## 這是什麼
 
 macOS 選單列 app（Swift 6 / AppKit / SwiftPM），看 Claude Code 的額度與 session。
-**零 token、零行程、零網路** —— 全部是讀既有的檔案。
+**零 token、零行程** —— 全部是讀既有的檔案。
+⚠️ 0.4.0 起**不再是零網路**：`ReleaseChecker.swift` 會對 GitHub 發一個 GET 查新版，
+偏好設定可關。〔讀碼〕全 `Sources/` 只有這個檔案碰 `URLSession`；
+完整說明見 `.github/SECURITY.md` 第 4 節。
 
 - `Sources/QuotaMonsterCore/` —— 純邏輯，沒有 AppKit、沒有 `Date()`、沒有計時器。
   **所有決策都在這裡**，因為只有這裡有測試 target。
