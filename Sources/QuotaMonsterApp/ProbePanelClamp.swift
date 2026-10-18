@@ -184,7 +184,9 @@ enum ProbePanelClamp {
                 let (more, moreTrees) = syntheticSessions(tall: true)
                 store.seedSyntheticSessions(more, trees: moreTrees)
                 // 每一刻視窗在哪裡：只看 minY／maxY，看它是「往上長再被拉回來」還是一直待在上面。
-                func trace(_ label: String) {
+                // ⚠️ `@MainActor` 要明寫：〔實測〕CI 的 Swift 6.2.3 不讓巢狀函式繼承外層的
+                // main actor（本機 CommandLineTools 6.3.3 編得過），讀 view.window 就報隔離錯誤。
+                @MainActor func trace(_ label: String) {
                     let fr = hosting.view.window?.frame ?? .zero
                     print("  \(label)  window y \(f(fr.minY))…\(f(fr.maxY))")
                 }
