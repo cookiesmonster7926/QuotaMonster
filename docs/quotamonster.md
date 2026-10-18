@@ -372,11 +372,47 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 - **證據**：GlyphRenderer.swift:198-206；StatusItemController.swift:202-204；docs/build-log.md:451-452、1124-1126；~/.claude/retrospectives/2026-09-18_quotamonster_silcombine-crash.md
 - **付過的代價**：有 —— 三種 transform 型別全試全炸；`@inline(never)` 的「看起來過了」是增量建置快取的假象，清掉 `.build` 後照炸；把 switch 移進 Core 也炸。retrospective 的結論是「這次浪費最多時間的就是相信了一次增量建置的成功」。代價是 5° 前傾改用冠部水平位移近似。
 
-**27. 面板高度是同步估算出來的，不用 `GeometryReader` 量；展開 popover 之前一定要自己算尺寸並指派給 `popover.contentSize`，並夾在 `screen.visibleFrame.height - 24` 以內。**
+**27. 面板高度是同步估算出來的，不用 `GeometryReader` 量；展開 popover 之前一定要自己算尺寸並指派給 `popover.contentSize`，並夾在 `screen.visibleFrame.height - 24` 以內 —— 而且這個上限要先交給 `PanelView.maxHeight`（版面），只夾 `contentSize`（屬性）擋不住視窗。**
 
 - **為什麼**：量的那條路（preference + onPreferenceChange）要等下一輪 runloop 才有值，而 `StatusItemController` 在展開那一瞬間就要拿 `fittingSize` 去設 contentSize —— 第一次展開會拿到還沒算好的高度，面板縮一半。不指派 contentSize 的話 `NSPopover` 會一直用 320×320 的預設值，SwiftUI 不會改（〔實測〕等 1.5 秒仍是 320×320），後果有兩個而且都看得見：面板被壓扁（內容只剩 345pt）、面板往上長進選單列（頂緣 y=953 對選單列底緣 y=923，重疊 30pt；修正後回到 y=928）。
-- **證據**：PanelView.swift:326-334、349-382；StatusItemController.swift:246-266；~/.claude/retrospectives/2026-09-18_quotamonster_nspopover-sizing.md；docs/build-log.md:445-449、1609-1610
+- **證據**（行號會漂，以型別與成員名為準）：`PanelView.listHeight`（PanelView.swift:413-464，同步估算）、`sessionList` 的 `.frame(minHeight: 0, idealHeight:, maxHeight:)`（:507）、`PanelView.body` 與 `CappedHeight`（:49-54、:667-704）；`StatusItemController.togglePanel`／`panelSize`／`fit`（StatusItemController.swift:267-314）；`QuotaMonsterCore/Panel/PanelFit.swift`；`ProbePanelClamp.swift`；測試 `PanelFitTests`、`PanelHeightCapTests`、`ProbePanelClampTests`；~/.claude/retrospectives/2026-09-18_quotamonster_nspopover-sizing.md；docs/build-log.md:445-449、1609-1610
 - **付過的代價**：有 —— 使用者回報面板上緣蓋到選單列。可能原因至少四個而且都合理，所以先寫了 `--probe-popover` 把數字印出來才動手（用猜的會修錯地方）。
+- ⚠️ **夾 `popover.contentSize` 擋不住視窗 —— 上限要夾在 SwiftUI 的版面上。**
+  〔實測 2026-10-19，`--probe-panel-clamp`，合成的超高內容，1470×956 的內建螢幕、可用高度 923〕
+  contentSize 確實夾到 899，popover 視窗照樣長到 **1668**、頂緣在 **y=1671**（選單列底緣 923，
+  超出 748pt），開著時內容再長高就變 1938、底緣掉到 y=−267。
+  原因：`NSHostingController` 預設的 `sizingOptions`（rawValue 7＝minSize｜intrinsicContentSize｜maxSize）
+  把 SwiftUI 的**最小**高度變成 hosting view 的約束，而 session 清單是 `.frame(height:)` 釘死的，
+  最小高度＝整份內容。AppKit 先照 contentSize 把視窗放好（底緣 y=3），約束再把它**往上**撐 ——
+  所以使用者看到的是「頂端被切掉」，不是底部。
+  〔推論〕使用者的那次是 PR #17 的高估（已完成的 agent 各算一行，清單被撐出約 490pt 空白）把內容撐高，
+  再被這條撐出螢幕；
+  兩個都要修，少一個就會在另一種「內容真的很高」的時候再發生。
+- **修法**（`PanelFit` ＋ `PanelView.CappedHeight`）：展開前把 `PanelFit.cap`（可用高度 − 24）交給
+  `PanelView.maxHeight`；最外層是一個只有一個子視圖的 `Layout`，**不管被要求多高都回報
+  `min(理想高度, 上限)`**，排版時把那個高度交給內容，由 session 清單（理想高度 listHeight、
+  可以壓到 0）吸收。contentSize 的夾限留著當第二道保險，兩邊用同一個 `PanelFit.cap`。
+  修後〔實測，同條件〕：視窗 925、頂緣 y=928（＝按鈕底緣，只有箭頭碰到圖示，跟矮的面板一樣）、
+  底緣 y=3；開著時從矮換成超高（`--grow`），18 次裡 17 次視窗在一跳之內往**下**長到同一個位置，
+  **1 次沒有重新錨定**（高度夾住了、頂緣衝出螢幕，原因不明、沒有重現 —— 見第五節 C）。
+  「自然高度」那幾個數字（1668、1642、1912、1938）會隨量測當下的額度區差幾十 pt：
+  探針只有 session 是合成的，額度與歷史是這台機器的。判定與修後的 925／928／3 只看上限，不受影響。
+  `--render-panel` 用真實資料畫出來的 PNG 與修前**逐 byte 相同**（沒碰到上限時版面不變）。
+- ⚠️ **為什麼不是「`.frame(maxHeight:)` ＋ 清單可以縮」就好。** 那樣框夾得住
+  （〔實測〕925、頂緣 928 —— 那是已經夾到上限的面板停在上限，本來就對），但 SwiftUI 的最小高度
+  從此小於內容。規矩 50 只量到「popover 開著時 window 自己跟上內容」，沒量為什麼；
+  〔推論〕它靠的是**最小＝最大＝內容**。拆掉它，〔推論，沒有量〕短的面板在開著時多了 session
+  不會再長高。`CappedHeight` 讓最小＝最大＝「夾過的內容高度」，原本的跟隨行為不變，只是有了天花板。
+  守的測試：`PanelHeightCapTests.cappedPanelStaysRigid`（長的：被要求 100pt 仍然回 700）、
+  `shortPanelStaysRigid`（短的、上限 700 與不知道螢幕兩種：被要求 100pt 仍然回自然高度）、
+  `cappedHeightHandsTheCapToItsContent`（排版時內容拿到的是夾過的高度）、
+  `fitAssignsTheCapBeforeMeasuring`（`togglePanel` 走的 `fit` 先把上限交給版面再量）。
+- ⚠️ **`sizingOptions = []` 不是修法**：〔實測〕`fittingSize` 變 0，popover 退回 320×320 的預設。
+- ⚠️ 24pt 的來歷〔實測，同上〕：popover 視窗比 contentSize 高 26pt（箭頭＋邊框），頂緣比選單列底緣
+  高 5pt（箭頭尖端）—— 夾到「可用高度 − 24」時視窗底緣離可用區底緣 3pt。換螢幕或換 macOS 要重量。
+- ⚠️ **還擋不住的**：釘住的區塊（表頭、額度、「等你回覆」卡片）不會被壓縮。等你回覆的 session
+  多到那幾張卡本身就超過上限時（〔推論〕這台螢幕大約 8 張以上），內容從底部被裁掉 ——
+  但視窗仍然在螢幕裡。
 
 
 **39. 每日長條圖的一天切在 `resetsAt` 的鐘點，不是午夜；而且「不知道」不可以
@@ -1126,6 +1162,7 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 | `--trace-alerts <秒>` | 通知引擎對著實時資料每一拍看到什麼、發了什麼、在場狀態 | 浮窗畫得對不對 |
 | `--trace-finishes <秒>` | 完成偵測器每一拍看到什麼（安靜多久、尾端讀到什麼、有沒有產生標記、選單列該是什麼） | 它是**影子引擎**：獨立行程、自己剛開機，所以此刻已經完成的都會被判成「不是我們見證的」 |
 | `--probe-popover` | popover 的實際尺寸與 SwiftUI 回報的差距 | — |
+| `--probe-panel-clamp [--tall\|--normal\|--grow]` | 內容比螢幕高時，popover 視窗的頂緣／底緣在不在螢幕裡（規矩 27）。走**跟點圖示同一條**展開路徑；版面強制成完整版（只改記憶體）；session 全部是**合成**的、額度與歷史是這台機器的（會印出來）。`--grow` 是開著的時候從矮換成超高。在螢幕裡 exit 0、超出 exit 1、**量不到 exit 2**（沒有螢幕、沒有 window、按鈕位置量不到、沒造出比螢幕高的內容）。⚠️ 會在螢幕上開一個 popover 約 3 秒 | 夾住之後清單捲起來好不好看 —— 這台沒有螢幕錄製權限，要使用者截圖 |
 | `--render-prefs <f> --dark` | 偏好設定視窗的版面與深色配色（scale 2） | 它在真的視窗裡拿不拿得到鍵盤焦點 |
 | `--probe-login` | 開機自動啟動的真實狀態（bundle 路徑、原始 rawValue、對應到哪一格、按下去會做什麼）。加 `--register` / `--unregister` 會**真的動手**並印出前後狀態 | 下次登入到底會不會起來 —— 那要真的登出才知道 |
 
@@ -1286,6 +1323,14 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
   `drawAlert`、根本不呼叫 `drawCreature`。守住那條規矩的是 Core 那一則。
   測試改寫成它真正在證明的事（警示路徑不碰生物），並在註解裡寫明它**不是**
   `creatureGlow` 的守門。
+- **popover 開著時內容長高，視窗有一次沒有重新錨定。**〔實測 2026-10-19，`--probe-panel-clamp --grow`，
+  修後的版本〕18 次裡第 1 次：視窗高度有夾住（925），但底緣停在原地（y=544）、頂緣衝到 y=1469 ——
+  修前的版本跑 `--grow` 也是這個形狀（量 1 次：高 1668、頂緣 y=2212）。之後 17 次全部在一跳之內
+  重新錨定（同一拍是 y=544…928，一跳之後就是 3…928）。
+  原因不明、沒有重現，所以**沒有**加「frame 變了就補指派 contentSize」這種猜的修法
+  （那一招在正常的那幾次裡量不出差別，也就證明不了它修得到那一次）。再遇到時先跑 `--grow` 看軌跡。
+- **夾住之後的畫面沒有被眼睛看過。** `ImageRenderer` 把 `ScrollView` 畫成空的、這台沒有螢幕錄製權限，
+  所以「清單被壓短、可以捲」那個樣子只有數字（hosting view 899pt），要使用者在真的面板上截圖。
 - **`ScreenPresence.idleThreshold` 的別名沒有測試守著。**
   用 `#expect(Presence.idleThreshold == 300)` 去釘是一則**說謊的測試**
   （別名改回字面量 300 它照樣會過），唯一的執行手段就是那一行別名本身。
