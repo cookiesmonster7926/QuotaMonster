@@ -232,6 +232,7 @@ enum Dump {
         // ⚠️ 診斷是一次性行程，游標一定從 0 開始 —— 它每次都會整份重掃。
         // 那是對的：`--dump` 要回答「現在磁碟上是什麼」，不是「app 記得什麼」。
         var watcher = TranscriptWatcher()
+        var journals = WorkflowJournalWatcher()
         for s in live {
             guard let paths = resolver.locate(sessionId: s.session.sessionId,
                                               projectsRoot: projects) else {
@@ -241,6 +242,7 @@ enum Dump {
             let tree = builder.build(paths: paths,
                                      sessionId: s.session.sessionId,
                                      facts: watcher.update(paths.transcript),
+                                     journals: &journals,
                                      sessionStartedAt: s.session.startedAt, now: now)
             let name = shownName(s.session)
             // ⚠️ 這一行原本寫「N 隻確定在跑」。一般 Agent subagent 改用代理量測之後

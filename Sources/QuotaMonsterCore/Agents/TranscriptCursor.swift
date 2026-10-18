@@ -34,6 +34,17 @@ import Foundation
 /// 也可能**大小一樣而內容整個換掉**（寫新檔再 rename 上去）。後者 size 與 mtime
 /// 都測不出來，只有 inode 測得到。認錯了就是從一個錯的位移往下讀，交出半行垃圾。
 /// 這個 repo 已經為「拿 mtime 當內容的年紀」付過兩次代價（`~/CLAUDE.md`）。
+///
+/// ### ⚠️ inode 與 size 也不夠：就地重寫成更長的檔案
+/// workflow 的 `journal.jsonl` 也走這個游標（`WorkflowJournalWatcher`）。
+/// 〔讀碼 Claude Code 2.1.302〕journal 平常只用 `appendFile` 追加，但有一條重寫的路：
+/// run 被還原、而 journal 不在或上一次只還原到一半時（`writeRestored`），整份寫成
+/// `{"type":"restoring"}` + 記錄 + `{"type":"restored"}`。那一次寫是不是 rename 上去的
+/// **沒有量到**（呼叫的寫檔函式在壓縮過的程式碼裡，名字對不上）。
+/// 照最壞的情況設計：同一個 inode、而且變長了 —— inode 與 size 都測不出來。
+/// 所以另外記住檔案**開頭** `headLength` 個 byte，每次讀之前比一次；開頭變了就是重寫。
+/// 〔推論〕一般的追加不會動到開頭，所以它不會誤判；反過來，開頭沒變、後面被改掉的
+/// 就地重寫**仍然抓不到** —— 那種重寫目前沒有在程式碼裡看到。
 public struct TranscriptCursor: Equatable, Sendable {
 
     /// 讀一次的結果。
@@ -65,6 +76,14 @@ public struct TranscriptCursor: Equatable, Sendable {
     public private(set) var offset: UInt64 = 0
     /// 上一次讀到的 inode。nil ＝ 還沒讀過。
     public private(set) var inode: UInt64?
+    /// 檔案開頭記多少 byte 當指紋。
+    ///
+    /// 〔推論〕256 是為了蓋住 journal 整個第一行：`launched` 那一行今天只有 19 byte
+    /// （〔實測 2026-10-19〕117/117 只有 `type` 一個 key），但 Claude Code 的程式碼裡它可以帶一個
+    /// 64 字元的 `hiddenScriptSha256`〔讀碼 2.1.302〕。成本是每份檔案每拍多讀這麼多 byte。
+    public static let headLength = 256
+    /// 這一份檔案開頭的前 `headLength` 個 byte（讀過多少就記多少）。
+    private var head: Data = Data()
     /// 上一次讀到、但還沒有換行的那半行。下一次讀要接在它前面。
     private var partial: Data = Data()
 
@@ -83,11 +102,19 @@ public struct TranscriptCursor: Equatable, Sendable {
         defer { try? handle.close() }
 
         // 換了一個檔案、或它變短了 → 這一份是新的，從頭讀。
-        let rewritten = (inode != nil && inode != ino) || size < offset
+        var rewritten = (inode != nil && inode != ino) || size < offset
+        // 同一個 inode、沒有變短 —— 還可能是就地整份重寫成更長的。比開頭。
+        if !rewritten, inode != nil, !head.isEmpty {
+            guard (try? handle.seek(toOffset: 0)) != nil,
+                  let now = try? handle.read(upToCount: head.count)
+            else { return .unreadable }
+            rewritten = now != head
+        }
         let first = inode == nil
         if rewritten || first {
             offset = 0
             partial = Data()
+            head = Data()
         }
         inode = ino
 
@@ -96,6 +123,11 @@ public struct TranscriptCursor: Equatable, Sendable {
         // 把那個 nil 當成讀取失敗的話，「檔案沒長」與「空檔案」兩種正常情況
         // 都會變成 `.unreadable` —— 也就是把正面證據講成「沒看到」。〔兩則測試抓到〕
         let fresh = (try? handle.readToEnd()) ?? Data()
+        // 指紋跟著長，直到 `headLength`。這一批是從 `offset` 開始的，
+        // 而 head 永遠是「從第 0 個 byte 起、已經拿走的那一段」的前綴。
+        if head.count < Self.headLength, UInt64(head.count) == offset {
+            head.append(fresh.prefix(Self.headLength - head.count))
+        }
         // bytes 一旦拿走就算數，不管它是不是完整的行。
         offset += UInt64(fresh.count)
 

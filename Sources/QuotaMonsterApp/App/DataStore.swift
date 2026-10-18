@@ -106,6 +106,13 @@ final class DataStore {
     /// 代價：app 每次啟動要把每個活著的 session 的 transcript 重掃一次。
     /// 〔實測〕那是 `--bench-refresh` 的「第一拍」，之後每拍接近零。
     private var transcripts = TranscriptWatcher()
+    /// workflow 的 `journal.jsonl` 的增量游標 + 累積的事實。
+    ///
+    /// 與 `transcripts` 同一套機器、同一條「只活在行程記憶體裡」的理由。
+    /// ⚠️ 名單不是這裡決定的：journal 要不要讀，是 `AgentTreeBuilder` 在新鮮度閘
+    /// **之後**才決定的（死掉的 workflow 一個 byte 都不讀），所以清理用 `sweep()`
+    /// ——「這一拍沒有人問過的就放掉」——而不是 `keep(only:)`。
+    private var journals = WorkflowJournalWatcher()
     private let completionReader = TurnCompletionReader()
     /// 沉澱窗狀態機。I/O 三支注入，所以它本身是純的、測得到。
     @ObservationIgnored private lazy var completionTracker = CompletionTracker(
@@ -528,6 +535,7 @@ final class DataStore {
             built[s.session.sessionId] = treeBuilder.build(
                 paths: paths, sessionId: s.session.sessionId,
                 facts: transcripts.update(paths.transcript),
+                journals: &journals,
                 sessionStartedAt: s.session.startedAt, now: now)
             watched.insert(paths.transcript)
         }
@@ -535,6 +543,7 @@ final class DataStore {
         // session 死了就放掉它的事實 —— 一份 16.1MB transcript 的 toolUseIds
         // 不是可以忽略的記憶體（規矩 42 的記憶體版本）。
         transcripts.keep(only: watched)
+        journals.sweep()
 
         // 完成偵測。**在通知之前**，因為選單列的 glyph 要讀 `finishes`。
         if detectsCompletions {

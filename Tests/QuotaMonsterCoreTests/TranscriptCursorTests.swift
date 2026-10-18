@@ -151,6 +151,65 @@ struct TranscriptCursorTests {
         #expect(fromStart)
     }
 
+    // ── 就地重寫（同一個 inode、沒有變短）─────────────────────────
+
+    /// 截斷再寫進**同一個 inode**，不是 rename 上去。
+    func overwriteInPlace(_ url: URL, with text: String) throws {
+        let h = try FileHandle(forWritingTo: url)
+        try h.truncate(atOffset: 0)
+        try h.write(contentsOf: Data(text.utf8))
+        try h.close()
+    }
+
+    func inode(_ url: URL) throws -> UInt64 {
+        try #require((FileManager.default.attributesOfItem(atPath: url.path)[.systemFileNumber]
+                      as? NSNumber)?.uint64Value)
+    }
+
+    @Test("⚠️ 就地重寫成更長的檔案 —— inode 與 size 都測不出來，只有開頭測得出來")
+    func anInPlaceRewriteThatGrewIsCaughtByItsHead() throws {
+        // workflow 的 run 被還原時，Claude Code 會把 journal 整份重寫成
+        // restoring + 原本的記錄 + restored〔讀碼 2.1.302：writeRestored〕。
+        // 它是不是 rename 上去的**沒有量到** —— 照最壞的情況寫：同一個 inode、而且變長了。
+        let url = try file(#"{"type":"launched"}"# + "\n" + #"{"type":"started","agentId":"a"}"# + "\n")
+        var c = TranscriptCursor()
+        _ = c.read(url)
+        let ino = try inode(url)
+
+        try overwriteInPlace(url, with: #"{"type":"restoring"}"# + "\n" + #"{"type":"launched"}"# + "\n"
+            + #"{"type":"started","agentId":"b"}"# + "\n" + #"{"type":"restored"}"# + "\n")
+        #expect(try inode(url) == ino, "前提：真的是同一個 inode，否則這一則測的是別的東西")
+
+        guard case .advanced(let lines, let fromStart) = c.read(url) else {
+            Issue.record("讀不到"); return
+        }
+        // 只看 inode 與 size 的實作會從舊的 offset 往下讀：交出半行垃圾，而且說「不是從頭」。
+        #expect(fromStart)
+        #expect(lines.count == 4)
+        #expect(lines.first == #"{"type":"restoring"}"#)
+    }
+
+    @Test("開頭的指紋要跟著長 —— 第一次只讀到幾個 byte，之後的就地重寫照樣要抓到")
+    func theHeadFingerprintGrowsPastAShortFirstRead() throws {
+        let url = try file(#"{"ty"#)                    // 第一拍只寫到 4 個 byte
+        var c = TranscriptCursor()
+        _ = c.read(url)
+        try append(#"pe":"launched"}"# + "\n", to: url)
+        guard case .advanced(_, let appendedFromStart) = c.read(url) else {
+            Issue.record("讀不到"); return
+        }
+        // 單純追加不可以被當成重寫 —— 否則每拍都整份重讀，等於沒有游標。
+        #expect(!appendedFromStart)
+
+        // 差異落在第一次讀到的 4 個 byte 之外。指紋停在 4 個 byte 的實作抓不到。
+        try overwriteInPlace(url, with: #"{"type":"restoring"}"# + "\n")
+        guard case .advanced(let lines, let fromStart) = c.read(url) else {
+            Issue.record("讀不到"); return
+        }
+        #expect(fromStart)
+        #expect(lines == [#"{"type":"restoring"}"#])
+    }
+
     // ── 讀不到 ─────────────────────────────────────────────────
 
     @Test("檔案不存在是「讀不到」，不是「沒有新東西」")

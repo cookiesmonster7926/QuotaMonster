@@ -486,6 +486,10 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
   也可能**大小一樣而內容整個換掉**（寫新檔再 rename 上去）—— 後者 size 與 mtime **都測不出來**，
   只有 inode 測得到。認錯了就是從一個錯的位移往下讀，交出半行垃圾。
   這是 `~/CLAUDE.md`「mtime 是什麼時候寫的，不是內容什麼時候量的」在增量讀取上的落點。
+- ⚠️ **inode 也不夠：同一個 inode、而且變長了的就地重寫。**〔2026-10-19 補〕workflow 的
+  `journal.jsonl` 接上同一個游標時，〔讀碼 Claude Code 2.1.302〕找到一條整份重寫的路
+  （run 被還原時的 `writeRestored`），而它是不是 rename **沒有量到**。游標因此多記檔案開頭
+  256 byte 當指紋，開頭變了就是重寫。完整的來龍去脈見第五節 B。
 - ⚠️ **半行要留著，不可以丟也不可以重讀。** 既有的 `WaitingContextReader.tail` 從尾端抓 64KB 並
   **丟掉第一個換行之前的東西**（它切在半行上）—— 從記住的 offset 往前讀時第一個 byte **就是**行首，
   照抄那個行為會每讀一次就靜靜吃掉一筆記錄。反過來，讓 offset 停在行首、半行留在檔案裡下次重讀，
@@ -1239,12 +1243,63 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
   不是「沒有證據」（有了），是**沒有可用的扇出單位**（四個候選鍵給出 `{1: 37}`，
   唯一分得出批次的 `promptId` 跨 transcript 不唯一、會在 resume 時消失），
   加上 18.5% 的背景 agent 從來不終結，以及全機器有史以來只有 6 個真正的扇出批次。
-- **workflow 的 `journal.jsonl` 還是每拍整份重讀**，而且是在新鮮度閘**之前**
-  （`AgentTreeBuilder.swift` 的 `journalReader.read()` 在 `isFresh` 過濾之前），
-  所以四天前死掉的 workflow 的 journal（這台機器上最大 888KB）永遠會被重新解析。
-  〔實測〕它是改造後剩下的 62.8 毫秒的主要來源。機器已經有了（`TranscriptCursor`），
-  缺的是把它接上去 —— 但 journal 是 append-only 且會跨 `--resume` 累積，
-  接之前要先確認它的重寫行為與 transcript 一樣。
+- ~~**workflow 的 `journal.jsonl` 還是每拍整份重讀**~~ —— **已做（2026-10-19）**。
+  ~~原文：~~ 而且是在新鮮度閘**之前**（`AgentTreeBuilder.swift` 的 `journalReader.read()`
+  在 `isFresh` 過濾之前），所以四天前死掉的 workflow 的 journal（這台機器上最大 888KB）
+  永遠會被重新解析。〔實測〕它是改造後剩下的 62.8 毫秒的主要來源。
+  機器已經有了（`TranscriptCursor`），缺的是把它接上去 —— 但 journal 是 append-only
+  且會跨 `--resume` 累積，接之前要先確認它的重寫行為與 transcript 一樣。
+
+  **做了兩件事**：(1) journal 搬到新鮮度閘**之後**才讀 —— 死掉的 workflow 一個 byte
+  都不讀（閘沒過的 group 本來就是 nil，所以輸出不變）；(2) 活著的走與 transcript
+  **同一套機器**：`TranscriptWatcher` 泛化成 `LineWatcher<Facts>`，
+  `WorkflowJournalWatcher = LineWatcher<WorkflowJournal>`，游標就是 `TranscriptCursor`，
+  解析只定義在 `WorkflowJournal.ingest`。每拍結束 `sweep()`：這一拍沒被問到的就放掉
+  （要不要讀是 builder 在閘後才決定的，呼叫端列不出 `keep(only:)` 的名單）。
+
+  **接之前要確認的那件事，答案是「不一樣，而且沒辦法完全量到」：**
+  - 〔實測 2026-10-19，本機 117 個 journal，唯讀〕117/117 恰好一行 `launched`、而且都在第一行；
+    117/117 以換行結尾；沒有任何 `restoring` / `restored` / `resumed` 行。
+    wf_id 跨 session 目錄 **0 重複** —— `claude --resume` 沒有把 journal 複製到新的 session 目錄；
+    也沒有任何 transcript 的 birthtime 晚於它底下 journal 的最後一次寫入。
+    兩次快照相隔約 15 分鐘（期間有一個 workflow 正在跑）：116 個沒變、1 個只在尾端追加、
+    **0 個**變短 / 換 inode / 前段內容變了。
+  - 有一個 workflow 的 run 狀態檔 `startTime` 比它的 journal 的 birthtime **晚 17.5 小時**，
+    而 journal 還是同一個 inode —— 看起來是一次 resume（`resumeFromRunId`）之後在**同一個檔案**上
+    繼續寫。它是追加還是就地截斷重寫，**靜態快照分不出來**。
+  - 〔讀碼 Claude Code 2.1.302〕journal 平常只走 `appendFile`；檔尾不是換行時先補一個 `\n`
+    再寫這一筆（寫一半的殘片因此變成一行壞掉的 JSON，被跳過 —— 與整份讀的舊實作一樣）。
+    **但有一條整份重寫的路**：run 被還原（`writeRestored`）、而 journal 不在或上一次只還原到
+    一半時，整份寫成 `{"type":"restoring"}` + 記錄 + `{"type":"restored"}`。
+    那一次是 rename 上去還是就地寫，在壓縮過的程式碼裡對不上名字 ——〔未驗證〕。
+  - 所以**照最壞的情況設計**：`TranscriptCursor` 另外記住檔案開頭 256 byte 當指紋，
+    每次讀之前比一次。同一個 inode、而且**變長了**的就地重寫（inode 與 size 都測不出來）
+    也會退回整份重讀，事實整份換掉。〔推論〕仍然抓不到的：開頭不變、後面被改掉的就地重寫
+    —— 程式碼裡目前沒看到這種寫法。這個指紋對 transcript 一樣生效（規矩 47）。
+  - ⚠️ **行為改變一處**：沒有換行結尾的最後一行要等到換行才算，整份讀的舊實作會照算。
+    真實 journal 117/117 以換行結尾，所以只差在「正好讀到寫一半」的那一拍。
+    ⚠️ 測試的 fixture 與 `WorkflowPhaseTests` 的 helper 原本**沒有**結尾換行
+    （真實形狀沒有一個長這樣）—— 已改成與真實一致，否則最後一個 spawn 會被當成半行。
+
+  **量到的**〔實測 2026-10-19，`--bench-refresh 30`，新舊兩個 release binary 交替跑〕
+  ⚠️ 量的時候同一台機器上有其他 worktree 在建置，load average 4–10，同一個條件的數字
+  之間的離散主要來自這個；比的是**同一段時間內交替跑**的新舊。
+
+  | 條件 | 舊：穩態中位（毫秒） | 新 |
+  |---|---|---|
+  | 真實資料（10 個 session；活著的底下只有 2 個 journal、共 15KB），5 輪 | 24.7–38.1 | 27.3–41.6 |
+  | 合成：1 個活 session，12 個死掉的 workflow（888KB + 11×300KB）＋ 1 個活的（400KB），5 輪 | 67.9–128.0 | **7.5–13.5** |
+  | 合成：同上，但 13 個裡 12 個活著，3 輪 | 82.1–95.8 | **10.4–14.2** |
+  | 合成：同一個家目錄拿掉所有 workflow（地板），3 輪 | 0.3–0.4 | 0.4 |
+
+  - **真實資料那一列沒有差別，那是對的**：今天活著的 session 底下幾乎沒有 journal，
+    journal 這條路**今天不是**成本來源。62.8 毫秒那時的狀態（活著的 session 底下有大的、
+    死掉的 journal）今天重現不出來，所以另外用合成的家目錄（`CFFIXED_USER_HOME`，
+    內容全是編的，只模仿形狀）把它造出來量。
+  - 剩下的 7–14 毫秒花在哪〔代理量測，`sample` 5 秒、12 個活 workflow 那一組〕：
+    不再是解析，是每一隻 agent 一次的 `FileManager.attributesOfItem`（`isFresh`、
+    游標自己的 stat），而它**連 extended attributes 一起讀**（`getxattr`）——
+    build 裡約三分之一的取樣在那裡。那是下一個洞，不在這一項。
 - **已經在跑的 session 不會立刻開始寫 tee 快取**（見上）。
 - ~~**一般 Agent subagent 看不出在不在跑**~~ —— **已做（2026-09-22）**，
   改用 transcript 活動的代理量測（規矩 37），窗口 120 秒。
