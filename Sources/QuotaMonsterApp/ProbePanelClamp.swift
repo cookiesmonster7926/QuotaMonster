@@ -116,7 +116,8 @@ enum ProbePanelClamp {
             verdict("展開 1.5 秒之後")
 
             // 開著的時候內容再長高（規矩 50：window 會自己跟著內容走，不等 contentSize）。
-            // 每個 session 多 5 隻 agent，等一跳再等 500ms。
+            //   --grow：從對照組整批換成超高的那一組，逐時點記視窗位置（sleep 是累加的，標籤是約數）
+            //   --tall：每個 session 多 5 隻 agent，等一跳再等 500ms
             if grow {
                 let (more, moreTrees) = syntheticSessions(tall: true)
                 store.seedSyntheticSessions(more, trees: moreTrees)
