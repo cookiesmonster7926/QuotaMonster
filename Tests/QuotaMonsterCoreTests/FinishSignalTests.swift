@@ -50,7 +50,7 @@ struct FinishGlowTests {
 
     @Test("算不出跑多久的不上選單列 —— nil 不是 0，也不是「一定夠久」")
     func unknownRunDoesNotReachTheMenuBar() {
-        // 〔實測〕約六分之一的完成 ranFor 是 nil。把 nil 當成 0 會全部擋掉、
+        // 〔代理量測 2026-10-19〕約四分之一的完成 ranFor 是 nil（第三節第 33 條）。把 nil 當成 0 會全部擋掉、
         // 當成無限大會全部放行 —— 兩個都是憑空造一個量測。這裡選「不亮」，
         // 因為亮起來的那一下是在主張「這一輪跑很久」。
         #expect(FinishGlow.menuBar([finish("a", 0, ranFor: nil)], now: at(10)) == .none)

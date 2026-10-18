@@ -20,17 +20,15 @@ struct CompletionTrackerTests {
     final class Disk: @unchecked Sendable {
         var mtime: Date?
         var readout: TurnReadout
-        var turnStart: Date?
         var tailReads = 0
-        init(mtime: Date?, readout: TurnReadout = .unfinished, turnStart: Date? = nil) {
-            self.mtime = mtime; self.readout = readout; self.turnStart = turnStart
+        init(mtime: Date?, readout: TurnReadout = .unfinished) {
+            self.mtime = mtime; self.readout = readout
         }
     }
 
     func tracker(_ disk: Disk) -> CompletionTracker {
         CompletionTracker(
             readTail: { _ in disk.tailReads += 1; return disk.readout },
-            readTurnStart: { _ in disk.turnStart },
             modifiedAt: { _ in disk.mtime })
     }
 
@@ -152,48 +150,72 @@ struct CompletionTrackerTests {
         #expect(t.update(input, now: at(700)).finishes.isEmpty)
     }
 
-    // ── 跑了多久 ────────────────────────────────────────────────
+    // ── 跑了多久（第三節第 33 條）───────────────────────────────
+    //
+    // 起點不再是「安靜 → 又動起來那一刻往 64KB 尾端搆」，而是往前掃的游標
+    // 一路記下的最後一則真人訊息（`TurnOpener`），由呼叫端在 `CompletionInput` 帶進來。
 
-    @Test("回合起點在「又動起來」那一刻讀一次 —— ranFor 從它算")
-    func ranForComesFromTheTurnStart() throws {
-        let disk = Disk(mtime: at(0))
-        var t = tracker(disk)
-        _ = t.update(input, now: at(0))
-        _ = t.update(input, now: at(90))             // 確認安靜
-        disk.mtime = at(100)
-        disk.turnStart = at(95)                      // 使用者在 95 秒打了字
-        _ = t.update(input, now: at(100))
-        disk.readout = .finished(TurnEnd(finishedAt: at(800)))
-        let out = t.update(input, now: at(820))
-        #expect(try #require(out.finishes.first).ranFor == 705)
+    func input(_ opening: TurnOpener.Answer?) -> CompletionInput {
+        CompletionInput(transcripts: ["S1": url], openings: opening.map { ["S1": $0] } ?? [:])
     }
 
-    @Test("讀不到回合起點 —— ranFor 是 nil，不是 0")
-    func unknownTurnStartMeansNilRanFor() throws {
-        // 〔實測〕命中率 84.1%，所以約六分之一的完成會走這條路。
-        let disk = Disk(mtime: at(0), turnStart: nil)
-        var t = tracker(disk)
-        _ = t.update(input, now: at(0))
-        _ = t.update(input, now: at(90))
-        disk.mtime = at(100)
-        _ = t.update(input, now: at(100))
-        disk.readout = .finished(TurnEnd(finishedAt: at(800)))
-        #expect(try #require(t.update(input, now: at(820)).finishes.first).ranFor == nil)
-    }
-
-    @Test("回合起點太舊就丟掉 —— 那是上一輪的，不是這一輪的")
-    func staleTurnStartIsIgnored() throws {
-        // 沒有這道容忍度，面板會定期顯示「跑了 19h 23m」
-        // 〔實測，模擬〕寬鬆起點定義下 ranFor 的 max 是 69,812 秒。
+    @Test("使用者在上一輪講完 90 秒內就回話 —— 這一輪的 ranFor 照樣算得出來")
+    func quickReplyStillHasRanFor() throws {
+        // ⚠️ 這就是 7/7 算不出來的那個洞：舊作法只在「確認安靜滿 90 秒、又動起來」
+        // 那一刻讀起點。回得快的人永遠湊不到那個條件。
         let disk = Disk(mtime: at(0))
         var t = tracker(disk)
-        _ = t.update(input, now: at(0))
-        _ = t.update(input, now: at(90))
-        disk.mtime = at(100)
-        disk.turnStart = at(20)                      // 比「又動起來」早 80 秒
-        _ = t.update(input, now: at(100))
+        _ = t.update(input(.human(at(0))), now: at(0))
+        disk.mtime = at(30)                          // 沒有安靜滿 90 秒就又動了
+        _ = t.update(input(.human(at(30))), now: at(30))
         disk.readout = .finished(TurnEnd(finishedAt: at(800)))
-        #expect(try #require(t.update(input, now: at(820)).finishes.first).ranFor == nil)
+        disk.mtime = at(800)
+        _ = t.update(input(.human(at(30))), now: at(800))
+        let out = t.update(input(.human(at(30))), now: at(890))
+        #expect(try #require(out.finishes.first).ranFor == 770)
+    }
+
+    @Test("很長的回合也算得出來 —— 起點在幾小時前不是「太舊」，那就是這一輪")
+    func longTurnKeepsItsStart() throws {
+        // 舊的 15 秒容忍度是為了擋「寬鬆的起點定義」（〔實測，模擬〕max 69,812 秒）。
+        // 起點改成「最後一則真人訊息，中間沒有被別的東西叫醒過」之後，
+        // 三小時的起點就是三小時前，不需要再丟掉。
+        let disk = Disk(mtime: at(0))
+        var t = tracker(disk)
+        _ = t.update(input(.human(at(-10_800))), now: at(0))
+        disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+        let out = t.update(input(.human(at(-10_800))), now: at(90))
+        #expect(try #require(out.finishes.first).ranFor == 10_805)
+    }
+
+    @Test("整個沒看到起點（watcher 沒讀到這份）—— ranFor 是 nil，不是 0")
+    func unseenOpeningMeansNilRanFor() throws {
+        let disk = Disk(mtime: at(0))
+        var t = tracker(disk)
+        _ = t.update(input(nil), now: at(0))
+        disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+        #expect(try #require(t.update(input(nil), now: at(90)).finishes.first).ranFor == nil)
+    }
+
+    @Test("看到了、但這一輪不是真人開的 —— ranFor 是 nil")
+    func wokenTurnHasNoRanFor() throws {
+        let disk = Disk(mtime: at(0))
+        var t = tracker(disk)
+        _ = t.update(input(.wokenWithoutHuman), now: at(0))
+        disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+        let out = t.update(input(.wokenWithoutHuman), now: at(90))
+        #expect(try #require(out.finishes.first).ranFor == nil)
+    }
+
+    @Test("真人訊息沒帶時刻、或一則都沒有 —— ranFor 是 nil")
+    func noUsableStartMeansNil() throws {
+        for opening: TurnOpener.Answer in [.humanWithoutTimestamp, .noHumanYet] {
+            let disk = Disk(mtime: at(0))
+            var t = tracker(disk)
+            _ = t.update(input(opening), now: at(0))
+            disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+            #expect(try #require(t.update(input(opening), now: at(90)).finishes.first).ranFor == nil)
+        }
     }
 
     @Test("完成時刻早於回合起點 —— ranFor 是 nil，不可以是負數")
@@ -201,12 +223,45 @@ struct CompletionTrackerTests {
         // transcript 的 timestamp 不是單調的〔實測〕3.91% 的相鄰行對時間差為負。
         let disk = Disk(mtime: at(0))
         var t = tracker(disk)
-        _ = t.update(input, now: at(0))
-        _ = t.update(input, now: at(90))
-        disk.mtime = at(100)
-        disk.turnStart = at(98)
-        _ = t.update(input, now: at(100))
+        _ = t.update(input(.human(at(98))), now: at(0))
         disk.readout = .finished(TurnEnd(finishedAt: at(95)))   // 比起點還早
-        #expect(try #require(t.update(input, now: at(200)).finishes.first).ranFor == nil)
+        #expect(try #require(t.update(input(.human(at(98))), now: at(100)).finishes.first).ranFor == nil)
+    }
+
+    @Test("兩個 session 同一拍講完 —— 各自拿自己的起點，不可以張冠李戴")
+    func openingsAreLookedUpPerSession() throws {
+        let other = URL(fileURLWithPath: "/tmp/s2.jsonl")
+        let two = CompletionInput(transcripts: ["S1": url, "S2": other, "S3": URL(fileURLWithPath: "/tmp/s3.jsonl")],
+                                  openings: ["S1": .human(at(-100)), "S2": .wokenWithoutHuman,
+                                             "S3": .human(at(-40))])
+        let disk = Disk(mtime: at(0))
+        var t = tracker(disk)
+        _ = t.update(two, now: at(0))
+        disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+        let out = t.update(two, now: at(90))
+        let by = Dictionary(uniqueKeysWithValues: out.finishes.map { ($0.sessionId, $0.ranFor) })
+        #expect(by.count == 3)
+        #expect(by["S1"] == .some(105))
+        #expect(by["S2"] == .some(nil))
+        #expect(by["S3"] == .some(45))
+    }
+
+    // ── 算不出來的原因（`--trace-finishes` 與 `--measure-ranfor` 共用這一份）──
+
+    @Test("每一種算不出來的原因都對到自己的那一格；算得出來就沒有原因")
+    func ranForOutcomeNamesTheReason() {
+        func o(_ a: TurnOpener.Answer?) -> CompletionTracker.RanForOutcome {
+            CompletionTracker.ranForOutcome(opening: a, finishedAt: at(100))
+        }
+        #expect(o(.human(at(40))) == .ran(60))
+        #expect(o(nil) == .missing(.unseen))
+        #expect(o(.wokenWithoutHuman) == .missing(.woken))
+        #expect(o(.noHumanYet) == .missing(.noHuman))
+        #expect(o(.humanWithoutTimestamp) == .missing(.noTimestamp))
+        #expect(o(.human(at(100))) == .missing(.notAfterStart))   // 等於也不算
+        #expect(o(.human(at(140))) == .missing(.notAfterStart))
+        // `ranFor` 是它的投影，不是第二份判斷。
+        #expect(CompletionTracker.ranFor(opening: .human(at(40)), finishedAt: at(100)) == 60)
+        #expect(CompletionTracker.ranFor(opening: .human(at(100)), finishedAt: at(100)) == nil)
     }
 }

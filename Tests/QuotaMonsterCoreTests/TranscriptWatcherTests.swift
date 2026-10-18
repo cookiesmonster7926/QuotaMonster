@@ -148,4 +148,60 @@ struct TranscriptWatcherTests {
         #expect(f.outcomes["a1"]?.kind == .completed)
         #expect(f.outcomes["a2"] == nil)
     }
+
+    // ── 回合起點（第三節第 33 條）───────────────────────────────
+
+    /// 合成的真人訊息與 end_turn。內容是編的，只模仿形狀。
+    func human(_ iso: String) -> String {
+        #"{"type":"user","timestamp":""# + iso + #"","message":{"role":"user","content":"跑一下測試"}}"# + "\n"
+    }
+    func endTurn(_ iso: String, id: String) -> String {
+        #"{"type":"assistant","timestamp":""# + iso
+            + #"","message":{"id":""# + id + #"","stop_reason":"end_turn","content":[{"type":"text","text":"好了"}]}}"# + "\n"
+    }
+
+    @Test("從沒讀到過的 transcript —— 回合起點是 nil（整個沒看到），不是「沒有真人訊息」")
+    func unseenTranscriptHasNoOpening() throws {
+        let missing = URL(fileURLWithPath: "/tmp/qm-nope-\(UUID().uuidString).jsonl")
+        var w = TranscriptWatcher()
+        _ = w.update(missing)
+        // 第二層：沒看到它。不是證據，所以不可以回答成 `.noHumanYet`。
+        #expect(w.opening(of: missing) == nil)
+    }
+
+    @Test("讀到了、但一則真人訊息都沒有 —— noHumanYet（看到了，那個狀態不成立）")
+    func readButNoHuman() throws {
+        let url = try file(notify("a1", "completed"))
+        var w = TranscriptWatcher()
+        _ = w.update(url)
+        #expect(w.opening(of: url) == .noHumanYet)
+    }
+
+    @Test("往前掃記下最後一則真人訊息 —— 回合多長都搆得到，不受 64KB 尾端窗口限制")
+    func openingSurvivesAHugeTurn() throws {
+        // 舊的作法從 64KB 尾端往回找，〔實測 n=337〕只有 37.4% 的回合塞得進去。
+        // 這裡在真人訊息後面塞 200KB 的工具結果，起點仍然要找得到。
+        let url = try file(human("2026-09-19T02:00:00.000Z"))
+        var w = TranscriptWatcher()
+        _ = w.update(url)
+        let big = String(repeating: "x", count: 200_000)
+        try append(#"{"type":"user","message":{"content":[{"type":"tool_result","content":""#
+                   + big + #""}]}}"# + "\n", to: url)
+        try append(endTurn("2026-09-19T02:30:00.000Z", id: "m1"), to: url)
+        _ = w.update(url)
+        #expect(w.opening(of: url) == .human(Date(timeIntervalSince1970: 1_789_783_200)))
+    }
+
+    @Test("被整個重寫 —— 起點跟著重算，不留舊檔的")
+    func rewriteResetsTheOpening() throws {
+        let url = try file(human("2026-09-19T02:00:00.000Z"))
+        var w = TranscriptWatcher()
+        _ = w.update(url)
+        // 寫新檔再 rename 上去：inode 換了。新檔裡沒有真人訊息。
+        let tmp = url.appendingPathExtension("new")
+        try Data(notify("a1", "completed").utf8).write(to: tmp)
+        _ = try FileManager.default.replaceItemAt(url, withItemAt: tmp)
+        _ = w.update(url)
+        #expect(w.opening(of: url) == .noHumanYet)
+    }
 }
