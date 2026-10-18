@@ -132,6 +132,20 @@ public struct AgentTree: Equatable, Sendable {
         (match(n.runState) ? 1 : 0) + n.children.reduce(0) { $0 + count($1, where: match) }
     }
 
+    /// 面板的 session 列在名稱與 ctx 之外**實際畫幾行**：還在跑的 workflow 與 agent 各一行，
+    /// 加上「另有 N 個已完成」那一行（有東西可收合才有）。
+    ///
+    /// ⚠️ `SessionRow` 的畫法與 `PanelView` 的高度估算都要用這個，不可以各數各的：
+    /// 〔實測 2026-10-19〕估算曾用 `agents.count`（含已完成的），27 個已完成的 agent
+    /// 被估成 27 行，面板高過螢幕。
+    public var detailLineCount: Int {
+        let live = workflows.filter { $0.runningCount > 0 }.count
+        let agentTally = AgentTally(agents)
+        let collapsedLine = !WorkflowTally(workflows).collapsed.isEmpty
+            || !agentTally.collapsed.isEmpty
+        return live + agentTally.outstanding.count + (collapsedLine ? 1 : 0)
+    }
+
     public init(sessionId: String, agents: [AgentNode], workflows: [WorkflowGroup]) {
         self.sessionId = sessionId
         self.agents = agents
