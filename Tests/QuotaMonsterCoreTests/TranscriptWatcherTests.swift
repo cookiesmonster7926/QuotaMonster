@@ -134,13 +134,17 @@ struct TranscriptWatcherTests {
         let before = notify("a1", "completed")
         let after = notify("a2", "completed")
         #expect(before.count == after.count)     // 前提：長度一樣，游標才不會察覺
-
-        let url = try file(before)
+        // ⚠️ 前提二：改動要落在**開頭指紋之外**。游標會比對檔案開頭
+        // （`TranscriptCursor.headLength`），開頭變了就是整份重寫、本來就該重讀。
+        // 所以前面墊一行不會變的，讓 a1 → a2 落在指紋後面。
+        let filler = #"{"type":"filler","pad":""# + String(repeating: "x", count: TranscriptCursor.headLength)
+            + #""}"# + "\n"
+        let url = try file(filler + before)
         var w = TranscriptWatcher()
         #expect(w.update(url).outcomes["a1"]?.kind == .completed)
 
         let h = try FileHandle(forWritingTo: url)
-        try h.seek(toOffset: 0)
+        try h.seek(toOffset: UInt64(filler.utf8.count))
         try h.write(contentsOf: Data(after.utf8))
         try h.close()
 

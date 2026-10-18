@@ -71,7 +71,11 @@ struct WorkflowPhaseTests {
         }
 
         if writeJournal {
-            try lines.joined(separator: "\n")
+            // ⚠️ 結尾的換行不可省。〔實測 2026-10-19〕這台機器 117/117 個 journal 都以換行結尾
+            // （Claude Code 每筆都是「JSON + 換行」一次 append）。journal 改走增量游標之後，
+            // 沒有換行的最後一行是「還沒寫完」，要等到換行才算數 —— 舊的 helper 少了它，
+            // 最後一個 spawn 會被當成半行。
+            try (lines.joined(separator: "\n") + "\n")
                 .write(to: wfDir.appendingPathComponent("journal.jsonl"),
                        atomically: true, encoding: .utf8)
         }
@@ -86,8 +90,9 @@ struct WorkflowPhaseTests {
         let transcript = root.appendingPathComponent("\(sessionId).jsonl")
         try Data().write(to: transcript)
         let paths = SessionPaths(transcript: transcript, sessionDirectory: sessionDir)
+        var journals = WorkflowJournalWatcher()
         return AgentTreeBuilder().build(paths: paths, sessionId: sessionId,
-                                        facts: TranscriptFacts(),
+                                        facts: TranscriptFacts(), journals: &journals,
                                         sessionStartedAt: sessionStart, now: clock)
             .workflows.first
     }

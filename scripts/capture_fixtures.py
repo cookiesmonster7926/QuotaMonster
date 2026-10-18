@@ -179,7 +179,7 @@ blob(f'{wf}/journal.jsonl', '\n'.join(json.dumps(x) for x in [
     {'type': 'started', 'key': 'k3', 'agentId': 'w3', 'label': 'build:gamma', 'phase': 'Build'},
     {'type': 'result', 'key': 'k1', 'agentId': 'w1', 'result': {'ok': True}},
     {'type': 'failed', 'key': 'k3', 'agentId': 'w3'},
-]))
+]) + '\n')   # 真的 journal 每一行都以換行結尾（實測 117/117）；增量游標不交出沒換行的最後一行
 
 # 同一個 sessionId 出現在第二個 project slug 底下，但**沒有**兄弟 transcript。
 # 實測 11 個 session 目錄中有 1 個是這種情況，判別依據就是兄弟檔在不在。
@@ -200,7 +200,7 @@ blob(f'{wf2}/journal.jsonl', '\n'.join(json.dumps(x) for x in [
     {'type': 'launched'},
     {'type': 'started', 'key': 'k1', 'agentId': 'k1', 'label': 'aborted:k1', 'phase': 'Build'},
     {'type': 'started', 'key': 'k2', 'agentId': 'k2', 'label': 'aborted:k2', 'phase': 'Build'},
-]))
+]) + '\n')
 # 執行紀錄：一個被中止、一個還活著（沒有終結狀態）
 write(f'{AGENTS}/{slug}/{SESSION}/workflows/wf_killed01.json',
       {'runId': 'wf_killed01', 'status': 'killed', 'agentCount': 2})

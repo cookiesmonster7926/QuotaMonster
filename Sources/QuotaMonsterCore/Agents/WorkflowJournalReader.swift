@@ -25,9 +25,9 @@ public struct WorkflowJournal: Equatable, Sendable {
     /// ⚠️ **順序是這個檔案裡唯一的時間資訊** —— 〔實測〕started 行沒有任何時間戳
     /// （key 組合固定是 type/key/agentId/label/phase），而檔案是 append-only。
     /// 所以它不可以被換成 Set 或 Dictionary。
-    public let spawns: [Spawn]
+    public private(set) var spawns: [Spawn]
     /// 已收尾的 —— **`result` 與 `failed` 的聯集**。
-    public let finished: Set<String>
+    public private(set) var finished: Set<String>
 
     /// 啟動過的。**從 `spawns` 導出**，集合語意與改動前完全一樣。
     public var started: Set<String> { Set(spawns.map(\.agentId)) }
@@ -55,38 +55,50 @@ public struct WorkflowJournal: Equatable, Sendable {
         self.spawns = spawns
         self.finished = finished
     }
-}
 
-/// 讀 `subagents/workflows/<wf_id>/journal.jsonl`。
-///
-/// 實測所有真實 journal 的 type 只有四種：started / result / failed / launched。
-/// `launched` 沒有 agentId，會被自然忽略。
-public struct WorkflowJournalReader: Sendable {
-    public init() {}
+    /// 什麼都還沒讀到。
+    public init() { self.init(spawns: [], finished: []) }
 
-    public func read(_ url: URL) -> WorkflowJournal {
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            return WorkflowJournal(spawns: [], finished: [])
-        }
-        var spawns: [WorkflowJournal.Spawn] = []
-        var finished: Set<String> = []
-
-        for line in text.split(separator: "\n") {
-            // append-only 的檔案，最後一行可能只寫到一半 —— 壞掉就跳過。
-            guard let data = line.data(using: .utf8),
-                  let d = (try? JSONSerialization.jsonObject(with: data)) as? [String: Any],
+    /// 依檔案裡的順序餵進一批行。**解析只定義在這裡** ——
+    /// 每拍增量讀的 `WorkflowJournalWatcher` 與一次讀完的 `WorkflowJournalReader` 都走它。
+    ///
+    /// 實測所有真實 journal 的 type 只有四種：started / result / failed / launched。
+    /// `launched` 沒有 agentId，會被自然忽略。〔讀碼 2.1.302〕程式碼裡還有
+    /// `restoring` / `restored` / `resumed` 三種標記行，也都沒有 agentId，同樣忽略。
+    public mutating func ingest(_ lines: [String]) {
+        for line in lines {
+            // 壞掉的行跳過：寫到一半的殘片，Claude Code 會在下一次 append 前補一個換行
+            // 把它封成獨立的一行〔讀碼 2.1.302〕，它就以「壞掉的完整行」的樣子到這裡。
+            guard let d = (try? JSONSerialization.jsonObject(with: Data(line.utf8))) as? [String: Any],
                   let type = d["type"] as? String,
                   let agentId = d["agentId"] as? String
             else { continue }
 
             switch type {
             case "started":
-                spawns.append(WorkflowJournal.Spawn(agentId: agentId,
-                                                    phase: d["phase"] as? String))
+                spawns.append(Spawn(agentId: agentId, phase: d["phase"] as? String))
             case "result", "failed": finished.insert(agentId)
             default:                 break
             }
         }
-        return WorkflowJournal(spawns: spawns, finished: finished)
+    }
+}
+
+/// 一次讀完 `subagents/workflows/<wf_id>/journal.jsonl`。
+///
+/// ⚠️ **app 每拍走的不是這一支**，是 `WorkflowJournalWatcher`（增量游標）。
+/// 這一支今天只剩解析規則的測試在用（`WorkflowJournalReaderTests`）；解析本身在
+/// `WorkflowJournal.ingest`，兩條路共用，所以那些測試守的就是 app 實際在跑的規則。
+/// 兩者差在最後一行：這一支連**沒有換行結尾**的最後一行也試著解析，
+/// 游標則要等到換行才交出那一行（〔實測 2026-10-19〕117/117 個真實 journal 以換行結尾）。
+public struct WorkflowJournalReader: Sendable {
+    public init() {}
+
+    public func read(_ url: URL) -> WorkflowJournal {
+        var journal = WorkflowJournal()
+        guard let data = try? Data(contentsOf: url) else { return journal }
+        journal.ingest(data.split(separator: UInt8(ascii: "\n"))
+            .map { String(decoding: $0, as: UTF8.self) })
+        return journal
     }
 }

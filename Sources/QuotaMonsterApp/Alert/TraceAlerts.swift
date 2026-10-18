@@ -28,6 +28,7 @@ enum TraceAlerts {
         // ⚠️ 提到迴圈外面 —— 追蹤器每 3 秒跑一拍，每拍建一個新的 watcher
         // 就等於每拍整份重掃，那正是這次要修掉的東西。
         var watcher = TranscriptWatcher()
+        var journals = WorkflowJournalWatcher()
         let usageReader = ClaudeJSONUsageReader()
         let statusLineReader = StatusLineCacheReader()
         let history = UsageHistory()
@@ -64,8 +65,10 @@ enum TraceAlerts {
                 trees[s.session.sessionId] = builder.build(
                     paths: paths, sessionId: s.session.sessionId,
                     facts: watcher.update(paths.transcript),
+                    journals: &journals,
                     sessionStartedAt: s.session.startedAt, now: now)
             }
+            journals.sweep()
 
             // 狀態有變就印，這樣看得出「有沒有真的進入 waiting」。
             for s in sessions {

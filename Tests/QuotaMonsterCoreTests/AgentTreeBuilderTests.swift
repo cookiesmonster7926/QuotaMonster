@@ -20,9 +20,11 @@ struct AgentTreeBuilderTests {
         let paths = try #require(SessionDirectoryResolver()
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
         var watcher = TranscriptWatcher()
+        var journals = WorkflowJournalWatcher()
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
                                         facts: watcher.update(paths.transcript),
+                                        journals: &journals,
                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 
@@ -136,8 +138,9 @@ struct AgentTreeBuilderTests {
         facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>"#
             + agentId + #"</task-id>\n<status>"# + outcome
             + #"</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
+        var journals = WorkflowJournalWatcher()
         let t = AgentTreeBuilder().build(paths: paths, sessionId: Fixture.agentSessionId,
-                                         facts: facts,
+                                         facts: facts, journals: &journals,
                                          sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
         return try #require(t.agents.first { $0.meta.agentId == agentId })
     }
@@ -169,8 +172,9 @@ struct AgentTreeBuilderTests {
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
         var facts = TranscriptFacts()
         facts.ingest(#"{"type":"queue-operation","operation":"enqueue","content":"<task-notification>\n<task-id>plain1</task-id>\n<status>completed</status>\n<summary>Agent \"x\" finished</summary>\n</task-notification>"}"#)
+        var journals = WorkflowJournalWatcher()
         let t = AgentTreeBuilder().build(paths: paths, sessionId: Fixture.agentSessionId,
-                                         facts: facts,
+                                         facts: facts, journals: &journals,
                                          sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
         let tally = AgentTally(t.agents)
         #expect(tally.outstanding.contains { $0.meta.agentId == "plain1" },
@@ -229,9 +233,11 @@ struct AbortedWorkflowTests {
         let paths = try #require(SessionDirectoryResolver()
             .locate(sessionId: Fixture.agentSessionId, projectsRoot: root))
         var watcher = TranscriptWatcher()
+        var journals = WorkflowJournalWatcher()
         return AgentTreeBuilder().build(paths: paths,
                                         sessionId: Fixture.agentSessionId,
                                         facts: watcher.update(paths.transcript),
+                                        journals: &journals,
                                         sessionStartedAt: Fixture.sessionStart, now: Fixture.now)
     }
 
