@@ -252,6 +252,14 @@ if CommandLine.arguments.contains("--probe-panel-switch") {
     app.run()
 }
 
+if CommandLine.arguments.contains("--probe-panel-clamp") {
+    let app = NSApplication.shared
+    app.setActivationPolicy(.accessory)
+    let d = MainActor.assumeIsolated { PanelClampDelegate() }
+    app.delegate = d
+    app.run()
+}
+
 if CommandLine.arguments.contains("--probe-popover") {
     let app = NSApplication.shared
     app.setActivationPolicy(.accessory)

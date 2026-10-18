@@ -301,6 +301,20 @@ final class DataStore {
         if case .available(_, let url) = status { updateURL = url } else { updateURL = nil }
     }
 
+    /// 合成的 session 與 agent 樹，只給 `--probe-panel-clamp` 用（造出「內容比螢幕高」）。
+    ///
+    /// ⚠️ 不是只塞一次：popover 展開時 `PanelView.task` 會呼叫 `refresh()`，
+    /// 那一拍會把 session 換回註冊表讀到的。所以 `refresh()` 看到它就用它，
+    /// 不讀註冊表、也不建樹 —— 量到的是合成資料的面板，不是一半真一半假的。
+    /// 診斷端要把「這是合成的」印出來（規矩 28）。
+    @ObservationIgnored private var syntheticSessions: (sessions: [LiveSession],
+                                                        trees: [String: AgentTree])?
+    func seedSyntheticSessions(_ sessions: [LiveSession], trees: [String: AgentTree]) {
+        syntheticSessions = (sessions, trees)
+        self.sessions = sessions
+        self.trees = trees
+    }
+
     /// 合成一個「已經三天問不到」。同上，只給診斷用。
     func seedSyntheticOutage() {
         updateCaption = UpdateCaption.text(.unknown(.offline),
@@ -514,6 +528,13 @@ final class DataStore {
             weekSamples.removeAll { now.timeIntervalSince($0.at) > Self.weekWindow }
             watchMarks.removeAll { now.timeIntervalSince($0.at) > WatchLog.retention }
             lastHistoryPrune = now
+        }
+
+        if let synthetic = syntheticSessions {
+            sessions = synthetic.sessions
+            trees = synthetic.trees
+            lastRefresh = now
+            return
         }
 
         let raw = registry.read(directory: home.appendingPathComponent(".claude/sessions"))

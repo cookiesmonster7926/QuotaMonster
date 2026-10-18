@@ -32,6 +32,13 @@ struct PanelView: View {
     /// 不要用計時器賭，也不要在 Core 複製一份高度計算 —— 那會變成第二份字面量（規矩 2）。
     var onPanelStyleChange: (() -> Void)?
 
+    /// 面板最高可以多高（`PanelFit.cap`）。nil ＝ 不知道螢幕多高，不夾。
+    ///
+    /// ⚠️ **由注入端在展開前指派**（`StatusItemController.togglePanel`），因為只有它知道
+    /// 面板會出現在哪個螢幕上。夾 `popover.contentSize` 不夠 —— 見 `PanelFit` 的檔頭：
+    /// 〔實測〕contentSize 夾到 899，視窗照樣被 SwiftUI 的最小高度撐到 1668。
+    var maxHeight: CGFloat?
+
     /// 面板背景是深色還是淺色。進度條的色階要照這個分兩組，
     /// 否則同一組色值在其中一邊一定偏悶或偏亮。
     @Environment(\.colorScheme) private var colorScheme
@@ -40,6 +47,15 @@ struct PanelView: View {
     private let width: CGFloat = 380
 
     var body: some View {
+        // ⚠️ 最外層是 `CappedHeight`，不是 `.frame(maxHeight:)`。理由見那個型別。
+        CappedHeight(cap: maxHeight) {
+            panelBody
+        }
+    }
+
+    /// 不是 private：`PanelHeightCapTests` 要直接問它「給你 700pt 你放不放得下」——
+    /// `CappedHeight` 回報的高度永遠夾得住，**內容**有沒有真的縮進去只能問這一層。
+    var panelBody: some View {
         VStack(spacing: 0) {
             // ⚠️ 兩種版面回答**不同的問題**，不是同一頁的兩種皮：
             //   完整 → 「每一個 session 現在怎麼了」
@@ -482,7 +498,13 @@ struct PanelView: View {
             }
             // ScrollView 在垂直方向是貪婪的，不夾住的話它會把面板撐到最高。
             // 夾在「一列」與「三列」之間：一個 session 時面板短，三個以上才捲動。
-            .frame(height: listHeight)
+            //
+            // ⚠️ 理想高度是 listHeight，但**可以被壓到 0** —— 面板碰到螢幕上限
+            // （`CappedHeight`）時，多出來的高度由這裡吸收，其他區塊不動。
+            // 曾經是 `.frame(height: listHeight)`：釘死的高度讓 SwiftUI 的**最小**高度
+            // 等於整份內容，popover 視窗就被撐出螢幕（〔實測〕1668pt 對可用 923pt）。
+            // 平常（沒碰到上限）它照樣是 listHeight：`CappedHeight` 用理想高度排版。
+            .frame(minHeight: 0, idealHeight: listHeight, maxHeight: listHeight)
         }
     }
 
@@ -639,6 +661,42 @@ struct PanelView: View {
     private func relative(_ d: Date) -> String {
         let s = Int(Date().timeIntervalSince(d))
         return s < 5 ? "剛剛" : s < 60 ? "\(s) 秒前" : "\(s / 60) 分鐘前"
+    }
+}
+
+/// 把面板夾在上限以內，而且**不管被要求多高都回報同一個高度**（剛性）。
+///
+/// 回報的高度是 `PanelFit.height(natural:cap:)`：內容的理想高度，碰到上限就是上限。
+/// 排版時把那個高度交給內容，內容裡唯一有彈性的 session 清單吸收多出來的部分。
+///
+/// ⚠️ **為什麼不用 `.frame(maxHeight:)` 加上可壓縮的清單就好。**
+/// 那樣框夾得住，但 SwiftUI 的最小高度從此小於內容，而 popover 視窗在開著的時候
+/// 是被 hosting view 的最小／最大約束拉著走的（規矩 50 量到「window 自己就跟上了」，
+/// 靠的就是最小＝最大＝內容）。〔實測 2026-10-19，`--probe-panel-clamp`〕那個半套修法下，
+/// 開著時內容從 1642 長到 1912，視窗停在 925 —— 這次剛好是對的，但〔推論，沒有量〕
+/// 同一個機制也會讓一個**短**面板在多了 session 時不再長高，新的那一列要捲才看得到。
+/// 剛性的版面讓最小＝最大＝「夾過的內容高度」，原本的跟隨行為原封不動，只是有了天花板。
+///
+/// ⚠️ 釘住的 header、額度、等你回覆的卡片**不會**被壓縮。等你回覆的 session 多到那幾張卡
+/// 本身就超過上限時（〔推論〕這台螢幕大約要 8 張以上），內容會從底部被裁掉 ——
+/// 但視窗仍然在螢幕裡，因為回報的高度不會超過上限。
+struct CappedHeight: Layout {
+    let cap: CGFloat?
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews,
+                      cache: inout ()) -> CGSize {
+        guard let content = subviews.first else { return .zero }
+        // ⚠️ 問的是**理想**高度（height: nil），不是 proposal 的 —— 剛性就在這一行。
+        let natural = content.sizeThatFits(ProposedViewSize(width: proposal.width, height: nil))
+        return CGSize(width: natural.width,
+                      height: PanelFit.height(natural: natural.height, cap: cap))
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize,
+                       subviews: Subviews, cache: inout ()) {
+        subviews.first?.place(at: bounds.origin, anchor: .topLeading,
+                              proposal: ProposedViewSize(width: bounds.width,
+                                                         height: bounds.height))
     }
 }
 
