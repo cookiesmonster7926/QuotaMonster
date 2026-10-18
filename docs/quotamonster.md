@@ -1190,9 +1190,13 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
   - ~~開關檔 `trace-usage.on` 目前**還開著**；要停就把它刪掉。~~
     〔實測 2026-10-19〕開關檔**已經不在了**：`~/Library/Application Support/QuotaMonster/`
     底下只剩 `trace-usage.log`，沒有 `trace-usage.on`；那份 log 的 mtime 是 26 天前。
-    〔推論，讀碼 `quotamonster-tee.sh`〕wrapper 只在開關檔存在時才寫，所以記錄已經停了 ——
+    〔推論，讀碼 `quotamonster-tee.sh`〕wrapper 寫這份預設的 log 只有一個條件：開關檔存在
+    （環境變數 `QM_STATUSLINE_TRACE` 也會開啟記錄，但寫到它指定的路徑、不是這份，而且只有測試在用），
+    所以記錄已經停了 ——
     mtime 只說「最後一次寫是什麼時候」，不說開關檔是哪天刪的。要再量一次就 `touch` 它（第四節）。
-    ⚠️ 留下來的 `trace-usage.log` **不會被任何人清掉**（規矩 42 的「漏掉的那一個」），
+    ⚠️ 留下來的 `trace-usage.log` **不會再有人動它**：wrapper 的 1MB 砍檔（規矩 42 的修法）
+    只在寫入的那條路徑上跑，開關檔刪了就不寫，所以也不砍。這跟規矩 42 的「漏掉的那一個」
+    不是同一件事 —— 那個無上限的洞已經補了，這份 log 只是停在最後一次寫的大小。
     不需要了就自己刪。
 
 ### B. 還沒做的功能
