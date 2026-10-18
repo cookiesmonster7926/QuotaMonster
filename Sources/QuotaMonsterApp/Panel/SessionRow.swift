@@ -37,22 +37,27 @@ struct SessionRow: View {
                 // 只顯示還在跑的。已完成的 workflow 收合成一行 ——
                 // 八個 10/10 的綠色 pip 沒有告訴你任何需要知道的事，
                 // 只是把還在跑的那一個推出畫面。
-                let live = tree.workflows.filter { $0.runningCount > 0 }
-                let tally = WorkflowTally(tree.workflows)
+                //
                 // ⚠️ 2026-09-22：agent 也收合。以前**每一隻**都列出來，而
                 // `isFresh` 只濾掉「不是這一輪的」—— 於是這個 session 開過的每一隻
                 // 都一直掛著，全是灰點。使用者回報的正是這件事：
                 // 「顯示成 subagent 就會讓使用者不知道到底是什麼還沒好」。
                 // **有自己一行的＝還沒好**，其餘進收合那一行。
-                let agents = AgentTally(tree.agents)
+                //
+                // ⚠️ 畫哪些行由 Core 的 `detailLines` 決定，這裡**不可以自己再判斷**：
+                // `PanelView` 的高度估算用的是同一個值的 `count`。這裡多畫或少畫一行，
+                // 估算不會跟著變，面板高度就會跟畫面對不上 —— 而 App 層沒有測試抓得到。
+                let lines = tree.detailLines
+                let tally = lines.workflows
+                let agents = lines.agents
 
-                ForEach(live, id: \.workflowId) { wf in
+                ForEach(lines.liveWorkflows, id: \.workflowId) { wf in
                     workflowRow(wf)
                 }
                 ForEach(agents.outstanding, id: \.meta.agentId) { a in
                     agentRow(a)
                 }
-                if !tally.collapsed.isEmpty || !agents.collapsed.isEmpty {
+                if lines.hasCollapsedLine {
                     HStack(spacing: 6) {
                         Rectangle().fill(.quaternary).frame(width: 1).padding(.leading, 2)
                         // ⚠️ 這一行本來寫「另有 N 個 workflow 已完成」，把失敗的也

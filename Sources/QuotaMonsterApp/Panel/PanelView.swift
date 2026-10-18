@@ -422,8 +422,9 @@ struct PanelView: View {
             h += RowMetrics.contextLine
         }
         if let tree = store.trees[s.session.sessionId] {
-            // ⚠️ 行數由 Core 的 `detailLineCount` 回答，與 `SessionRow` 同一套規則
-            // （只數還在跑的＋一行收合）。曾經用 `tree.agents.count`，把已完成的也算進去。
+            // ⚠️ 行數由 Core 的 `detailLineCount` 回答 —— 它就是 `SessionRow` 照著畫的
+            // `detailLines` 的 `count`（只數還在跑的＋一行收合）。曾經用 `tree.agents.count`，
+            // 把已完成的也算進去。
             h += CGFloat(tree.detailLineCount) * RowMetrics.detailLine
         }
         return h
