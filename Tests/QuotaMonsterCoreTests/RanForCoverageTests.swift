@@ -98,4 +98,46 @@ struct RanForCoverageTests {
         let c = scan([human(0), end(100, id: "a"), human(150), end(400, id: "b")])
         #expect(c.finishes == 1)
     }
+
+    @Test("end_turn 之後 90 秒內模型自己又動了 —— 那一則 end_turn 不是一個完成")
+    func modelMovingBeforeSettleIsNotAFinish() {
+        // 例如 stop hook 讓它接著講。少了「模型在沉澱之前又動了」那一支，
+        // 100 那一則會在 150 → 900 的安靜裡被當成完成，完成數與命中數一起灌水。
+        let c = scan([human(0), end(100, id: "a"), tool(150, id: "c"), end(900, id: "d")])
+        #expect(c.finishes == 1)
+        // 講完之後沒有真人訊息就又動了 —— 那一段算「被叫醒」（`TurnOpener` 的規則），不是從 0 起算。
+        #expect(c.misses == [.woken: 1])
+    }
+
+    @Test("舊作法模擬也守 64KB 窗口 —— 起點那一行本身比窗口大就搆不到")
+    func legacyRespectsTheTailWindow() {
+        // 舊作法讀 64KB 尾端，被切成半行的那一則解不出來。
+        let big = String(repeating: "字", count: 24 * 1024)       // UTF-8 約 72KB
+        let bigHuman = #"{"type":"user","timestamp":"\#(ts(300))","message":{"content":"\#(big)"}}"#
+        let c = scan([human(0), end(100, id: "a"), bigHuman, end(900, id: "b")])
+        #expect(c.finishes == 2)
+        #expect(c.hits == 2)
+        #expect(c.legacyHits == 0)        // 同樣的形狀、小的那一則是 1（legacyHitsWhenTheHumanWritesFirst）
+    }
+
+    @Test("兩行式 end_turn 之間落下的 turn_duration 不會被第二行丟掉")
+    func turnDurationCarriesAcrossTwoLineEndTurn() {
+        let c = scan([human(0), end(690, id: "a"), duration(695, ms: 700_000), end(700, id: "a")])
+        #expect(c.finishes == 1)
+        #expect(c.withTurnDuration == 1)
+        #expect(c.agreesWithTurnDuration == 1)
+    }
+
+    @Test("算不出來的另外三種原因各記在自己那一格")
+    func otherMissReasons() {
+        let noHuman = scan([notification(0), end(100, id: "a")])
+        #expect(noHuman.misses == [.noHuman: 1])
+        let noTs = #"{"type":"user","message":{"content":"沒有時間戳"}}"#
+        let noTimestamp = scan([human(0), noTs, end(100, id: "a")])
+        #expect(noTimestamp.misses == [.noTimestamp: 1])
+        // 時間戳不單調：完成那一行比起點還早。
+        let notAfter = scan([human(500), end(400, id: "a")])
+        #expect(notAfter.misses == [.notAfterStart: 1])
+        #expect(notAfter.hits == 0)
+    }
 }

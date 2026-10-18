@@ -136,7 +136,7 @@ struct TurnOpenerTests {
 
     @Test("講完之後被背景通知叫醒、又講了一段 —— 這一段不是那則真人訊息開的")
     func wokenByANotification() {
-        // 〔代理量測 2026-10-19〕26.3%（202/767）的完成長這樣。拿那則真人訊息當起點，
+        // 〔代理量測 2026-10-19〕27.1%（210/774）的完成在這個桶裡（這一種，加上 slash command 開的）。拿那則真人訊息當起點，
         // 會把「上一輪講完 → 通知抵達」中間的閒置也算成「跑了多久」。
         let lines = [human(10), assistant(20, "end_turn", id: "m1"), system(21, "turn_duration"),
                      taskNotification(4000), assistant(4010, "end_turn", id: "m2")]
@@ -160,5 +160,85 @@ struct TurnOpenerTests {
     func localCommandAfterEndTurnIsNotAWake() {
         let lines = [human(10), assistant(20, "end_turn", id: "m1"), commandName(30), localStdout(31)]
         #expect(feed(lines) == .human(at(10)))
+    }
+
+    @Test("一則真人訊息都還沒看過時被叫醒 —— 維持 noHumanYet，不是 woken")
+    func wakeBeforeAnyHumanStaysNoHumanYet() {
+        // 「被叫醒」是相對於某一則真人訊息說的；沒有那一則就沒有這句話。
+        let lines = [taskNotification(0), assistant(5, "end_turn", id: "m1"),
+                     taskNotification(4000), assistant(4010, "end_turn", id: "m2")]
+        #expect(feed(lines) == .noHumanYet)
+    }
+
+    @Test("end_turn 沒帶 message.id —— 分不出是不是同一則，往「被叫醒」那邊判")
+    func endTurnWithoutIdLeansWoken() {
+        let noId = #"{"type":"assistant","timestamp":"\#(ts(20))","message":{"stop_reason":"end_turn","content":[]}}"#
+        let next = #"{"type":"assistant","timestamp":"\#(ts(4010))","message":{"stop_reason":"end_turn","content":[]}}"#
+        #expect(feed([human(10), noId, taskNotification(4000), next]) == .wokenWithoutHuman)
+        // 反過來：講完的那一則有 id，叫醒之後那一則沒有。
+        #expect(feed([human(10), assistant(20, "end_turn", id: "m1"), taskNotification(4000), next])
+                == .wokenWithoutHuman)
+    }
+
+    // ── 真人打的、但不開出一輪模型回合的行 ──────────────────────
+
+    /// Esc 中斷的標記。字串型與 list 型兩種都有〔本機唯讀計數 2026-10-19，16 則〕，
+    /// `isHuman` 收它（`TurnCompletionReader` 靠它判 unfinished），但**它不開出一輪**。
+    func interrupted(_ s: Int) -> String {
+        #"{"type":"user","timestamp":"\#(ts(s))","message":{"role":"user","content":"[Request interrupted by user]"}}"#
+    }
+    func interruptedForToolUse(_ s: Int) -> String {
+        #"{"type":"user","timestamp":"\#(ts(s))","message":{"role":"user","content":[{"type":"text","text":"[Request interrupted by user for tool use]"}]}}"#
+    }
+    func bashInput(_ s: Int) -> String {
+        #"{"type":"user","timestamp":"\#(ts(s))","message":{"role":"user","content":"<bash-input>git status</bash-input>"}}"#
+    }
+
+    @Test("Esc 中斷之後被背景通知叫醒 —— 這一段不是人開的，不可以從中斷那一刻起算")
+    func wakeAfterInterruptIsWoken() {
+        // 中斷的那一輪不會寫出 end_turn。只認 end_turn 的話，中斷標記會被當成起點，
+        // ranFor 把「中斷 → 通知抵達」的閒置全部算進去（code review 的失敗情境：2360 秒）。
+        let lines = [human(0), assistant(10, "tool_use", id: "m1"), toolResult(20),
+                     interrupted(60), taskNotification(2400), assistant(2410, "end_turn", id: "m2")]
+        #expect(feed(lines) == .wokenWithoutHuman)
+    }
+
+    @Test("工具執行中按 Esc（list 型的中斷標記）之後被叫醒 —— 一樣是 woken")
+    func wakeAfterToolUseInterruptIsWoken() {
+        let lines = [human(0), assistant(10, "tool_use", id: "m1"),
+                     interruptedForToolUse(60), taskNotification(2400), assistant(2410, "end_turn", id: "m2")]
+        #expect(feed(lines) == .wokenWithoutHuman)
+    }
+
+    @Test("中斷之後人又打字 —— 起點是那則新訊息")
+    func humanAfterInterruptOpensTheTurn() {
+        let lines = [human(0), assistant(10, "tool_use", id: "m1"), interrupted(60),
+                     human(300), assistant(310, "end_turn", id: "m2")]
+        #expect(feed(lines) == .human(at(300)))
+    }
+
+    @Test("中斷之後、被叫醒之前，同一則被中斷的訊息又落下一行 —— 不是被叫醒")
+    func interruptedMessageTrailingLineIsNotAWake() {
+        let lines = [human(0), assistant(10, "tool_use", id: "m1"), interrupted(60),
+                     assistant(61, "tool_use", id: "m1")]
+        #expect(feed(lines) != .wokenWithoutHuman)
+    }
+
+    @Test("`!` 指令會開出一輪 —— 模型回 bash 輸出的那一段，起點是 bash-input")
+    func bashInputOpensATurn() {
+        // 〔本機唯讀計數 2026-10-19〕13 則前一則是 end_turn 的 `<bash-input>`，
+        // 13 則之後都接著一則新的 assistant（中間只有 `<bash-stdout>`，沒有別的真人訊息）。
+        // 所以它是起點，不是「不開出一輪」的那一種。
+        let lines = [human(0), assistant(10, "end_turn", id: "m1"),
+                     bashInput(100), bashStdout(101), assistant(105, "end_turn", id: "m2")]
+        #expect(feed(lines) == .human(at(100)))
+    }
+
+    @Test("`!` 指令那一輪講完之後被叫醒 —— woken，不從 bash-input 起算")
+    func wakeAfterBashTurnIsWoken() {
+        let lines = [human(0), assistant(10, "end_turn", id: "m1"),
+                     bashInput(100), bashStdout(101), assistant(105, "end_turn", id: "m2"),
+                     taskNotification(2400), assistant(2410, "end_turn", id: "m3")]
+        #expect(feed(lines) == .wokenWithoutHuman)
     }
 }

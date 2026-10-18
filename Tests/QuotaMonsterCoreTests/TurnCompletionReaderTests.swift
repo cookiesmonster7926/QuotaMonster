@@ -187,4 +187,35 @@ struct TurnCompletionReaderTests {
             + #"{"type":"text","text":"這裡怎麼了"}]}}"#
         #expect(reader.read(try write([assistant("end_turn"), msg])) == .unfinished)
     }
+
+    @Test("只貼了一張圖、一個字都沒打 —— 照樣是真人訊息，上一輪的 end_turn 不可以宣告完成")
+    func imageOnlyIsHuman() throws {
+        // `isHuman` 裡「一個字都沒有」那一支：沒有它，空的區塊清單會被當成「全是 harness 開頭」。
+        let imageOnly = #"{"type":"user","timestamp":"2026-09-19T02:05:00.000Z","#
+            + #""message":{"content":[{"type":"image"}]}}"#
+        #expect(reader.read(try write([assistant("end_turn"), imageOnly])) == .unfinished)
+        let blankText = #"{"type":"user","timestamp":"2026-09-19T02:05:00.000Z","#
+            + #""message":{"content":[{"type":"image"},{"type":"text","text":"  "}]}}"#
+        #expect(reader.read(try write([assistant("end_turn"), blankText])) == .unfinished)
+    }
+
+    @Test("中斷標記是真人訊息，但只有它自己的那幾種字才算中斷")
+    func interruptMarkerShapes() throws {
+        func d(_ json: String) -> [String: Any] {
+            (try? JSONSerialization.jsonObject(with: Data(json.utf8))) as? [String: Any] ?? [:]
+        }
+        let plain = d(#"{"type":"user","message":{"content":"[Request interrupted by user]"}}"#)
+        let forTool = d(#"{"type":"user","message":{"content":[{"type":"text","text":"[Request interrupted by user for tool use]"}]}}"#)
+        let typed = d(#"{"type":"user","message":{"content":"幫我看 [Request interrupted by user] 是什麼"}}"#)
+        let inToolResult = d(#"{"type":"user","message":{"content":[{"type":"tool_result","content":"[Request interrupted by user]"}]}}"#)
+        #expect(TurnCompletionReader.isInterruptMarker(plain))
+        #expect(TurnCompletionReader.isInterruptMarker(forTool))
+        #expect(!TurnCompletionReader.isInterruptMarker(typed))
+        #expect(!TurnCompletionReader.isInterruptMarker(inToolResult))
+        // 同一則裡還有人打的字 → 那是一則會開出一輪的真人訊息，不是單純的中斷。
+        let markerThenTyped = d(#"{"type":"user","message":{"content":[{"type":"text","text":"[Request interrupted by user]"},{"type":"text","text":"改做這個"}]}}"#)
+        #expect(!TurnCompletionReader.isInterruptMarker(markerThenTyped))
+        // 一個字都沒有的真人訊息（只貼圖）不是中斷 —— 空清單的 allSatisfy 是 true，要先擋掉。
+        #expect(!TurnCompletionReader.isInterruptMarker(d(#"{"type":"user","message":{"content":[{"type":"image"}]}}"#)))
+    }
 }

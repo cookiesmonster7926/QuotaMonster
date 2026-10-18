@@ -12,8 +12,8 @@ public struct SessionFinish: Equatable, Sendable {
     /// ⚠️ **nil 是「算不出來」，不是 0。** 面板在 nil 時**整格不畫**，不可以畫成「跑了 0m 00s」。
     ///
     /// 起點來自往前掃的 `TurnOpener`（第三節第 33 條）。〔代理量測 2026-10-19，`--measure-ranfor`，
-    /// 90 份主 transcript、767 個完成〕算得出來的 73.5%；算不出來的幾乎全是
-    /// 「這一輪不是人開的」（被背景通知／peer／排程叫醒，26.3%）。
+    /// 90 份主 transcript、774 個完成〕算得出來的 72.7%；算不出來的幾乎全是
+    /// 「這一輪不是人開的」（停下之後被背景通知／peer／排程叫醒，或由 slash command 開的，27.1%）。
     /// （舊作法的「〔實測〕命中率 84.1%（111/132）」已被取代，見同一條。）
     public let ranFor: TimeInterval?
 

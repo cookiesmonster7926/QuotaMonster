@@ -227,4 +227,41 @@ struct CompletionTrackerTests {
         disk.readout = .finished(TurnEnd(finishedAt: at(95)))   // 比起點還早
         #expect(try #require(t.update(input(.human(at(98))), now: at(100)).finishes.first).ranFor == nil)
     }
+
+    @Test("兩個 session 同一拍講完 —— 各自拿自己的起點，不可以張冠李戴")
+    func openingsAreLookedUpPerSession() throws {
+        let other = URL(fileURLWithPath: "/tmp/s2.jsonl")
+        let two = CompletionInput(transcripts: ["S1": url, "S2": other, "S3": URL(fileURLWithPath: "/tmp/s3.jsonl")],
+                                  openings: ["S1": .human(at(-100)), "S2": .wokenWithoutHuman,
+                                             "S3": .human(at(-40))])
+        let disk = Disk(mtime: at(0))
+        var t = tracker(disk)
+        _ = t.update(two, now: at(0))
+        disk.readout = .finished(TurnEnd(finishedAt: at(5)))
+        let out = t.update(two, now: at(90))
+        let by = Dictionary(uniqueKeysWithValues: out.finishes.map { ($0.sessionId, $0.ranFor) })
+        #expect(by.count == 3)
+        #expect(by["S1"] == .some(105))
+        #expect(by["S2"] == .some(nil))
+        #expect(by["S3"] == .some(45))
+    }
+
+    // ── 算不出來的原因（`--trace-finishes` 與 `--measure-ranfor` 共用這一份）──
+
+    @Test("每一種算不出來的原因都對到自己的那一格；算得出來就沒有原因")
+    func ranForOutcomeNamesTheReason() {
+        func o(_ a: TurnOpener.Answer?) -> CompletionTracker.RanForOutcome {
+            CompletionTracker.ranForOutcome(opening: a, finishedAt: at(100))
+        }
+        #expect(o(.human(at(40))) == .ran(60))
+        #expect(o(nil) == .missing(.unseen))
+        #expect(o(.wokenWithoutHuman) == .missing(.woken))
+        #expect(o(.noHumanYet) == .missing(.noHuman))
+        #expect(o(.humanWithoutTimestamp) == .missing(.noTimestamp))
+        #expect(o(.human(at(100))) == .missing(.notAfterStart))   // 等於也不算
+        #expect(o(.human(at(140))) == .missing(.notAfterStart))
+        // `ranFor` 是它的投影，不是第二份判斷。
+        #expect(CompletionTracker.ranFor(opening: .human(at(40)), finishedAt: at(100)) == 60)
+        #expect(CompletionTracker.ranFor(opening: .human(at(100)), finishedAt: at(100)) == nil)
+    }
 }

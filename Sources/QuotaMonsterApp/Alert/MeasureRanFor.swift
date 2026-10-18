@@ -53,7 +53,8 @@ enum MeasureRanFor {
         say("主 transcript \(files.count) 份（讀不到 \(unreadable) 份）")
         say("完成（代理：end_turn 之後安靜 ≥ \(Int(CompletionTracker.settleWindow)) 秒或到檔尾）：\(finishes)")
         say("新作法算得出 ranFor：\(hits)/\(finishes) = \(pct(hits, finishes))")
-        for m in RanForCoverage.Miss.allCases {
+        // `.unseen`（整個沒讀到那份）在掃描裡不會發生 —— 讀不到的檔案上面已經另外計數。
+        for m in RanForCoverage.Miss.allCases where m != .unseen {
             let n = merged.reduce(0) { $0 + ($1.misses[m] ?? 0) }
             say("  算不出來 · \(m.rawValue)：\(n)（\(pct(n, finishes))）")
         }

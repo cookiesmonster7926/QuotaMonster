@@ -17,9 +17,12 @@ import Foundation
 /// - **看到了、但它不是真人訊息**（tool_result、isMeta、背景通知、compact 摘要、
 ///   command 與它的輸出）→ 正面證據，起點**留在原地**，不變成「不知道」。
 ///   判準只有一份：`TurnCompletionReader.isHuman`。
-/// - **看到了、但這一輪不是人開的**：最後一則真人訊息之後模型已經講完過一次，
-///   之後是背景通知／peer 訊息／排程把它叫醒的 → `.wokenWithoutHuman`。
-///   拿那則真人訊息當起點，會把「講完 → 通知抵達」中間的閒置也算進「跑了多久」。
+/// - **看到了、但這一輪不是人開的**：最後一則真人訊息之後模型已經停下來過一次
+///   （講完，或被 Esc 中斷），之後沒有新的真人訊息它又動了 → `.wokenWithoutHuman`。
+///   拿那則真人訊息當起點，會把「停下 → 又動起來」中間的閒置也算進「跑了多久」。
+///   ⚠️ 這個桶**不只是**背景通知／peer 訊息／排程：使用者打 slash command 或 skill
+///   開的那一輪也在這裡 —— `<command-name>` 是 harness 開頭，不算真人訊息。
+///   那一種回 nil 是保守的（少一個數字，不是錯的數字），但兩者沒有分開計數〔未驗證比例〕。
 /// - **整個沒看到**（這份 transcript 從沒讀到過）不在這裡 —— 這個型別只在讀到行時才存在。
 ///   那一層是 `TranscriptWatcher.opening(of:)` 回 nil。
 public struct TurnOpener: Equatable, Sendable {
@@ -30,7 +33,8 @@ public struct TurnOpener: Equatable, Sendable {
         /// 看到那則真人訊息了，但它沒帶時刻（或解析不出來）。
         /// ⚠️ 不可以拿別行的時刻、mtime 或 `Date()` 補。
         case humanWithoutTimestamp
-        /// 最後一則真人訊息之後，模型講完過一次，又被別的東西叫醒。
+        /// 最後一則真人訊息之後，模型停下來過一次（講完或被中斷），又在沒有真人訊息的
+        /// 情況下動起來（背景通知、peer、排程，或使用者的 slash command／skill）。
         case wokenWithoutHuman
         /// 掃過的行裡一則真人訊息都沒有。**正面證據**：看到了，沒有。
         case noHumanYet
@@ -45,14 +49,26 @@ public struct TurnOpener: Equatable, Sendable {
     /// 兩行都帶 `stop_reason: end_turn`）。只記「講完過」的話，第二行會被當成
     /// 「又被叫醒、講了新的一段」。〔本機唯讀計數 2026-10-19〕24,408 行 assistant
     /// 全部帶 `message.id`；沒帶的那種當成「分不出是不是同一則」，往 nil 那邊判。
+    ///
+    /// ⚠️ 「停下來過」**不只是 end_turn**：Esc 中斷的那一輪不會寫出 end_turn，
+    /// 但中斷標記之後模型一樣停了。只認 end_turn 的話，中斷之後被通知叫醒的那一段
+    /// 會拿中斷標記當起點，把「中斷 → 通知抵達」的閒置全部算進 ranFor
+    /// （舊作法的 15 秒容忍度原本擋得掉這種過舊的起點；拿掉它之後就全靠這裡）。
     private var endedMessageId: String??
+
+    /// 最後一則（主 session 的）assistant 訊息的 id。中斷標記停下的就是它 ——
+    /// 被中斷的那一則之後如果還落下一行，id 相同，不是「被叫醒」。
+    private var lastAssistantId: String?
 
     public init() {}
 
     public mutating func ingest(_ d: [String: Any]) {
         if TurnCompletionReader.isHuman(d) {
             answer = TurnCompletionReader.timestamp(d).map(Answer.human) ?? .humanWithoutTimestamp
-            endedMessageId = nil
+            // 人打的、但**停下**模型而不是開出一輪（Esc 中斷）→ 記成「停下來過」；
+            // 之後模型在沒有真人訊息的情況下又動了，就是被叫醒的。
+            // ⚠️ `<bash-input>`（`!` 指令）**不是**這一種：它會開出一輪，見 bashInputOpensATurn。
+            endedMessageId = TurnCompletionReader.isInterruptMarker(d) ? .some(lastAssistantId) : nil
             return
         }
 
@@ -61,13 +77,16 @@ public struct TurnOpener: Equatable, Sendable {
               let message = d["message"] as? [String: Any] else { return }
         let id = message["id"] as? String
 
-        if case .some(let ended) = endedMessageId, ended == nil || id == nil || ended != id,
+        // 兩邊任一沒帶 id 都當成「分不出是不是同一則」→ 不同（`ended != id` 已經涵蓋
+        // 「停下的那則有 id、這一則沒有」；兩邊都沒有 id 時靠 `ended == nil`）。
+        if case .some(let ended) = endedMessageId, ended == nil || ended != id,
            answer != .noHumanYet {
-            // 講完之後模型又寫了一則**不同的**訊息，中間沒有真人訊息。
+            // 停下來之後模型又寫了一則**不同的**訊息，中間沒有真人訊息。
             // （一則真人訊息都還沒看過時維持 `.noHumanYet` —— 「被叫醒」是相對於
             // 某一則真人訊息說的，沒有那一則就沒有這句話。）
             answer = .wokenWithoutHuman
         }
+        lastAssistantId = id
         if message["stop_reason"] as? String == "end_turn" {
             endedMessageId = .some(id)
         }

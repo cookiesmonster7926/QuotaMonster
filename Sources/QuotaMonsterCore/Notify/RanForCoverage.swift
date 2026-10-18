@@ -9,16 +9,16 @@ import Foundation
 /// timestamp。這裡拿 timestamp 當 mtime 的代理：
 /// - 「安靜 90 秒」＝ 相鄰兩行帶時刻的行之間差 ≥ 90 秒（沒帶時刻的行當成與前一行同時寫入）；
 /// - 「完成」＝ 一則 end_turn 之後、模型再動或人打字之前，出現一次這樣的安靜（或到了檔尾）；
-/// - 舊作法的「現在」取那一行自己的時刻（真的 app 會晚 0–3 秒，所以這對舊作法是**偏寬**的）。
+/// - 舊作法的「現在」取那一行自己的時刻（真的 app 會晚 0–3 秒）。偏差兩個方向都有，
+///   淨方向〔未驗證〕—— 見 `lastHuman` 的註解。
 /// 會漏掉的：沒寫進檔案的安靜（app 沒在跑）、時間戳不單調造成的假間隔。
 ///
 /// 只產生計數，不保留任何一行的內容。
 public struct RanForCoverage: Equatable, Sendable {
 
-    /// 新作法算不出來的原因。與 `TurnOpener.Answer` 的三種 nil 一一對應，外加時間戳倒退。
-    public enum Miss: String, CaseIterable, Sendable {
-        case woken, noHuman, noTimestamp, notAfterStart
-    }
+    /// 新作法算不出來的原因 —— 就是正式路徑那一份（`CompletionTracker.ranForOutcome`），不另外定義。
+    /// `.unseen` 在這裡不會出現：掃描本身就是「看到了」。
+    public typealias Miss = CompletionTracker.RanForMiss
 
     public private(set) var finishes = 0
     /// 新作法算得出 `ranFor` 的完成數。
@@ -65,9 +65,8 @@ public struct RanForCoverage: Equatable, Sendable {
             finishes += 1
             if let s = legacyStart, p.at > s { legacyHits += 1 }
             legacyStart = nil                 // 舊 tracker 宣告之後就清掉起點
-            switch opener.answer {
-            case .human(let start) where p.at > start:
-                let r = p.at.timeIntervalSince(start)
+            switch CompletionTracker.ranForOutcome(opening: opener.answer, finishedAt: p.at) {
+            case .ran(let r):
                 hits += 1
                 ranFor.append(r)
                 if let ms = p.durationMs {
@@ -77,10 +76,8 @@ public struct RanForCoverage: Equatable, Sendable {
                     else if diff > 0 { longerThanTurnDuration += 1 }
                     else { shorterThanTurnDuration += 1 }
                 }
-            case .human:                 misses[.notAfterStart, default: 0] += 1
-            case .humanWithoutTimestamp: misses[.noTimestamp, default: 0] += 1
-            case .wokenWithoutHuman:     misses[.woken, default: 0] += 1
-            case .noHumanYet:            misses[.noHuman, default: 0] += 1
+            case .missing(let why):
+                misses[why, default: 0] += 1
             }
         }
 
@@ -128,8 +125,14 @@ public struct RanForCoverage: Equatable, Sendable {
 
     /// 尾端窗口裡（行首 ≥ `windowStart`）最後一則真人訊息的時刻。
     /// 與舊的 `readTurnStart` 同一個窗口規則：窗口外、被切斷的那半行不算。
-    /// ⚠️ 「真人訊息」用的是**修過的** `isHuman`（compact 摘要、IDE 區塊那兩個洞已補），
-    /// 不是舊版那一份 —— 差別只在 20 則形狀上，但這個模擬因此不是逐位元重現舊作法。
+    /// ⚠️ 「真人訊息」用的是**修過的** `isHuman`，不是舊版那一份。差在三種形狀，方向相反：
+    /// compact 摘要（舊版當真人）與 `<bash-stdout>`／`<bash-stderr>`（舊版當真人）只會讓這裡
+    /// 比舊作法**少**命中；IDE 區塊後接人打的字（舊版吞掉）只會讓這裡**多**命中。
+    /// 〔代理量測 2026-10-19，同一批 90 份、772 個完成〕把舊版 `isHuman` 換進來重算，
+    /// 命中數一樣是 352 —— 這一批上沒有差，但這不是逐位元重現舊作法。
+    /// ⚠️ 另外兩個偏差也方向相反：「現在」取第 j 行自己的時刻（真的 app 晚 0–3 秒才讀，
+    /// 15 秒的容忍度對它比較嚴 → 這裡偏寬）；這裡只看到第 j 行為止（真的 app 讀的時候
+    /// 可能已經多寫了幾行 → 這裡偏窄）。淨方向〔未驗證〕。
     private static func lastHuman(in rows: [(d: [String: Any], start: Int, end: Int)],
                                   upTo j: Int, windowStart: Int) -> Date? {
         var k = j

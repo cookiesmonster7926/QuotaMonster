@@ -128,28 +128,44 @@ public struct TurnCompletionReader: Sendable {
     ///   `<ide_opened_file>…`，**人打的字在後面的區塊**。舊判讀把所有區塊接起來
     ///   看開頭，整則被當成 harness 注入吞掉。所以 list 要**逐塊**看：
     ///   只要有一塊不是 harness 開頭，這一則就是人打的。
-    static func isHuman(_ d: [String: Any]) -> Bool {
+    static func isHuman(_ d: [String: Any]) -> Bool { humanTexts(d) != nil }
+
+    /// Esc 中斷的標記（`[Request interrupted by user]`／`… for tool use]`）。
+    ///
+    /// 它**是**真人訊息（`isHuman` 收它，上面「end_turn 之後還有真人訊息」那道閘靠它），
+    /// 但它**停下**模型，不開出一輪 —— `TurnOpener` 要分得開這兩件事。
+    /// 〔本機唯讀計數 2026-10-19〕16 則，全部自成一行：字串型 2、list(text) 14；
+    /// 沒有一則跟 tool_result 擠在同一則訊息裡。
+    static func isInterruptMarker(_ d: [String: Any]) -> Bool {
+        guard let texts = humanTexts(d), !texts.isEmpty else { return false }
+        return texts.allSatisfy { $0.hasPrefix("[Request interrupted by user") }
+    }
+
+    /// 人打的訊息裡去掉空白之後還有字的那些區塊；**不是人打的回 nil**。
+    /// 回空陣列 ＝ 人打的、但一個字都沒有（例如只貼了一張圖）。
+    private static func humanTexts(_ d: [String: Any]) -> [String]? {
         guard d["type"] as? String == "user",
               d["isMeta"] as? Bool != true,
               d["isCompactSummary"] as? Bool != true,
-              let message = d["message"] as? [String: Any] else { return false }
+              let message = d["message"] as? [String: Any] else { return nil }
 
         let texts: [String]
         if let s = message["content"] as? String {
             texts = [s]
         } else if let blocks = message["content"] as? [[String: Any]] {
             // harness 餵回工具結果，不是人打的。
-            if blocks.contains(where: { $0["type"] as? String == "tool_result" }) { return false }
+            if blocks.contains(where: { $0["type"] as? String == "tool_result" }) { return nil }
             texts = blocks.compactMap { $0["text"] as? String }
         } else {
-            return false
+            return nil
         }
 
         let meaningful = texts.map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
                               .filter { !$0.isEmpty }
         // 一個字都沒有（例如只貼了一張圖）：照舊算人打的。
-        guard !meaningful.isEmpty else { return true }
-        return meaningful.contains { text in !Self.harnessPrefixes.contains { text.hasPrefix($0) } }
+        guard !meaningful.isEmpty else { return [] }
+        let typed = meaningful.contains { text in !Self.harnessPrefixes.contains { text.hasPrefix($0) } }
+        return typed ? meaningful : nil
     }
 
     static func object(_ line: Substring) -> [String: Any]? {

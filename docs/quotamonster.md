@@ -54,7 +54,7 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 **1. 「不存在」不等於「那個狀態不成立」，而且要分兩層：看到它、但它不在那個狀態 → 正面證據，當場處理；整個沒看到它 → 不是證據，要寬限期或切斷。**
 
 - **為什麼**：這是全 repo 出現最多次、也付過最多次代價的一條，四個落點都查證仍成立：T1 `observeWaiting`（看到但不在等→當場清；整個沒看到→連續 2 拍且 ≥30 秒才過期）、T2 `observeBatches`（同一套常數）、`TurnReadout` 三態（finished / unfinished / inconclusive）、`Presence.idleSeconds` 的 nil 不是 0。〔實測，一支探針〕T1 少了寬限期時，漏看一拍之後同一個 episode 在 t+9 再喊一次、t+305 又多一次重推。
-- **證據**：NotificationEngine.swift:335-341(present 集合)、405-415、511-522、58-59(absenceGrace=30 / absenceTicks=2)；TurnCompletionReader.swift:3-16、100-101；Presence.swift:26-30；docs/build-log.md:1030-1032、1582-1590
+- **證據**：NotificationEngine.swift:335-341(present 集合)、405-415、511-522、58-59(absenceGrace=30 / absenceTicks=2)；TurnCompletionReader.swift:3-16（`TurnReadout`）、`readout` 的 `guard let k else { return .inconclusive }`（:82-83）；Presence.swift:26-30；docs/build-log.md:1030-1032、1582-1590
 - **付過的代價**：同一個錯在這個 repo 犯過至少三次：T2 有寬限而 T1 沒有（註解原本寫「最壞情況是下一次等待被當成新事件，而它本來就是新事件」，被探針證明是錯的，整段已改寫）；T2 的 runStatus 讀不到一度被當成「正面確認它不是 killed」；`WaitingContextReader.read` 把三件事塌縮成一個 nil，被自己的原始碼點名為反面教材。
 
 **2. 任何門檻／常數只能定義在一處，第二份字面量一律做成別名或引用。今天的五個落點：`QuotaTier.forRemaining`、`Presence.idleThreshold`（`ScreenPresence.idleThreshold` 只是別名）、快取路徑 `StatusLineCacheReader.relativeCacheDirectory`（shell wrapper 對帳）、`FinishCaption.lifetime = FinishGlow.goneSeconds`、`RowMetrics.header = SessionRow.headerHeight`。**
@@ -65,8 +65,8 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 
 **3. 缺資料一律回 nil / 畫「—」，絕對不要回 0%、0 秒或 `Date()`。`nil` 在這個 repo 一律是「不知道」，不是零。**
 
-- **為什麼**：0% 和「不知道」在視覺上必須不同，否則 app 會在你額度爆掉時顯示一條空的安全長條。而且窗口缺席是常態：Claude Code 自己會在 `resets_at` 一過就把整個窗口從 payload 拿掉〔文件「drops a window once its resets_at time passes」＋二進位 `MSn`〕。同一條在別處的落點：`runDuration` 的 0 會被畫成「跑了 0m 00s」，看起來像一個量到的數字；`ranFor` 算不出來就整格不畫 —— 〔代理量測 2026-10-19〕約四分之一的完成沒有秒數（幾乎全是被背景通知叫醒、不是人開的那一輪；舊的「〔實測〕84.1%（111/132）」已被取代，見第三節第 33 條）；「硬編一個 `Date()` 進去就是憑空造一個量測」。
-- **證據**：UsageSourceSelector.swift:38-39；StatusLineCacheReader.swift:92-101；ClaudeJSONUsageReader.swift:111-115；PanelView.swift:167-173、197-201；WorkflowRunState.swift:19-21；SessionFinish.swift:10-15；FinishSignal.swift:54-56；TurnCompletionReader.swift:116-118；docs/build-log.md:206、447、583、797、863
+- **為什麼**：0% 和「不知道」在視覺上必須不同，否則 app 會在你額度爆掉時顯示一條空的安全長條。而且窗口缺席是常態：Claude Code 自己會在 `resets_at` 一過就把整個窗口從 payload 拿掉〔文件「drops a window once its resets_at time passes」＋二進位 `MSn`〕。同一條在別處的落點：`runDuration` 的 0 會被畫成「跑了 0m 00s」，看起來像一個量到的數字；`ranFor` 算不出來就整格不畫 —— 〔代理量測 2026-10-19〕約四分之一的完成沒有秒數（幾乎全是不是人開的那一輪 —— 被背景通知叫醒，或由 slash command 開的；舊的「〔實測〕84.1%（111/132）」已被取代，見第三節第 33 條）；「硬編一個 `Date()` 進去就是憑空造一個量測」。
+- **證據**：UsageSourceSelector.swift:38-39；StatusLineCacheReader.swift:92-101；ClaudeJSONUsageReader.swift:111-115；PanelView.swift:167-173、197-201；WorkflowRunState.swift:19-21；SessionFinish.swift:10-15；FinishSignal.swift:54-56；`TurnCompletionReader.readout` 的「沒有時刻就不宣告完成」（:98-100）；`CompletionTracker.ranForOutcome`；docs/build-log.md:206、447、583、797、863
 
 **4. App 層不可以有任何決策 —— 「該不該發」全部在 Core。`QuotaMonsterApp` 沒有測試 target，放進去的判斷就永遠不會有測試。今天的三個落點：`NotificationEngine`（出不出聲）、`WorkflowTally`（workflow 下場分類）、`OutlookCaption`（展望的所有字串）。**
 
@@ -77,7 +77,7 @@ bash scripts/make_app.sh          # 組 .app 並裝到 ~/Applications
 **5. 註解與文件裡「實測」「代理量測」「推論」「文件說」是四件不同的事，不可以混用；把品味寫成機制論也是一種說謊。**
 
 - **為什麼**：混用會慢慢侵蝕掉整份註解的可信度，而那正是它唯一的價值。這個 repo 兩次在 commit 訊息／待辦裡把推論寫成已證實，兩次都要撤回。示範：`FinishGlow` 三段離散的理由只能寫「mockup 是使用者選的那一份」—— 連續濃度在機制上完全做得到（600 秒裡重畫十幾次），把品味寫成機制論就是在註解裡把偏好偽裝成量測。
-- **證據**：FinishSignal.swift:3-11；SignalPalette.swift:10-12、36-38；TurnCompletionReader.swift:93-95；CompletionTracker.swift:35-37；docs/build-log.md:1228-1233、1466-1477、1540
+- **證據**：FinishSignal.swift:3-11；SignalPalette.swift:10-12、36-38；`TurnCompletionReader.readout` 的 isSidechain〔推論〕註解（:75-77）；`RanForCoverage.agreementSeconds`「這個數字是選的」（原本引的 `CompletionTracker.turnStartTolerance`「這個數字是選的，沒有資料能決定它」已隨 15 秒容忍度一起刪掉，原文看 `git show 514897e:Sources/QuotaMonsterCore/Notify/CompletionTracker.swift`）；docs/build-log.md:1228-1233、1466-1477、1540
 - **付過的代價**：有 —— 「⚠️ 留一條錯的待辦在計畫書裡，和留一段說謊的註解是同一件事」（docs/build-log.md:1540）。
 
 
@@ -339,13 +339,14 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 **22. 沉澱窗不是偵測。安靜只決定「何時去看」，決定「完成沒」的是 transcript 尾端那一則的 `stop_reason`；沉澱窗 90 秒不可往下砍；宣告完成前必須確認那一則 end_turn 之後沒有任何真人訊息。**
 
 - **為什麼**：〔實測〕13,733 個回合進行中的間隔裡有 105 個（0.76%）超過 90 秒（長 Bash 66.7%、模型想很久 20.0%、使用者在打字 11.4%），但那些時點往回看到的**全部是 tool_use**，誤報 0 次 —— 這個分工讓「跑 40 分鐘的 Bash」在架構上就不可能誤觸發，只多付一次 37µs 讀取。90 秒不可砍：〔實測 n=153〕兩行式 end_turn（thinking 然後 text）的間隔中位 12.2 秒、最大 51.8 秒，窗縮到 45 秒就會在 thinking 那一行到期而使用者眼前還沒有任何文字；〔實測，現場直接觀測〕一個跑到一半的 session 最長安靜 83.9 秒。「之後不可有真人訊息」：〔實測〕479 個以真人訊息為起點的間隔裡有 6 個（1.25%）超過 90 秒（最長 623 秒），沒有這一段那 6 次會在使用者剛按下 Enter 時宣告「講完了」—— 它同時免費吃掉 Esc 中斷那道閘。
-- **證據**：CompletionTracker.swift:11-18、24-31；TurnCompletionReader.swift:103-114；docs/build-log.md:1254-1273
+- **證據**：`CompletionTracker` 型別註解「沉澱窗**不是**偵測」（:19-26）、`CompletionTracker.settleWindow`（:33-40）；`TurnCompletionReader.readout` 的「end_turn 之後還有真人訊息」（:89-96）；docs/build-log.md:1254-1273
 - **付過的代價**：無（但計畫書 1376 行那句「沉澱窗本身就是偵測」至今沒改，見 overturned）
 
-**23. 「真人訊息」全 repo 只有一份定義：`type == "user" && isMeta != true && content 裡沒有 tool_result`，而且 `content` 的字串與 list 兩種形狀都要收。**
+**23. 「真人訊息」全 repo 只有一份定義（`TurnCompletionReader.isHuman`，不准照這段文字另寫一份）：`type == "user" && isMeta != true && isCompactSummary != true && content 裡沒有 tool_result`，而且 `content` 的字串與 list 兩種形狀都要收；list **逐塊**看，只要有一塊（去掉空白後）不是 `harnessPrefixes` 開頭（`<task-notification>`、`<system-reminder>`、`<command-name>`、`<ide_opened_file>`、`<bash-stdout>`／`<bash-stderr>` 等）就是人打的；一個字都沒有（只貼圖）也算人打的。**
 
 - **為什麼**：〔實測 2026-09-19〕字串型裡有 93 則 `isMeta=true`（skill caveat／圖片占位／slash command 展開／agent 間訊息），而貼截圖的真人訊息一定是 list。「字串＝真人、list＝harness」這個直覺**兩個方向都錯**：照它寫會吞掉約四分之一的真人輸入，又會把 93 則 harness 訊息當成真人。
-- **證據**：TurnCompletionReader.swift:123-154；docs/build-log.md:1269-1273
+- **後來補的兩個洞**〔本機唯讀計數 2026-10-19〕：compact 摘要（`isCompactSummary`，13 則，不是 `isMeta`）原本被當成真人；IDE 檔案區塊後接人打的字（7 則）原本整則被吞掉 —— 見第三節第 33 條。中斷標記（`[Request interrupted by user…]`）**是**真人訊息，但它停下模型、不開出一輪，`TurnCompletionReader.isInterruptMarker` 另外認它（給 `TurnOpener` 用）。
+- **證據**：`TurnCompletionReader.harnessPrefixes`、`TurnCompletionReader.isHuman`／`humanTexts`（TurnCompletionReader.swift:105-169）；docs/build-log.md:1269-1273
 - **付過的代價**：無。⚠️ 但兩處母數對不上（見 overturned），引用時只引「兩種形狀都要收」這個判準，不要引那組數字。
 
 
@@ -817,7 +818,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 
 **實際上**：安靜只決定「何時去看」，決定「完成沒」的是尾端那一則的 `stop_reason`。這個分工是整個方案的救命符 —— 一個跑 40 分鐘的 Bash 在架構上就不可能誤觸發。⚠️ 那句原文至今仍留在計畫書 1376 行。
 
-*證據：docs/build-log.md:1376（仍在）vs 1254-1259 與 CompletionTracker.swift:11-18*
+*證據：docs/build-log.md:1376（仍在）vs 1254-1259 與 `CompletionTracker` 型別註解「沉澱窗**不是**偵測」（CompletionTracker.swift:19-26）*
 
 **6. 原文說**：計畫書：「九道閘、典型 1.6 則／天、最忙 3.7 則／天、92.6% 的完成刻意吞掉；三道最有效的閘是跑不到 3 分鐘（66%）、90 秒內又打字（25%）、Esc 中斷（2%）。」
 
@@ -913,7 +914,7 @@ statusline tee 是**唯一**的來源，所以任何「沒有讀數」的畫面�
 
 **實際上**：四個都已經漂掉，而且其中兩個寫在出貨的原始碼註解裡。靜態計數今天是 **477 個 `@Test` / 48 個 `@Suite`**（⚠️ 這一輪唯讀，是計數不是執行結果）；`RenderStates.cases` 今天有 **20** 個；`NotificationEngineTests` 今天有 **71** 個 `@Test` / 6 個 `@Suite`，不是 62；而 `TurnCompletionReader` 的註解寫的是另一組母數（「非 tool_result 的 user 行 395 則：字串 290（其中 93 則 isMeta=true）、list(text) 144、list(image,text) 33」），與計畫書的 382 對不上，而且它自己三個分項相加 = 467 ≠ 它寫的 395。共同的 93 兩邊一致，**判準本身（兩種形狀都要收）不受影響**，但那兩段文字不可能同時為真。⚠️ 我沒有重新量語料，只核對了兩段文字與它們自己的算術。**結論：文件不要抄任何測試數與語料母數。**
 
-*證據：docs/build-log.md:1245、441、1277-1279 vs `grep -c '@Test'` 合計 477 / `@Suite` 48、RenderStates.swift:17-42、NotificationPresenter.swift:7、TurnCompletionReader.swift:129-135*
+*證據：docs/build-log.md:1245、441、1277-1279 vs `grep -c '@Test'` 合計 477 / `@Suite` 48、RenderStates.swift:17-42、NotificationPresenter.swift:7、`TurnCompletionReader.isHuman` 的 doc comment（TurnCompletionReader.swift:118-122）*
 
 **22. 原文說**：面板在選中 statusline 來源、沒有分模型資料時顯示「此方案無此視窗」（修法被描述成：改成說出真正原因「這個來源不提供分模型視窗」）。
 
@@ -1108,36 +1109,58 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 不再在「安靜 → 又動起來」那一刻往尾端搆，15 秒容忍度（`turnStartTolerance`）也拿掉了。
 
 ⚠️ **上面三個數字被取代了，但留著**：「84.1%（111/132）」、「7/7」、「37.4%」量的都是**舊作法**。
-新數字〔代理量測 2026-10-19，`--measure-ranfor`，本機 90 份主 transcript，只輸出計數〕：
+新數字〔代理量測 2026-10-19，`--measure-ranfor`，本機 90 份主 transcript，只輸出計數；
+「被 Esc 中斷也算停下來過」那個修正之後重跑的〕：
 
 | | 數量 | 比例 |
 |---|---|---|
-| 完成（end_turn 之後安靜 ≥ 90 秒或到檔尾） | 767 | |
-| **新作法算得出 `ranFor`** | **564** | **73.5%** |
-| 算不出來：這一輪不是人開的（講完後被背景通知／peer／排程叫醒） | 202 | 26.3% |
+| 完成（end_turn 之後安靜 ≥ 90 秒或到檔尾） | 774 | |
+| **新作法算得出 `ranFor`** | **563** | **72.7%** |
+| 算不出來：這一輪不是人開的（停下之後被背景通知／peer／排程叫醒，或由 slash command／skill 開的） | 210 | 27.1% |
 | 算不出來：從檔頭到這裡一則真人訊息都沒有 | 1 | 0.1% |
-| 算不出來：真人訊息沒帶時刻／起點晚於完成 | 0 / 0 | |
-| 同一母體模擬**舊作法**（只算「有值」，不保證值對） | 352 | 45.9% |
+| 算不出來：真人訊息沒帶時刻／起點不早於完成 | 0 / 0 | |
+| 同一母體模擬**舊作法**（只算「有值」，不保證值對） | 352 | 45.5% |
+
+（同一天第一次跑是 767 個完成、564／202／352 —— 還開著的 session 在寫，母體會長。
+中斷那個修正前後兩支連著跑在同一批檔案上：1 個完成從「算得出來」移到「不是人開的」，
+而且它原本與 `turn_duration` 對得上（366 → 365）。〔本機唯讀計數〕「中斷之後沒有真人訊息
+模型就又動起來」只有 1 處，是中斷之後接著打 slash command 開的那一輪〔推論：就是這一個，沒有逐筆對上〕——
+也就是說這個修正在這批資料上**沒有擋掉任何一個假的長回合，代價是少一個本來對的數字**。
+留著它是因為失敗的方向不對稱：漏掉時是主張「跑很久」的假訊號，多擋時只是少一個數字。）
 
 - **代理的意思**：歷史檔沒有 mtime，拿每一行自己的 timestamp 當代理（相鄰兩行差 ≥ 90 秒＝安靜）。
-  舊作法模擬的「現在」取那一行自己的時刻，比真的 app（每 3 秒一拍）**偏寬**，所以 45.9% 是上限。
-  它與 84.1% 不是同一個母體，不能互相比；能比的是同一張表裡的 73.5% 對 45.9%。
+  舊作法模擬**不是**上限也不是下限，偏差兩個方向都有，淨方向〔未驗證〕：
+  「現在」取那一行自己的時刻（真的 app 晚 0–3 秒才讀，15 秒容忍度對它比較嚴 → 模擬偏寬）；
+  模擬只看到那一行為止（真的 app 讀的時候可能已經多寫了幾行 → 模擬偏窄）；
+  模擬用的是修過的 `isHuman`（compact 摘要、`<bash-stdout>` 舊版當真人 → 偏窄；IDE 區塊舊版吞掉 → 偏寬）。
+  最後一項量過：〔代理量測〕把舊版 `isHuman` 換進模擬重跑，同一批檔案一樣是 352。
+  它與 84.1% 不是同一個母體，不能互相比；能比的是同一張表裡的 72.7% 對 45.5%。
 - **對照組**：Claude Code 自己在回合結束後寫一行 `system`／`turn_duration`（帶 `durationMs`，
-  沒有官方契約）。算得出 `ranFor`、後面也有這一行的 419 個裡，**366 個（87.4%）差 ≤ 5 秒**；
+  沒有官方契約）。算得出 `ranFor`、後面也有這一行的 418 個裡，**365 個（87.3%）差 ≤ 5 秒**；
   對不上的 53 個裡 50 個是我們算得比較長、3 個比較短。為什麼比較長〔未驗證〕—— 它可能不從真人訊息起算
   （例如 stop hook 讓模型接著講時重新計時），這一條沒有查。
 - **分布**：p50 88 秒、p90 541 秒、max 9,125 秒；**≥ 600 秒（選單列門檻）的有 49 個**。
-  舊的 15 秒容忍度擋的是「max 69,812 秒」那種跨過上一輪的起點 —— 現在跨過上一輪的本身就是
-  「不是人開的」，所以不再需要一個選出來的數字。
-- **剩下的洞是設計問題，不是量測缺口**：那 26.3% 是被背景工作叫醒、講完一段的回合。
+  舊的 15 秒容忍度擋的是「max 69,812 秒」那種跨過上一輪的起點 —— 現在「真人訊息之後模型停下來過
+  （講完或被 Esc 中斷）、又在沒有真人訊息的情況下動起來」本身就是「不是人開的」，所以不再需要一個選出來的數字。
+  ⚠️ 這個前提全靠 `TurnOpener` 認得出每一種「停下來」；漏認一種，閒置就會被算進來而且沒有上限擋著。
+- **剩下的洞是設計問題，不是量測缺口**：那 27.1% 是模型停下來之後、沒有新的真人訊息又動起來的回合 ——
+  被背景工作／peer／排程叫醒，**也包括**使用者打 slash command 或 skill 開的那一輪
+  （`<command-name>` 是 harness 開頭，不算真人訊息）。兩者沒有分開計數〔未驗證比例〕。
   它們「跑了多久」該從哪裡算（叫醒那一刻？原本那則真人訊息？）沒有答案，現在先誠實地回 nil。
+- **「停下來過」不只是 end_turn**〔code review 抓到的〕：Esc 中斷的那一輪不會寫出 end_turn。
+  只認 end_turn 的話，中斷之後被通知叫醒的那一段會拿**中斷標記**當起點，把閒置全算進 `ranFor`，
+  而拿掉 15 秒容忍度之後沒有任何上限擋著 —— 會主張「這一輪跑很久」。現在中斷標記
+  （`TurnCompletionReader.isInterruptMarker`）也算「停下來過」。
+  `<bash-input>`（`!` 指令）**不是**這一種：〔本機唯讀計數 2026-10-19〕13 則前一則是 end_turn 的
+  `<bash-input>`，13 則之後都接著一則新的 assistant（中間沒有別的真人訊息），所以它會開出一輪，是起點。
 
 **「真人訊息」的判定順手修了兩個洞**〔本機唯讀計數 2026-10-19〕：
 compact 摘要（`isCompactSummary`，13 則，不是 `isMeta`）原本被當成真人訊息；
 IDE 把開著的檔案塞在同一則訊息前面（`<ide_opened_file>` 區塊＋人打的字，7 則）原本整則被吞掉。
 `!` 指令的輸出（`<bash-stdout>`）也加進 harness 開頭；`<bash-input>` 是人打的，留著。
 看到它、但它不是真人訊息（tool_result、isMeta、背景通知、peer、command 與它的輸出）→ 起點**留在原地**；
-整個沒讀到那份 transcript → `TranscriptWatcher.opening(of:)` 回 nil。兩層分開，`--trace-finishes` 印得出是哪一種。
+整個沒讀到那份 transcript → `TranscriptWatcher.opening(of:)` 回 nil。兩層分開，`--trace-finishes` 印得出是哪一種
+（原因只判在 Core 的 `CompletionTracker.ranForOutcome`，`--trace-finishes` 與 `--measure-ranfor` 共用）。
 
 ## 四、診斷指令對照
 
@@ -1203,7 +1226,7 @@ IDE 把開著的檔案塞在同一則訊息前面（`<ide_opened_file>` 區塊�
 |---|---|
 | ~~**每日長條圖**~~ —— **已做（2026-09-22）** | 答案是「**跟著額度窗口切**」：一根長條是 14:00 到 14:00，不是午夜到午夜；而且每一根帶著信心（日界兩端有沒有被**看得見的**心跳蓋到）。另外也做了累計曲線，兩者可在偏好設定切換。下面這段是當時卡住的紀錄，留著當背景。⚠️ **卡的不是資料量，是語意。**〔實測 2026-09-22〕`usage-history.jsonl` 有 **134 點、跨 3.9 天**，早就超過當初說的「兩天」。但 (一) 取樣是**事件驅動**的（`shouldRecord` 只在數字變了才寫，而數字來自 statusline tee），逐日覆蓋 6.6h / 14.4h / **0h** / 2.2h / 3.5h，**沒有一天超過 14.4 小時**；(二) `7d` 是滾動窗口**會下降**（實測 09-19 03:15 `58` → 03:47 `56`），`5h` 每五小時歸零 —— **兩條線都不能直接差分成「今天用了多少」**。「那根長條代表什麼」這個問題還沒有答案，再等幾天不會自己解決。 |
 | heartbeat + bootMarker（Stage 7 步驟 10） | 等使用者點頭 |
-| 完成訊號要不要出聲 | **上游修好了，可以重問。** `ranFor` 改由往前掃的游標記下最後一則真人訊息〔代理量測 2026-10-19〕算得出 73.5%（舊作法同一母體模擬 45.9%），≥ 600 秒的有 49 個 —— 照這個母體，選單列應該會亮了〔推論：真的 app 還沒用 `--trace-finishes` 跑過一段〕，「該不該出聲」可以重問。剩下的 26.3% 是被背景通知叫醒的回合，見第三節第 33 條。以下是修之前的紀錄：⚠️ **量過了，而且問題換了。**〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕產生 7 個標記、選單列**一次都沒亮**，7/7 的原因都是 `ranFor` 算不出來（不是 600 秒門檻）。**在它幾乎不亮之前，「該不該出聲」是問不出答案的。** 先修 `ranFor`（`TranscriptCursor` 往前掃時順手記下最後一則真人訊息，回合起點就不用往回搆），再重問這一題。全文見第三節第 33 條。 |
+| 完成訊號要不要出聲 | **上游修好了，可以重問。** `ranFor` 改由往前掃的游標記下最後一則真人訊息〔代理量測 2026-10-19〕算得出 72.7%（舊作法同一母體模擬 45.5%），≥ 600 秒的有 49 個 —— 照這個母體，選單列應該會亮了〔推論：真的 app 還沒用 `--trace-finishes` 跑過一段〕，「該不該出聲」可以重問。剩下的 27.1% 是不是人開的回合（被背景通知叫醒，或由 slash command 開的），見第三節第 33 條。以下是修之前的紀錄：⚠️ **量過了，而且問題換了。**〔實測 2026-09-22，53 分鐘 / 957 拍 / 4–5 個 session〕產生 7 個標記、選單列**一次都沒亮**，7/7 的原因都是 `ranFor` 算不出來（不是 600 秒門檻）。**在它幾乎不亮之前，「該不該出聲」是問不出答案的。** 先修 `ranFor`（`TranscriptCursor` 往前掃時順手記下最後一則真人訊息，回合起點就不用往回搆），再重問這一題。全文見第三節第 33 條。 |
 
 ### A2. 已經量完、可以結案的
 

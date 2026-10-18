@@ -556,6 +556,15 @@ final class DataStore {
             // ⚠️ 上面建樹那一段只餵得到有 `<sessionId>/` 兄弟目錄的 session，
             // 其餘的在這裡補讀 —— 否則它們的起點永遠是「整個沒看到」。
             // 已經讀過的這一拍不重讀（同一拍多一次 open 是白花的）。
+            // ⚠️ 代價：舊作法對這些 session 只在「安靜 → 又動起來」時讀一次 64KB 尾端；
+            // 現在 app 啟動後的**第一拍**要把它們也整份解析一次（游標從 0 開始），
+            // 而且它們的事實（含 toolUseIds）從此跟著常駐，直到 session 死掉
+            // （下面的 `keep(only:)`）。與上面 `transcripts` 註解裡那個「第一拍補課」是
+            // 同一種成本，只是多涵蓋了沒有兄弟目錄的 session。〔推論，拿 `TranscriptCursor`
+            // 檔頭那兩份最大 transcript 的分項（讀檔＋Data 切行＋JSON）相加〕每份約 150 毫秒，
+            // 小的遠低於此，只付一次；這個改動之後還沒有用 `--bench-refresh` 重量第一拍〔未驗證〕。
+            // 不改成「只跑 TurnOpener 的輕量讀取」：成本大頭是切行與 JSON 解析，
+            // 少收 toolUseIds 省不到延遲。
             var openings: [String: TurnOpener.Answer] = [:]
             for (id, url) in completionPaths {
                 if !watched.contains(url) {

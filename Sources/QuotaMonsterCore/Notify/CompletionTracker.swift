@@ -60,16 +60,50 @@ public struct CompletionTracker: Sendable {
         self.modifiedAt = modifiedAt
     }
 
-    /// 這一輪跑了多久。只有「真人開的、有時刻、而且早於完成」才算得出來。
+    /// `ranFor` 算不出來的原因。**全 repo 只有這一份**：正式路徑（`ranFor`）、
+    /// `--measure-ranfor`（`RanForCoverage`）與 `--trace-finishes` 都從 `ranForOutcome` 拿，
+    /// 這裡多一個 nil 的條件，三邊一起看得到，不會有一邊印出舊的原因。
+    public enum RanForMiss: String, CaseIterable, Sendable {
+        /// 整個沒看到：watcher 沒讀到過這份 transcript（`openings` 沒有這個 key）。
+        case unseen
+        /// 看到了，但這一輪不是人開的（`.wokenWithoutHuman`）。
+        case woken
+        /// 看到了，一則真人訊息都沒有（`.noHumanYet`）。
+        case noHuman
+        /// 最後一則真人訊息沒帶時刻（`.humanWithoutTimestamp`）。
+        case noTimestamp
+        /// 起點不早於完成時刻 —— 時間戳不單調〔實測〕3.91% 的相鄰行對為負。
+        case notAfterStart
+    }
+
+    public enum RanForOutcome: Equatable, Sendable {
+        case ran(TimeInterval)
+        case missing(RanForMiss)
+    }
+
+    /// 這一輪跑了多久，或者為什麼算不出來。只有「真人開的、有時刻、而且早於完成」才算得出來。
     ///
     /// ⚠️ 舊作法還有一道 15 秒的容忍度（`turnStartTolerance`），擋的是「寬鬆的起點定義」
     /// 〔實測，模擬〕p90 = 5,192 秒、max = 69,812 秒。那個寬鬆來自**跨過上一輪**去找起點；
-    /// 現在跨過上一輪的情況本身就是 `.wokenWithoutHuman`，所以不再需要一個選出來的數字
-    /// 去猜「這個起點是不是太舊」—— 很長的回合就是很長。
+    /// 現在「最後一則真人訊息之後模型停下來過（講完或被中斷）又動起來」本身就是
+    /// `.wokenWithoutHuman`，所以不再需要一個選出來的數字去猜「這個起點是不是太舊」——
+    /// 很長的回合就是很長。⚠️ 這個前提**全靠 `TurnOpener` 認得出「停下來過」**：
+    /// 它漏認一種停下的方式，這裡就會把閒置算進來，而且沒有上限擋著。
+    public static func ranForOutcome(opening: TurnOpener.Answer?, finishedAt: Date) -> RanForOutcome {
+        switch opening {
+        case nil:                          return .missing(.unseen)
+        case .wokenWithoutHuman?:          return .missing(.woken)
+        case .noHumanYet?:                 return .missing(.noHuman)
+        case .humanWithoutTimestamp?:      return .missing(.noTimestamp)
+        case .human(let start)?:
+            return finishedAt > start ? .ran(finishedAt.timeIntervalSince(start)) : .missing(.notAfterStart)
+        }
+    }
+
+    /// `ranForOutcome` 的投影：算得出來的秒數，否則 nil（「不知道」，不是 0）。
     public static func ranFor(opening: TurnOpener.Answer?, finishedAt: Date) -> TimeInterval? {
-        guard case .human(let start)? = opening else { return nil }
-        // `>` 那個判斷擋的是時間戳不單調〔實測〕3.91% 的相鄰行對為負。
-        return finishedAt > start ? finishedAt.timeIntervalSince(start) : nil
+        guard case .ran(let r) = ranForOutcome(opening: opening, finishedAt: finishedAt) else { return nil }
+        return r
     }
 
     /// - Returns: 這一拍新產生的完成標記，以及**哪些 session 的 transcript 又被寫了**

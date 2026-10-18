@@ -107,7 +107,13 @@ enum TraceFinishes {
                 CompletionInput(transcripts: transcripts, openings: openings), now: now)
             for f in out.finishes {
                 finishes[f.sessionId] = f
-                nilReasons[f.sessionId] = f.ranFor == nil ? whyNoRanFor(openings[f.sessionId]) : nil
+                // 原因由 Core 判（與正式路徑同一份 `ranForOutcome`），這裡只負責措辭。
+                if case .missing(let miss) = CompletionTracker.ranForOutcome(
+                    opening: openings[f.sessionId], finishedAt: f.finishedAt) {
+                    nilReasons[f.sessionId] = words(miss)
+                } else {
+                    nilReasons[f.sessionId] = nil
+                }
                 let name = sessions.first { $0.session.sessionId == f.sessionId }?
                     .session.name ?? String(f.sessionId.prefix(8))
                 // ⚠️ 算不出來有五個原因，印出是哪一個（規矩 28：分不出原因的診斷
@@ -158,14 +164,15 @@ enum TraceFinishes {
         say("追蹤結束，共 \(tick) 拍。手上有 \(finishes.count) 個完成標記。")
     }
 
-    /// `ranFor == nil` 的原因。五種是五件不同的事，混成一句就回到 7/7 那天。
-    private static func whyNoRanFor(_ o: TurnOpener.Answer?) -> String {
-        switch o {
-        case nil:                    return "沒讀到這份 transcript（整個沒看到）"
-        case .noHumanYet:            return "讀到了，一則真人訊息都沒有"
-        case .humanWithoutTimestamp: return "最後一則真人訊息沒帶時刻"
-        case .wokenWithoutHuman:     return "這一輪不是人開的（講完後被通知／peer／排程叫醒）"
-        case .human:                 return "起點晚於完成時刻（時間戳不單調）"
+    /// `ranFor == nil` 的原因的**措辭**。五種是五件不同的事，混成一句就回到 7/7 那天。
+    /// 判斷是哪一種不在這裡 —— 在 Core 的 `CompletionTracker.ranForOutcome`（規矩 4）。
+    private static func words(_ m: CompletionTracker.RanForMiss) -> String {
+        switch m {
+        case .unseen:        return "沒讀到這份 transcript（整個沒看到）"
+        case .noHuman:       return "讀到了，一則真人訊息都沒有"
+        case .noTimestamp:   return "最後一則真人訊息沒帶時刻"
+        case .woken:         return "這一輪不是人開的（停下後被通知／peer／排程叫醒，或由 slash command／skill 開的）"
+        case .notAfterStart: return "起點不早於完成時刻（時間戳不單調）"
         }
     }
 
