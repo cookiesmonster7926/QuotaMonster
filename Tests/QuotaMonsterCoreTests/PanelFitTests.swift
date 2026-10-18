@@ -14,9 +14,12 @@ import Foundation
 @Suite("面板高度上限")
 struct PanelFitTests {
 
-    @Test("上限是可用高度扣掉邊距")
+    /// ⚠️ 期望值寫字面量，不寫 `923 - PanelFit.screenMargin` —— 那樣邊距改成多少都會過，
+    /// 而下面那則只擋得住「邊距太小」（≥ 21），擋不住「邊距大到面板白白變矮」。
+    /// 〔實測 2026-10-19，`--probe-panel-clamp`，可用高度 923〕contentSize 夾到 899。
+    @Test("上限是可用高度扣掉 24")
     func capIsVisibleHeightMinusMargin() {
-        #expect(PanelFit.cap(visibleHeight: 923) == 923 - PanelFit.screenMargin)
+        #expect(PanelFit.cap(visibleHeight: 923) == 899)
     }
 
     /// 〔實測 2026-10-19，1470×956 的內建螢幕〕popover 視窗比 contentSize 高 26pt

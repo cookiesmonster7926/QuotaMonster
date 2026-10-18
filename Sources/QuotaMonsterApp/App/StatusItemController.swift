@@ -270,10 +270,7 @@ final class StatusItemController {
             popover.performClose(nil)
         } else {
             store.refresh()
-            // ⚠️ 上限要在量 fittingSize **之前**交給版面 —— 夾 contentSize 擋不住視窗，
-            // 見 `PanelFit` 的檔頭。螢幕可能換了（外接螢幕），所以每次展開都重算。
-            let cap = PanelFit.cap(visibleHeight: currentScreen?.visibleFrame.height)
-            if panel.rootView.maxHeight != cap { panel.rootView.maxHeight = cap }
+            // 螢幕可能換了（外接螢幕），所以每次展開都重算上限（`panelSize` → `fit`）。
             popover.contentSize = panelSize()
             popover.show(relativeTo: button.bounds, of: button, preferredEdge: .minY)
             popover.contentViewController?.view.window?.makeKey()
@@ -293,15 +290,26 @@ final class StatusItemController {
     ///
     /// 量測方式見 `QuotaMonsterApp --probe-popover`。
     ///
-    /// ⚠️ 下面那個夾限**單獨擋不住**面板超出螢幕：〔實測 2026-10-19，`--probe-panel-clamp`〕
+    /// ⚠️ contentSize 的夾限**單獨擋不住**面板超出螢幕：〔實測 2026-10-19，`--probe-panel-clamp`〕
     /// contentSize 夾到 899，視窗照樣被 SwiftUI 的最小高度撐到 1668。真正的上限在
-    /// `PanelView.maxHeight`（`togglePanel` 先指派），這裡留著當第二道保險，
+    /// `PanelView.maxHeight`（`fit` 先指派），contentSize 的夾限留著當第二道保險，
     /// 而且兩邊用同一個 `PanelFit.cap`，不會漂開。
     private func panelSize() -> NSSize {
+        Self.fit(panel, visibleHeight: currentScreen?.visibleFrame.height)
+    }
+
+    /// 把上限交給版面，再量 —— `panelSize()` 的本體，抽出來是為了讓測試走得到
+    /// （`PanelHeightCapTests.fitAssignsTheCapBeforeMeasuring`；建 `StatusItemController`
+    /// 會真的在選單列放一個圖示）。
+    ///
+    /// ⚠️ 上限要在量 `fittingSize` **之前**交給 `PanelView.maxHeight` —— 夾 contentSize
+    /// 擋不住視窗，見 `PanelFit` 的檔頭。這一行是整個修法的入口，拿掉它測試會紅。
+    /// `visibleHeight` 是 nil（不知道螢幕多高）時不夾，不是夾到 0。
+    static func fit(_ panel: NSHostingController<PanelView>, visibleHeight: CGFloat?) -> NSSize {
+        let cap = PanelFit.cap(visibleHeight: visibleHeight)
+        if panel.rootView.maxHeight != cap { panel.rootView.maxHeight = cap }
         var size = panel.view.fittingSize
-        size.height = PanelFit.height(
-            natural: size.height,
-            cap: PanelFit.cap(visibleHeight: currentScreen?.visibleFrame.height))
+        size.height = PanelFit.height(natural: size.height, cap: cap)
         return size
     }
 
