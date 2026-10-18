@@ -35,10 +35,13 @@ bash scripts/make_app.sh                    # 組 .app 並裝到 ~/Applications
 1. **決策只能放 `QuotaMonsterCore`。**
    ⚠️ 這裡原本寫的理由是「`QuotaMonsterApp` 沒有測試 target（`Package.swift`
    只有一個 testTarget）」—— **那個理由已經過期**：commit 77cca48 之後有兩個
-   testTarget，`QuotaMonsterAppTests` 確實存在（3 個檔、255 行）。
+   testTarget，`QuotaMonsterAppTests` 確實存在
+   （〔實測 2026-10-19，`wc -l`〕4 個檔、439 行、20 則 `@Test`；原本寫的「3 個檔、255 行」
+   是過期的數字。要確認現況就自己數，不要信這裡）。
    規矩本身仍然成立，但**理由換了**：App 層的測試只碰得到繪圖與色彩
    （它要 AppKit），碰不到判斷。所以判斷放進 App 層，還是不會有測試守著。
-   `docs/quotamonster.md:601` 寫的就是這件事：「那不是拿來放決策的後門」。
+   `docs/quotamonster.md` 第五節 C「App 層沒有測試 target —— 已補」那一條寫的就是這件事：
+   「不是拿來放決策的後門」。（這裡原本寫行號 `:601`，文件長了之後那一行早就換成別的規矩。）
 2. **`nil` 一律是「不知道」，不是零。** 缺資料回 nil、畫「—」，
    絕對不要回 0%、0 秒或 `Date()`。而且「看到它、但它不在那個狀態」
    與「整個沒看到它」是兩件事，要分兩層處理。
