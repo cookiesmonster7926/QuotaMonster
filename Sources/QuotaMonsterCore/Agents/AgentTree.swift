@@ -132,9 +132,54 @@ public struct AgentTree: Equatable, Sendable {
         (match(n.runState) ? 1 : 0) + n.children.reduce(0) { $0 + count($1, where: match) }
     }
 
+    /// 面板的 session 列在名稱與 ctx 之外要畫的那幾行。
+    /// `SessionRow` 照它畫、`PanelView` 的高度估算用它的 `count` —— 見 `SessionDetailLines`。
+    public var detailLines: SessionDetailLines { SessionDetailLines(self) }
+
+    /// `detailLines.count` 的簡寫。
+    public var detailLineCount: Int { detailLines.count }
+
     public init(sessionId: String, agents: [AgentNode], workflows: [WorkflowGroup]) {
         self.sessionId = sessionId
         self.agents = agents
         self.workflows = workflows
+    }
+}
+
+/// 一個 session 列在名稱與 ctx 之外**要畫哪些行**：還在跑的 workflow 與 agent 各一行，
+/// 加上「另有 N 個已完成」那一行（有東西可收合才有；workflow 與 agent 的收合共用這一行）。
+///
+/// ### 為什麼是一個型別，不是一個行數
+/// 〔實測 2026-10-19，使用者截圖〕有一個 session 的收合那一行寫著 27 個 agent 已完成，
+/// 面板高過螢幕、頂端被切掉。
+/// 〔推論，讀碼〕原因是 `PanelView` 的高度估算用 `agents.count`（含已完成的）估成 27 行，
+/// 而 `SessionRow` 實際只畫 1 行 —— 同一個規則寫了兩份、數法不同。
+///
+/// 只給一個行數的話，`SessionRow` 還是得自己決定畫哪些行，規則照樣是兩份（規矩 2）。
+/// 所以這裡一次給出要畫的東西：`SessionRow` 只照著畫，行數就是它們的數目。
+/// App 層測不到這件事，所以「畫哪些行」的組合規則只能活在這裡、由
+/// `SessionDetailLinesTests` 守著。
+public struct SessionDetailLines: Equatable, Sendable {
+    /// 還在跑的 workflow，各自一行。
+    public let liveWorkflows: [WorkflowGroup]
+    /// 沒在跑的 workflow 的下場分類 —— 收合那一行的前半。
+    public let workflows: WorkflowTally
+    /// 一般 agent：`outstanding` 各自一行，其餘進收合那一行的後半。
+    public let agents: AgentTally
+
+    public init(_ tree: AgentTree) {
+        self.liveWorkflows = tree.workflows.filter { $0.runningCount > 0 }
+        self.workflows = WorkflowTally(tree.workflows)
+        self.agents = AgentTally(tree.agents)
+    }
+
+    /// 「另有 N 個已完成」那一行要不要畫。
+    public var hasCollapsedLine: Bool {
+        !workflows.collapsed.isEmpty || !agents.collapsed.isEmpty
+    }
+
+    /// 總共畫幾行。
+    public var count: Int {
+        liveWorkflows.count + agents.outstanding.count + (hasCollapsedLine ? 1 : 0)
     }
 }
