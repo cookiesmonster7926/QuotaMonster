@@ -4,7 +4,8 @@ import QuotaMonsterCore
 
 /// 應用程式的單一資料來源。
 ///
-/// **零 token、零行程、零網路。** 全部是讀既有的檔案：
+/// **零 token。** 額度與本機 session 全部是讀既有的檔案（例外都可以關掉：有沒有新版問 GitHub，
+/// 見 `ReleaseChecker`；遠端機器的 session 執行 herdr，見 `RemoteMonitor`，預設關）：
 /// 額度有兩個來源（見下），session 來自 `~/.claude/sessions/`，agent 樹來自
 /// `~/.claude/projects/<slug>/<sessionId>/subagents/`。
 ///
@@ -337,6 +338,46 @@ final class DataStore {
         }
     }
 
+    // ── 遠端機器（herdr）──────────────────────────────────────
+
+    /// ⚠️ 只有偏好打開、而且是真的 `start()` 過的 app 才有。診斷指令不執行 herdr
+    /// （`--probe-remote` 例外：它就是用來看這件事的），與「診斷不連網」同一條。
+    @ObservationIgnored private var remoteMonitor: RemoteMonitor?
+    /// 最近一次的追蹤狀態。面板照它畫（`remoteView`）；Observable 要看得到它變，所以另外存一份。
+    private(set) var remoteTracker: RemoteTracker?
+
+    /// 要不要問 herdr。預設關，見 `Preferences.showsRemoteSessions`。
+    var showsRemoteSessions: Bool { preferences.remoteSessionsOn }
+
+    /// 面板的「遠端 REMOTE」那一區。⚠️ `now` 用 `lastRefresh`，與 session 列同一個「現在」 ——
+    /// 「N 秒前看到」跟著 3 秒一拍走，不另外起計時器。
+    var remoteView: RemoteView { remoteTracker?.view(now: lastRefresh) ?? .hidden }
+
+    func setShowsRemoteSessions(_ on: Bool) {
+        var p = preferences
+        p.showsRemoteSessions = on
+        setPreferences(p)
+        if on { startRemote() } else { stopRemote() }
+    }
+
+    private func startRemote() {
+        guard remoteMonitor == nil else { return }
+        let m = RemoteMonitor(home: home)
+        m.onChange = { [weak self] t in self?.remoteTracker = t }
+        remoteMonitor = m
+        m.start()
+    }
+
+    private func stopRemote() {
+        remoteMonitor?.onChange = nil
+        remoteMonitor?.stop()
+        remoteMonitor = nil
+        remoteTracker = nil
+    }
+
+    /// 只給 `--render-panel --demo-remote` 用：塞一份**合成**的追蹤狀態（走同一個 `RemoteTracker`）。
+    func seedSyntheticRemote(_ t: RemoteTracker) { remoteTracker = t }
+
     /// 切換版面。⚠️ 走 `setPreferences` 所以會落地 —— 這是使用者直接下的指令。
     func setPanelStyle(_ s: PanelStyle) {
         var p = preferences
@@ -382,6 +423,8 @@ final class DataStore {
     func start() {
         // ⚠️ 只有真的 `start()` 才會連網 —— 診斷指令走的是 `refresh()`，碰不到這裡。
         startUpdateChecks()
+        // 遠端機器也一樣：只有真的在跑的 app、而且使用者打開了，才執行 herdr。
+        if showsRemoteSessions { startRemote() }
         // 再讀一次：init 之後、start 之前有可能被另一個行程改過
         // （例如使用者在上一次執行裡改了設定）。成本是一次小檔案讀取。
         loadPreferences()

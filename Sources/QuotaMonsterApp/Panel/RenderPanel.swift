@@ -107,6 +107,20 @@ enum RenderPanel {
             Data("圖表樣式：\(store.chartStyle.label)（\(store.chartStyle.rawValue)）\n".utf8))
         store.refresh()
 
+        // `--demo-remote <狀態>` 塞一份合成的遠端機器（走真的 `RemoteTracker`，只有資料是編的）。
+        if let i = CommandLine.arguments.firstIndex(of: "--demo-remote"),
+           CommandLine.arguments.count > i + 1 {
+            let state = CommandLine.arguments[i + 1]
+            guard let t = DemoRemote.tracker(state, now: store.lastRefresh) else {
+                FileHandle.standardError.write(Data(
+                    "--demo-remote 認得的狀態：\(DemoRemote.states.joined(separator: "|"))\n".utf8))
+                exit(2)
+            }
+            store.seedSyntheticRemote(t)
+            FileHandle.standardError.write(Data(
+                "⚠️ 遠端機器（\(state)）是**合成**的：機器名、專案、標題都是編的\n".utf8))
+        }
+
         // `--demo-finish` 塞一筆合成的完成標記，讓那一列的版面看得到。
         // ⚠️ 合成的，不是真的 —— 下面會把這件事印出來。
         if CommandLine.arguments.contains("--demo-finish"),

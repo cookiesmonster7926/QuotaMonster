@@ -37,6 +37,10 @@
   關掉之後這個 app 一個網路請求都不會發出。
   〔讀碼〕全 repo 只有 `Sources/QuotaMonsterApp/App/ReleaseChecker.swift` 一個檔案
   碰得到網路 API，而它只在那個偏好是開的時候才會被呼叫。
+- **執行的外部程式：** 通知用 `/usr/bin/osascript`。另外，**只有你在偏好設定裡打開
+  「顯示 herdr 連著的遠端機器」（預設關）時**，它每 10 秒左右執行一次 [herdr](https://herdr.dev)，
+  問它連著的其他機器上有哪些 Claude session → 第 4 節。這個 app 自己不連那些機器；
+  是 herdr 用你自己設好的 SSH 去問。沒裝 herdr、或那一格關著，就一次都不執行。
 - **讀：** `~/.claude.json`、`~/.claude/sessions/`、`~/.claude/projects/` 的一部分
   （transcript 只讀檔尾），加上它自己的 Application Support 目錄。
 - **寫：** 只寫 `~/Library/Application Support/QuotaMonster/` 底下。
@@ -58,6 +62,7 @@
 | `~/Library/Application Support/QuotaMonster/**` | 它自己的快取、偏好、額度歷史 | 讀寫，見第 2 節 |
 | `~/Library/Sounds`、`/System/Library/Sounds` | **只列檔名**，給偏好設定的音效下拉選單用 | 只列目錄，不開檔 |
 | 行程表（`kill(pid, 0)`、`sysctl KERN_PROC`） | 註冊表裡那個 pid 還活著嗎；擁有這個 session 的終端機是哪個 app | 不送訊號、不讀別人的記憶體 |
+| herdr 的輸出（**只在偏好打開時**） | `herdr machine list --json`：你在 herdr 裡設好的機器（id、名字、有沒有啟用）。`herdr --machine <id> agent list`：那台機器上每個 Claude session 的**狀態**（執行／等你／完成／閒置）、**目前目錄的最後一段**、**分頁標題** —— 其餘欄位（包括 herdr 裡其他程式寫的東西）不讀 | 執行 herdr、讀它印出來的 JSON；結果只留在記憶體裡、畫在面板上，不寫進任何檔案 |
 | `CGSessionCopyCurrentDictionary`、IOKit HID 閒置時間 | 螢幕鎖了沒、螢幕睡了沒、你離開鍵盤多久 —— 決定要不要開浮窗／要不要出聲 | 這三個訊號都**不需要任何授權**，也拿不到你按了什麼 |
 
 **沒有讀的東西**（明確講出來，因為這些是你會擔心的）〔讀碼〕：
@@ -96,6 +101,7 @@
 | `usage-history.jsonl` | 額度時間序列，一行就是 `{時間, 5h%, 7d%}`，**沒有任何文字內容** | app |
 | `watch-log.jsonl` | **只有時間戳與一個 `hb`／`boot` 標記**，沒有任何額度數字、路徑或內容。用途是分辨「那天你沒用」與「那天 app 沒開」——每日長條圖靠它才不會把後者畫成前者。300 秒一行，保留 30 天 | app |
 | `trace-usage.log` | 選用的量測記錄。**預設完全不寫** —— 只有你自己 `touch trace-usage.on` 才會開始記 | statusline tee |
+| `herdr/<隨機>/out`、`err` | 執行 herdr 時它印出來的東西（第 1 節那兩份清單）。**每次執行完整個資料夾立刻刪掉**；只在「遠端機器」那一格打開時才有。用檔案而不是 pipe，是因為 herdr 背後常駐的 ssh 可能拿著 pipe 不放，app 會等它 | app |
 
 ⚠️ **`statusline/<session_id>.json` 是這些檔案裡最敏感的一個**，因為它是 payload 原文。
 〔實測 2026-09-21〕這台機器上那份 payload 的欄位包含：`session_id`、`transcript_path`、
@@ -115,6 +121,8 @@ bug 修好之前，早一步用寬權限建出來了；新建的目錄應該是 
 
 會，但只寫到**你自己在命令列上指定的那個路徑**：`--render` / `--render-panel` /
 `--render-alert` / `--render-prefs` 會把 PNG 寫到你給的目錄或檔名〔讀碼〕。
+例外是 `--probe-remote`：它真的執行一次 herdr，暫存檔與 app 本身同一個位置
+（上表的 `herdr/<隨機>/`），執行完就刪。
 
 ⚠️ 誠實補一條：`Sources/QuotaMonsterApp/main.swift` 裡還留著一段 Stage 0 探針的
 程式碼，它會寫 `~/Library/Logs/QMProbe-*.log`。〔讀碼：對 `Sources/` grep `Probe()`
@@ -171,6 +179,22 @@ release 頁面，之後就跟今天一樣由你自己決定要不要裝。
   用來證明前一則有牙齒 —— 只試引號逸出的測試在有漏洞的版本上也會過。
   ⚠️ `docs/quotamonster.md` 第三節第 17 條說「這樣的測試不存在」。
   那是 2026-09-19 的快照，那一則測試在同一天稍後補上了（commit `b7d2790`）。
+
+### 遠端機器（herdr）—— 預設關
+
+偏好設定裡「顯示 herdr 連著的遠端機器」打開之後，app 會執行 herdr
+（找 `~/.local/bin/herdr`、`/opt/homebrew/bin/herdr`、`/usr/local/bin/herdr`，不靠 PATH）：
+
+- **app 自己沒有新增任何網路程式碼** —— 上面那個 grep 照樣只命中 `ReleaseChecker.swift`。
+  連到其他機器的是 herdr，用的是**你自己在 herdr 裡設好的 SSH 連線**；app 不碰 SSH、不碰金鑰、
+  不傳任何東西給 herdr，只有兩句固定的指令（`machine list --json`、`--machine <id> agent list`）。
+- 但這件事的**性質**是「你那台機器上有哪些 session、各自在做什麼」被讀回這台 Mac、畫在面板上，
+  所以它跟更新檢查一樣：**預設關，關掉之後一次 herdr 都不執行**。
+- 交給 herdr 的唯一變數是機器 id（herdr 自己給的），進 argv 之前過白名單：
+  英數開頭（不會被當成旗標）、只有英數與 `_ . -`、最長 64。參數陣列不經 shell。
+- 讀回來的標題與目錄名是**別台機器**給的字串，畫之前剝掉控制字元（終端機跳脫序列、換行）、截到 200 字。
+
+---
 
 ---
 
@@ -283,7 +307,8 @@ git grep -niE 'keychain|SecItem' -- Sources scripts
 # 那段「不准這樣做」的註解 —— 那條規矩是為一次已經發生的外洩補的
 git grep -niE 'keychain|SecItem|find-generic-password' -- Sources scripts
 
-# 它會啟動哪些外部行程（應該只有 /usr/bin/osascript）
+# 它會啟動哪些外部行程（應該只有兩處：/usr/bin/osascript 的通知，
+# 與 RemoteMonitor.swift 的 herdr —— 後者只在「遠端機器」那一格打開時才執行）
 git grep -n 'executableURL\|launchPath' -- Sources
 
 # 它寫／刪哪些檔

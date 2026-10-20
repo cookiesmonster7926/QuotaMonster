@@ -3,7 +3,7 @@ import QuotaMonsterCore
 
 /// 偏好設定。
 ///
-/// ### ⚠️ 這裡只有七格，而那是設計不是省事
+/// ### ⚠️ 這裡只有八格，而那是設計不是省事
 /// 這個 app 有將近三十個門檻。被擋在外面的理由寫在 `Preferences` 的檔頭：
 /// 有量測撐著的界線不給調，兩個方向都無聲的常數也不給調。
 /// **一個好的設定介面的價值一半在於它拒絕暴露什麼。**
@@ -47,6 +47,8 @@ struct PreferencesView: View {
             Divider().opacity(0.5)
             updateRow
             Divider().opacity(0.5)
+            remoteRow
+            Divider().opacity(0.5)
             chartRow
             Divider().opacity(0.5)
             soundRow
@@ -57,7 +59,7 @@ struct PreferencesView: View {
             Divider().opacity(0.5)
             quotaRow
 
-            Text("這裡只有七項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
+            Text("這裡只有八項。其餘的門檻都有量測撐著 —— 調了會安靜地壞掉，所以它們不在這裡。")
                 .font(.system(size: 9.5)).foregroundStyle(.tertiary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -82,6 +84,27 @@ struct PreferencesView: View {
                     store.setChecksForUpdates(!store.checksForUpdates)
                 }
                 Text(store.checksForUpdates ? "開" : "關")
+                    .font(.system(size: 11, design: .monospaced))
+                    .frame(minWidth: 120, alignment: .leading)
+                Spacer()
+            }
+        }
+    }
+
+    // ── 遠端機器 ───────────────────────────────────────────────
+
+    /// ⚠️ **與「有沒有新版」同一類：它決定 app 會做什麼，不是口味。**
+    /// 打開之後 app 會定期執行 herdr，herdr 再用你自己設好的 SSH 連到你的另一台機器。
+    /// 所以預設關，而且關掉之後一次都不執行。沒裝 herdr 的人打開也不會怎樣（那一區不出現）。
+    private var remoteRow: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            label("顯示 herdr 連著的遠端機器",
+                  "打開後每 10 秒左右執行一次 herdr，它會經你設好的 SSH 去問另一台機器；關掉就一次都不執行")
+            HStack(spacing: 8) {
+                cycleButton(store.showsRemoteSessions ? "checkmark.square" : "square") {
+                    store.setShowsRemoteSessions(!store.showsRemoteSessions)
+                }
+                Text(store.showsRemoteSessions ? "開" : "關")
                     .font(.system(size: 11, design: .monospaced))
                     .frame(minWidth: 120, alignment: .leading)
                 Spacer()

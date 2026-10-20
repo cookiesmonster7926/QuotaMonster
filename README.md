@@ -154,6 +154,12 @@ release 頁面，要不要裝還是你決定。
 只命中 `ReleaseChecker.swift` 一個檔案（0.3.0 以前是零命中）。
 其餘它只讀本機檔案、只寫自己的快取。完整清單見 [SECURITY.md](.github/SECURITY.md)。
 
+**遠端機器（預設關）**：如果你用 [herdr](https://herdr.dev) 連著其他電腦，偏好設定裡可以打開
+「顯示 herdr 連著的遠端機器」，面板會多一區，每台機器一行計數，有 session 在等你回覆時把它列出來。
+打開之後 app 會定期執行 herdr，由 herdr 用你自己設好的 SSH 去問那台機器 ——
+app 本身沒有新增任何網路程式碼，但你那台機器上的 session 狀態會被讀回這台 Mac，所以它預設關。
+只看得到 herdr 分頁裡的 session，而且只有狀態、目錄名與分頁標題（沒有 context、agent 或跑了多久）。
+
 ---
 
 ## 偏好設定
