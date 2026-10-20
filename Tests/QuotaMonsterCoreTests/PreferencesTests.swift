@@ -213,3 +213,34 @@ struct PanelStyleTests {
         #expect(PanelStyle.simple.other == .full)
     }
 }
+
+/// 遠端機器那一區的開關。它決定 app 會不會啟動 herdr（再由 herdr 連到使用者的另一台機器），
+/// 所以**預設關** —— 這是對使用者的承諾，不是口味。
+@Suite("遠端機器的開關")
+struct RemoteSessionsPreferenceTests {
+
+    @Test("沒調過＝關：一個沒動過設定的人，app 一次 herdr 都不會執行")
+    func offByDefault() {
+        #expect(Preferences.empty.remoteSessionsOn == false)
+    }
+
+    @Test("打開存得下、讀得回來；關掉也是")
+    func roundTrips() {
+        for on in [true, false] {
+            var p = Preferences.empty
+            p.showsRemoteSessions = on
+            let url = FileManager.default.temporaryDirectory
+                .appendingPathComponent("qm-remote-\(UUID().uuidString).json")
+            #expect(Preferences.save(p, to: url))
+            #expect(Preferences.load(url)?.remoteSessionsOn == on)
+        }
+    }
+
+    @Test("⚠️ 沒調過的人磁碟上沒有這個 key（之後改預設，沒調過的人會跟著走）")
+    func absentOnDisk() throws {
+        let url = FileManager.default.temporaryDirectory
+            .appendingPathComponent("qm-remote-\(UUID().uuidString).json")
+        #expect(Preferences.save(Preferences.empty, to: url))
+        #expect(!(try String(contentsOf: url, encoding: .utf8)).contains("showsRemoteSessions"))
+    }
+}

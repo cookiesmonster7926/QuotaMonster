@@ -84,6 +84,8 @@ struct PanelView: View {
             Divider().opacity(0.5)
             blockedBanner
             sessionList
+            // 遠端機器（herdr）。偏好關著、沒裝 herdr 時是 .hidden，什麼都不畫。
+            RemoteSection(view: store.remoteView)
         }
     }
 

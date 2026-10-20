@@ -239,6 +239,13 @@ if CommandLine.arguments.contains("--probe-update") {
     app.run()
 }
 
+if CommandLine.arguments.contains("--probe-remote") {
+    let app = NSApplication.shared
+    app.setActivationPolicy(.accessory)
+    Task { @MainActor in exit(await ProbeRemote.run()) }
+    app.run()
+}
+
 if CommandLine.arguments.contains("--dump") {
     Dump.run()
     exit(0)

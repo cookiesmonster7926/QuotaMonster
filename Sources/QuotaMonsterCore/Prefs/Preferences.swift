@@ -145,6 +145,17 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 那是 SECURITY.md 那個承諾在 0.3.0 之後唯一還能成立的形式。
     public var checksForUpdates: Bool?
 
+    /// 要不要問 herdr 遠端機器上的 session（面板的「遠端 REMOTE」那一區）。
+    ///
+    /// ⚠️ **與 `checksForUpdates` 同一類：它決定 app 會不會多啟動一個外部程式。**
+    /// 打開之後 app 每台機器每 10 秒左右執行一次 herdr，herdr 再用使用者自己設好的 SSH 連到他自己的機器。
+    /// app 本身沒有新增任何網路程式碼，但「我的 session 清單離開了這台機器」是使用者該決定的事，
+    /// 所以**預設關**（nil ＝ 關），而且關掉之後一次 herdr 都不會執行。
+    public var showsRemoteSessions: Bool?
+
+    /// 實際要不要問 herdr。**預設只定義在這裡**（規矩 2）：沒調過 ＝ 關。
+    public var remoteSessionsOn: Bool { showsRemoteSessions ?? false }
+
     public init(alertSound: AlertSoundChoice? = nil, morningHour: Int? = nil,
                 contextYellow: Int? = nil, contextRed: Int? = nil,
                 quotaCritical: Double? = nil, quotaTight: Double? = nil) {

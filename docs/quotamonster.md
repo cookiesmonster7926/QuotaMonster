@@ -21,7 +21,10 @@
 ## 這是什麼
 
 macOS 選單列 app（Swift 6 / AppKit / SwiftPM），看 Claude Code 的額度與 session。
-**零 token、零行程** —— 全部是讀既有的檔案。
+**零 token** —— 額度與本機 session 全部是讀既有的檔案。
+外部程式只有兩個：通知用的 `/usr/bin/osascript`，以及**偏好打開時（預設關）**才執行的 herdr ——
+它回答「herdr 連著的其他機器上有哪些 Claude session」（`RemoteMonitor`，判斷在 Core 的 `RemoteTracker`），
+不在 3 秒一拍的 `refresh()` 裡（遠端一次 2–5 秒〔實測〕）。完整說明見 `.github/SECURITY.md` 第 4 節。
 ⚠️ 0.4.0 起**不再是零網路**：`ReleaseChecker.swift` 會對 GitHub 發一個 GET 查新版，
 偏好設定可關。〔讀碼〕全 `Sources/` 只有這個檔案碰 `URLSession`；
 完整說明見 `.github/SECURITY.md` 第 4 節。
@@ -1157,6 +1160,8 @@ TERM 是在 trap 安裝**之前**那個阻塞的 `read` 期間送到的，收工
 | `--probe-panel-switch` | popover 開著時翻版面，`fittingSize` / `contentSize` / `window` 在四個時點各是多少（規矩 50） | 使用者按不按得到那顆鍵 |
 | `--render-panel … --chart daily\|cumulative` | 額度底下那兩種圖各自長什麼樣（**只覆寫記憶體，不碰偏好檔**） | 哪一種比較好用 —— 那是使用者的事 |
 | `--render-panel … --demo-finish` | 完成那一列的版面，**並自己斷言列高 Δ=0pt**（不是 0 就 exit 1） | 那一列在真的有完成時會不會出現 |
+| `--render-panel … --demo-remote live\|offline\|cut\|loading\|never\|empty\|server\|none\|two\|stale` | 「遠端 REMOTE」那一區每一種狀態的版面（**合成**的資料，但經真的 `RemoteTracker` 推進，會印出來說明） | herdr 真的讀不讀得到 —— 那是 `--probe-remote` |
+| `--probe-remote` | 真的問一次 herdr：找到哪個執行檔、每次呼叫的 exit 與秒數、面板那一區會說什麼。⚠️ **會真的執行 herdr**（它再經 SSH 去問遠端；使用者主動下的指令，與偏好無關）。exit 0 ＝每台都讀到、1 ＝有讀不到的、2 ＝沒裝 herdr | 面板畫得對不對、2 秒一拍的排程在 app 裡跑起來對不對 |
 | `--render-alert <f> --dark` | T1 浮窗五種情況的版面 | 它會不會真的出現在螢幕上 |
 | `--demo-alert` | 浮窗**真的**開得出來（印 isVisible / level / frame / NSApp.isActive / keyWindow） | 有沒有事件走到它 |
 | `--trace-alerts <秒>` | 通知引擎對著實時資料每一拍看到什麼、發了什麼、在場狀態 | 浮窗畫得對不對 |
