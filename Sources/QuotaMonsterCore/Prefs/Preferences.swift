@@ -148,7 +148,7 @@ public struct Preferences: Equatable, Sendable, Codable {
     /// 要不要問 herdr 遠端機器上的 session（面板的「遠端 REMOTE」那一區）。
     ///
     /// ⚠️ **與 `checksForUpdates` 同一類：它決定 app 會不會多啟動一個外部程式。**
-    /// 打開之後 app 每 10 秒左右執行一次 herdr，herdr 再用使用者自己設好的 SSH 連到他自己的機器。
+    /// 打開之後 app 每台機器每 10 秒左右執行一次 herdr，herdr 再用使用者自己設好的 SSH 連到他自己的機器。
     /// app 本身沒有新增任何網路程式碼，但「我的 session 清單離開了這台機器」是使用者該決定的事，
     /// 所以**預設關**（nil ＝ 關），而且關掉之後一次 herdr 都不會執行。
     public var showsRemoteSessions: Bool?

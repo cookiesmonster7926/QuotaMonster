@@ -57,13 +57,19 @@ public struct RemoteSession: Equatable, Sendable {
 
 /// 讀不到的原因。⚠️ 每一種畫面上說的話不一樣（`RemoteWords.reason`），不可以併成「讀不到」。
 public enum HerdrFailure: Error, Equatable, Sendable {
-    /// 找不到 herdr 或啟動不了 → 整區不畫（沒裝 herdr 的人不該看到這一區）。
+    /// 找不到 herdr（候選路徑都沒有可執行檔）→ 整區不畫（沒裝 herdr 的人不該看到這一區）。
+    /// ⚠️ 只由 App 層「找不到執行檔」那一條產生；`HerdrRun.launchFailed` **不是**這個。
     case notInstalled
+    /// 執行檔在，但跑不起來（暫存目錄建不起來、檔案不可執行、被系統擋下）→ 要說出來。
+    /// code review：原本也對映成 notInstalled，已經裝了 herdr 的人整區靜默消失（規矩 52）。
+    case couldNotRun
     /// 本機的 herdr server 沒在跑：exit 1、`error.code == "server_not_running"`〔實測〕。
     case serverNotRunning
     /// `--machine` 的 id 不認得 —— 機器清單過期了。
     case unknownMachine
-    /// exit 0 但讀不懂，或 herdr 說 protocol 不合 —— 版本不相容。**不是「沒有 session」。**
+    /// exit 0 但讀不懂，或 herdr 的錯誤碼含 `protocol` —— 版本不相容。**不是「沒有 session」。**
+    /// 〔推論〕protocol 不合時 herdr 回的錯誤碼長什麼樣沒有量過（`herdr status` 印得出 protocol 22〔實測〕，
+    /// 但從沒遇過不合的版本）；這一格是照「錯誤碼帶 protocol」猜的，量到了要回來改。
     case incompatible
     /// 其他 herdr 錯誤（連不上遠端多半是這種）。code ＝ herdr 自己的錯誤碼，沒有就是 nil。
     case herdrError(code: String?)
@@ -125,12 +131,15 @@ public enum HerdrOutput {
     ///
     /// 順序：啟動不了 → 逾時 → exit code。逾時被收掉的行程 exit code 是訊號的那一個，不可以拿來判斷。
     static func failure(_ run: HerdrRun) -> HerdrFailure? {
-        if run.launchFailed { return .notInstalled }
+        if run.launchFailed { return .couldNotRun }
         if run.timedOut { return .timedOut }
         guard let code = run.exitCode else { return .herdrError(code: nil) }
         if code == 0 { return nil }
-        let err = String(decoding: run.stderr, as: UTF8.self)
-        if err.contains("unknown machine") { return .unknownMachine }
+        // 〔實測〕`--machine` 給錯 id：exit 2、stderr 是純文字 `unknown machine '…'`。只認 exit 2 ——
+        // 別種錯誤的訊息裡剛好有這幾個字（遠端回顯的文字）不可以觸發清單重讀。
+        if code == 2, String(decoding: run.stderr, as: UTF8.self).contains("unknown machine") {
+            return .unknownMachine
+        }
         let herdrCode = ((try? JSONSerialization.jsonObject(with: run.stderr)) as? [String: Any])
             .flatMap { $0["error"] as? [String: Any] }
             .flatMap { $0["code"] as? String }

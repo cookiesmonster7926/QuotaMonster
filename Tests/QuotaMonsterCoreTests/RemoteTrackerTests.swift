@@ -21,7 +21,7 @@ struct RemoteTrackerTests {
     }
 
     func cards(_ v: RemoteView) -> [RemoteCard] {
-        if case .machines(let c) = v { return c }
+        if case .machines(let c, _) = v { return c }
         Issue.record("預期 .machines，拿到 \(v)")
         return []
     }
@@ -138,12 +138,55 @@ struct RemoteTrackerTests {
         #expect(c.note == "herdr 分頁裡沒有 Claude session")
     }
 
-    @Test("不認得的狀態歸「不明」，排最後")
+    @Test("不認得的狀態歸「不明」，排最後（在閒置之後）")
     func unknownCountedLast() {
         var t = RemoteTracker()
         t.machinesRead(.success([win]), now: t0)
-        t.agentsRead(machineId: win.id, .success([s(.unknown), s(.working)]), now: t0)
-        #expect(cards(t.view(now: t0))[0].counts?.map(\.text) == ["1 執行", "1 不明"])
+        t.agentsRead(machineId: win.id, .success([s(.unknown), s(.idle), s(.working)]), now: t0)
+        #expect(cards(t.view(now: t0))[0].counts?.map(\.text) == ["1 執行", "1 閒置", "1 不明"])
+    }
+
+    @Test("機器清單重讀：已經讀到的機器照留（計數、時刻），改名跟著改，新的從讀取中開始，順序照清單")
+    func machineListRereadKeepsState() {
+        var t = RemoteTracker()
+        t.machinesRead(.success([win]), now: t0)
+        t.agentsRead(machineId: win.id, .success([s(.working)]), now: at(10))
+        let renamed = RemoteMachineInfo(id: win.id, label: "WIN-NEW")
+        t.machinesRead(.success([lab, renamed]), now: at(60))
+        let cs = cards(t.view(now: at(66)))
+        #expect(cs.map(\.id) == [lab.id, win.id])
+        #expect(cs[0].caption == "讀取中")
+        #expect(cs[1].label == "WIN-NEW")
+        #expect(cs[1].caption == "1 個 · 56 秒前看到")
+        #expect(cs[1].counts?.map(\.text) == ["1 執行"])
+    }
+
+    @Test("讀到過機器清單、之後一直讀不到：卡片照留，但標出清單是什麼時候讀到的")
+    func staleMachineList() {
+        var t = RemoteTracker()
+        t.machinesRead(.success([win]), now: t0)
+        t.agentsRead(machineId: win.id, .success([s(.idle)]), now: t0)
+        guard case .machines(_, let fresh) = t.view(now: at(30)) else { Issue.record("要有卡片"); return }
+        #expect(fresh == nil)
+        t.machinesRead(.failure(.timedOut), now: at(300))
+        guard case .machines(let cs, let note) = t.view(now: at(300)) else { Issue.record("要有卡片"); return }
+        #expect(cs.map(\.id) == [win.id])
+        #expect(note == "機器清單 5 分前讀到 · 之後逾時")
+        // 再讀到就不說了
+        t.machinesRead(.success([win]), now: at(360))
+        guard case .machines(_, let after) = t.view(now: at(360)) else { Issue.record("要有卡片"); return }
+        #expect(after == nil)
+    }
+
+    @Test("還在讀（超過 10 秒還沒回來）：不重入 —— 同一台不可以同時跑兩個 herdr")
+    func inFlightBlocksPastInterval() {
+        var t = RemoteTracker()
+        t.machinesRead(.success([win]), now: t0)
+        t.agentsStarted(machineId: win.id, now: t0)
+        // 逾時是 15 秒、間隔是 10 秒：10～15 秒之間只有 inFlight 擋得住
+        #expect(t.dueMachines(now: at(12)) == [])
+        t.agentsRead(machineId: win.id, .failure(.timedOut), now: at(15))
+        #expect(t.dueMachines(now: at(20)) == [win.id])
     }
 
     @Test("讀到過、這次讀失敗：連不上 · 上次讀到的時刻；計數照留但調暗；等你的那列不畫")
@@ -223,6 +266,7 @@ struct RemoteTrackerTests {
         #expect(RemoteWords.reason(.unknownMachine) == "機器清單過期")
         #expect(RemoteWords.reason(.incompatible) == "herdr 的回應讀不懂")
         #expect(RemoteWords.reason(.notInstalled) == "找不到 herdr")
+        #expect(RemoteWords.reason(.couldNotRun) == "執行不了 herdr")
         #expect(RemoteWords.reason(.herdrError(code: "x")) == "連不上")
     }
 

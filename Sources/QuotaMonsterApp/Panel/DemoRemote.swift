@@ -8,7 +8,7 @@ import QuotaMonsterCore
 /// 機器名、專案、標題全部是編的，不是任何一台真的機器。
 enum DemoRemote {
 
-    static let states = ["live", "offline", "cut", "loading", "never", "empty", "server", "none", "two"]
+    static let states = ["live", "offline", "cut", "loading", "never", "empty", "server", "none", "two", "stale"]
 
     static func tracker(_ state: String, now: Date) -> RemoteTracker? {
         let win = RemoteMachineInfo(id: "aaaa1111", label: "WIN-DESKTOP")
@@ -52,6 +52,11 @@ enum DemoRemote {
             t.agentsRead(machineId: win.id, .success(rows), now: ago(3))
             t.agentsRead(machineId: lab.id, .success(Array(rows.dropFirst(2))), now: ago(400))
             t.agentsRead(machineId: lab.id, .failure(.timedOut), now: ago(5))
+        case "stale":
+            // 機器清單讀過、之後一直讀不到：卡片照留，標題底下說清單是什麼時候讀到的
+            t.machinesRead(.success([win]), now: ago(900))
+            t.agentsRead(machineId: win.id, .success(rows), now: ago(3))
+            t.machinesRead(.failure(.timedOut), now: ago(30))
         default:
             return nil
         }

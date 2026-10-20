@@ -99,7 +99,7 @@ struct PreferencesView: View {
     private var remoteRow: some View {
         VStack(alignment: .leading, spacing: 5) {
             label("顯示 herdr 連著的遠端機器",
-                  "打開後每 10 秒左右執行一次 herdr，它會經你設好的 SSH 去問另一台機器；關掉就一次都不執行")
+                  "打開後每台機器每 10 秒左右執行一次 herdr，它會經你設好的 SSH 去問那台機器；關掉就一次都不執行")
             HStack(spacing: 8) {
                 cycleButton(store.showsRemoteSessions ? "checkmark.square" : "square") {
                     store.setShowsRemoteSessions(!store.showsRemoteSessions)

@@ -38,8 +38,9 @@
   〔讀碼〕全 repo 只有 `Sources/QuotaMonsterApp/App/ReleaseChecker.swift` 一個檔案
   碰得到網路 API，而它只在那個偏好是開的時候才會被呼叫。
 - **執行的外部程式：** 通知用 `/usr/bin/osascript`。另外，**只有你在偏好設定裡打開
-  「顯示 herdr 連著的遠端機器」（預設關）時**，它每 10 秒左右執行一次 [herdr](https://herdr.dev)，
-  問它連著的其他機器上有哪些 Claude session → 第 4 節。這個 app 自己不連那些機器；
+  「顯示 herdr 連著的遠端機器」（預設關）時**，它執行 [herdr](https://herdr.dev)
+  問它連著的其他機器上有哪些 Claude session：每台機器每 10 秒左右一次（連不上時拉長到最多 60 秒），
+  另外每分鐘讀一次機器清單 → 第 4 節。這個 app 自己不連那些機器；
   是 herdr 用你自己設好的 SSH 去問。沒裝 herdr、或那一格關著，就一次都不執行。
 - **讀：** `~/.claude.json`、`~/.claude/sessions/`、`~/.claude/projects/` 的一部分
   （transcript 只讀檔尾），加上它自己的 Application Support 目錄。
@@ -62,7 +63,7 @@
 | `~/Library/Application Support/QuotaMonster/**` | 它自己的快取、偏好、額度歷史 | 讀寫，見第 2 節 |
 | `~/Library/Sounds`、`/System/Library/Sounds` | **只列檔名**，給偏好設定的音效下拉選單用 | 只列目錄，不開檔 |
 | 行程表（`kill(pid, 0)`、`sysctl KERN_PROC`） | 註冊表裡那個 pid 還活著嗎；擁有這個 session 的終端機是哪個 app | 不送訊號、不讀別人的記憶體 |
-| herdr 的輸出（**只在偏好打開時**） | `herdr machine list --json`：你在 herdr 裡設好的機器（id、名字、有沒有啟用）。`herdr --machine <id> agent list`：那台機器上每個 Claude session 的**狀態**（執行／等你／完成／閒置）、**目前目錄的最後一段**、**分頁標題** —— 其餘欄位（包括 herdr 裡其他程式寫的東西）不讀 | 執行 herdr、讀它印出來的 JSON；結果只留在記憶體裡、畫在面板上，不寫進任何檔案 |
+| herdr 的輸出（**只在偏好打開時**） | `herdr machine list --json`：你在 herdr 裡設好的機器（id、名字、有沒有啟用）。`herdr --machine <id> agent list`：那台機器上每個 Claude session 的**狀態**（執行／等你／完成／閒置）、**目前目錄的最後一段**、**分頁標題** —— 其餘欄位（包括 herdr 裡其他程式寫的東西）不讀 | 執行 herdr、讀它印出來的 JSON。**解析後的結果**只留在記憶體裡、畫在面板上，不另外保存；herdr 印出來的**原文**在執行期間會短暫寫進暫存檔再讀回來（第 2 節） |
 | `CGSessionCopyCurrentDictionary`、IOKit HID 閒置時間 | 螢幕鎖了沒、螢幕睡了沒、你離開鍵盤多久 —— 決定要不要開浮窗／要不要出聲 | 這三個訊號都**不需要任何授權**，也拿不到你按了什麼 |
 
 **沒有讀的東西**（明確講出來，因為這些是你會擔心的）〔讀碼〕：
@@ -101,7 +102,7 @@
 | `usage-history.jsonl` | 額度時間序列，一行就是 `{時間, 5h%, 7d%}`，**沒有任何文字內容** | app |
 | `watch-log.jsonl` | **只有時間戳與一個 `hb`／`boot` 標記**，沒有任何額度數字、路徑或內容。用途是分辨「那天你沒用」與「那天 app 沒開」——每日長條圖靠它才不會把後者畫成前者。300 秒一行，保留 30 天 | app |
 | `trace-usage.log` | 選用的量測記錄。**預設完全不寫** —— 只有你自己 `touch trace-usage.on` 才會開始記 | statusline tee |
-| `herdr/<隨機>/out`、`err` | 執行 herdr 時它印出來的東西（第 1 節那兩份清單）。**每次執行完整個資料夾立刻刪掉**；只在「遠端機器」那一格打開時才有。用檔案而不是 pipe，是因為 herdr 背後常駐的 ssh 可能拿著 pipe 不放，app 會等它 | app |
+| `herdr/<隨機>/out`、`err` | 執行 herdr 時它印出來的**原文**（第 1 節那兩份清單的完整輸出，包括 app 不讀的欄位，例如 herdr 記的 SSH 目標）。資料夾 0700、檔案 0600。正常情況**每次執行完整個資料夾立刻刪掉**；app 在 herdr 跑到一半時被結束或當掉的話會留下，**下次打開這個功能時清掉**（超過 1 分鐘的）。只在「遠端機器」那一格打開時才有。用檔案而不是 pipe，是因為 herdr 背後常駐的 ssh 可能拿著 pipe 不放，app 會等它 | app |
 
 ⚠️ **`statusline/<session_id>.json` 是這些檔案裡最敏感的一個**，因為它是 payload 原文。
 〔實測 2026-09-21〕這台機器上那份 payload 的欄位包含：`session_id`、`transcript_path`、

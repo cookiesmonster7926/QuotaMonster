@@ -6,8 +6,9 @@ public enum RemoteView: Equatable, Sendable {
     case hidden
     /// 一行說明（herdr 沒在跑、沒有連任何機器、機器清單讀不到）。
     case notice(String)
-    /// 每台機器一張卡，照機器清單的順序。
-    case machines([RemoteCard])
+    /// 每台機器一張卡，照機器清單的順序。`listNote` ＝ 機器清單讀過、但最近一次讀不到時的那一句
+    /// （卡片照留，但清單可能已經過期 —— 新加的機器看不到、移掉的還在）；nil ＝ 清單是新的。
+    case machines([RemoteCard], listNote: String?)
 }
 
 /// 一台機器的卡片（使用者 2026-10 選的版面：一台一行計數、只有等你回覆的展開）。
@@ -71,6 +72,8 @@ public struct RemoteTracker: Sendable {
     /// 機器清單：nil ＝ 還沒讀過；讀過的話最近一次是成功還是失敗。
     private var listState: Result<Void, HerdrFailure>?
     private var listEverRead = false
+    /// 機器清單最後一次讀成功的時刻。
+    private var listLastOkAt: Date?
     private var listStartedAt: Date?
     private var wantsMachineList = false
 
@@ -85,6 +88,7 @@ public struct RemoteTracker: Sendable {
         case .success(let list):
             listState = .success(())
             listEverRead = true
+            listLastOkAt = now
             wantsMachineList = false
             // 清單外的忘掉（正面證據：使用者在 herdr 裡移掉或關掉了）；新的從「讀取中」開始。
             machines = list.map { info in
@@ -166,7 +170,12 @@ public struct RemoteTracker: Sendable {
             break
         }
         if machines.isEmpty { return .notice("herdr 沒有連任何遠端機器") }
-        return .machines(machines.map { card($0, now: now) })
+        var listNote: String?
+        if case .failure(let f) = listState, let ok = listLastOkAt {
+            // 讀過的機器照留（沒看到 ≠ 不在了），但說出清單是什麼時候讀到的 —— 不可以讓「清單已經幾小時沒更新」無聲
+            listNote = "機器清單 \(RemoteWords.ago(now.timeIntervalSince(ok)))讀到 · 之後\(RemoteWords.reason(f))"
+        }
+        return .machines(machines.map { card($0, now: now) }, listNote: listNote)
     }
 
     private func card(_ m: Machine, now: Date) -> RemoteCard {
@@ -234,6 +243,7 @@ public enum RemoteWords {
     public static func reason(_ f: HerdrFailure) -> String {
         switch f {
         case .notInstalled:     return "找不到 herdr"
+        case .couldNotRun:      return "執行不了 herdr"
         case .serverNotRunning: return "herdr 沒在跑"
         case .unknownMachine:   return "機器清單過期"
         case .incompatible:     return "herdr 的回應讀不懂"

@@ -24,6 +24,7 @@ final class RemoteMonitor {
 
     func start() {
         guard timer == nil else { return }
+        Self.sweepScratch(home: home, olderThan: 60)
         poll()
         let t = Timer(timeInterval: Self.tick, repeats: true) { [weak self] _ in
             Task { @MainActor in self?.poll() }
@@ -34,10 +35,12 @@ final class RemoteMonitor {
     }
 
     /// 停下來而且忘掉 —— 下次打開從「讀取中」開始，不畫關掉之前的舊資料。
-    /// 還在途的那幾次讀完會被丟掉（`generation` 對不上）。
+    /// 還在途的 herdr 收掉（SIGTERM），就算它回來了結果也會被丟掉（`generation` 對不上）。
+    /// 結束 app 時也走這裡（`DataStore.stop()`）—— code review：原本不停，結束時在途的 herdr 沒人收。
     func stop() {
         timer?.invalidate()
         timer = nil
+        running.terminateAll()
         tracker = RemoteTracker()
         generation += 1
         reportedMissing = false
@@ -46,6 +49,8 @@ final class RemoteMonitor {
 
     private var generation = 0
     private var reportedMissing = false
+    /// 在途的 herdr 行程，`stop()` 時收掉。
+    private let running = RunningProcesses()
 
     /// 第一個存在而且可執行的候選路徑。⚠️ 不靠 PATH：GUI app 的 PATH 沒有 ~/.local/bin。
     private var executable: URL? {
@@ -75,7 +80,7 @@ final class RemoteMonitor {
         if tracker.machineListDue(now: now) {
             tracker.machineListStarted(now: now)
             Task {
-                let run = await Self.run(exe, HerdrCommand.machineList, home: home)
+                let run = await Self.run(exe, HerdrCommand.machineList, home: home, running: running)
                 guard gen == generation else { return }
                 tracker.machinesRead(HerdrOutput.machines(run), now: Date())
                 onChange?(tracker)
@@ -94,7 +99,7 @@ final class RemoteMonitor {
             guard let argv = HerdrCommand.agentList(machineId: id) else { continue }
             tracker.agentsStarted(machineId: id, now: now)
             Task {
-                let run = await Self.run(exe, argv, home: home)
+                let run = await Self.run(exe, argv, home: home, running: running)
                 guard gen == generation else { return }
                 tracker.agentsRead(machineId: id, HerdrOutput.agents(run), now: Date())
                 onChange?(tracker)
@@ -111,11 +116,13 @@ final class RemoteMonitor {
     ///
     /// ⚠️ 暫存檔放在**自己的** Application Support 底下（`herdr/<UUID>/`，讀完整個刪掉），不放 `$TMPDIR`：
     /// SECURITY.md 第 2 節對使用者說「只寫 `~/Library/Application Support/QuotaMonster/` 底下」。
-    nonisolated static func run(_ exe: URL, _ args: [String], home: URL,
+    /// 目錄 0700、檔案 0600：裡面是別台機器的分頁標題與目錄名（code review：原本跟著 umask 是 0755／0644）。
+    /// app 在 herdr 跑到一半時被結束或當掉，`defer` 不會跑 —— 殘留的由下次 `start()` 的 `sweepScratch` 清掉。
+    nonisolated static func run(_ exe: URL, _ args: [String], home: URL, running: RunningProcesses? = nil,
                                 timeout: TimeInterval = HerdrCommand.timeout) async -> HerdrRun {
         await withCheckedContinuation { cont in
             DispatchQueue.global(qos: .utility).async {
-                cont.resume(returning: runBlocking(exe, args, home: home, timeout: timeout))
+                cont.resume(returning: runBlocking(exe, args, home: home, running: running, timeout: timeout))
             }
         }
     }
@@ -124,16 +131,34 @@ final class RemoteMonitor {
         home.appendingPathComponent("Library/Application Support/QuotaMonster/herdr")
     }
 
+    /// 刪掉上一次執行留下的暫存資料夾（app 在 herdr 跑到一半時被結束、當掉）。
+    /// 只刪超過 `olderThan` 秒的：同時有另一個行程（例如 `--probe-remote`）正在用的那幾個不碰。
+    /// 這個資料夾只有這個 app 寫。
+    nonisolated static func sweepScratch(home: URL, olderThan age: TimeInterval) {
+        let fm = FileManager.default
+        let root = scratchRoot(home: home)
+        guard let items = try? fm.contentsOfDirectory(at: root, includingPropertiesForKeys: [.contentModificationDateKey])
+        else { return }
+        let cutoff = Date().addingTimeInterval(-age)
+        for u in items {
+            let m = (try? u.resourceValues(forKeys: [.contentModificationDateKey]))?.contentModificationDate
+            if let m, m < cutoff { try? fm.removeItem(at: u) }
+        }
+    }
+
     nonisolated private static func runBlocking(_ exe: URL, _ args: [String], home: URL,
+                                                running: RunningProcesses?,
                                                 timeout: TimeInterval) -> HerdrRun {
         let fm = FileManager.default
         let dir = scratchRoot(home: home).appendingPathComponent(UUID().uuidString)
         let outURL = dir.appendingPathComponent("out")
         let errURL = dir.appendingPathComponent("err")
         defer { try? fm.removeItem(at: dir) }
-        guard (try? fm.createDirectory(at: dir, withIntermediateDirectories: true)) != nil,
-              fm.createFile(atPath: outURL.path, contents: nil),
-              fm.createFile(atPath: errURL.path, contents: nil),
+        let privateFile: [FileAttributeKey: Any] = [.posixPermissions: 0o600]
+        guard (try? fm.createDirectory(at: dir, withIntermediateDirectories: true,
+                                       attributes: [.posixPermissions: 0o700])) != nil,
+              fm.createFile(atPath: outURL.path, contents: nil, attributes: privateFile),
+              fm.createFile(atPath: errURL.path, contents: nil, attributes: privateFile),
               let out = try? FileHandle(forWritingTo: outURL),
               let err = try? FileHandle(forWritingTo: errURL) else {
             return HerdrRun(exitCode: nil, stdout: Data(), stderr: Data(), timedOut: false, launchFailed: true)
@@ -152,6 +177,8 @@ final class RemoteMonitor {
         do { try p.run() } catch {
             return HerdrRun(exitCode: nil, stdout: Data(), stderr: Data(), timedOut: false, launchFailed: true)
         }
+        running?.add(p)
+        defer { running?.remove(p) }
         var timedOut = false
         if done.wait(timeout: .now() + timeout) == .timedOut {
             timedOut = true
@@ -163,5 +190,20 @@ final class RemoteMonitor {
         let stderr = (try? Data(contentsOf: errURL)) ?? Data()
         return HerdrRun(exitCode: p.isRunning ? nil : p.terminationStatus,
                         stdout: stdout, stderr: stderr, timedOut: timedOut, launchFailed: false)
+    }
+}
+
+/// 在途的 herdr 行程。背景執行緒加、減，主執行緒 `stop()` 時全部收掉 —— 所以要鎖。
+final class RunningProcesses: @unchecked Sendable {
+    private let lock = NSLock()
+    private var procs: [ObjectIdentifier: Process] = [:]
+
+    func add(_ p: Process) { lock.withLock { procs[ObjectIdentifier(p)] = p } }
+    func remove(_ p: Process) { lock.withLock { _ = procs.removeValue(forKey: ObjectIdentifier(p)) } }
+
+    /// SIGTERM 每一個還在跑的。各自的 `runBlocking` 會等到它結束、照常刪暫存資料夾。
+    func terminateAll() {
+        let all = lock.withLock { Array(procs.values) }
+        for p in all where p.isRunning { p.terminate() }
     }
 }

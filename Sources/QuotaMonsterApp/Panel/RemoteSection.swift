@@ -28,10 +28,13 @@ struct RemoteSection: View {
                 Text(text).font(.system(size: 10.5)).foregroundStyle(.secondary)
             }
             .padding(.horizontal, 12).padding(.vertical, 10)
-        case .machines(let cards):
+        case .machines(let cards, let listNote):
             Divider().opacity(0.5)
             VStack(alignment: .leading, spacing: 6) {
                 title
+                if let listNote {
+                    Text(listNote).font(.system(size: 10)).foregroundStyle(.orange)
+                }
                 ForEach(cards, id: \.id) { card($0) }
             }
             .padding(.horizontal, 12).padding(.vertical, 10)

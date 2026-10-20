@@ -423,11 +423,12 @@ final class DataStore {
     func start() {
         // ⚠️ 只有真的 `start()` 才會連網 —— 診斷指令走的是 `refresh()`，碰不到這裡。
         startUpdateChecks()
-        // 遠端機器也一樣：只有真的在跑的 app、而且使用者打開了，才執行 herdr。
-        if showsRemoteSessions { startRemote() }
         // 再讀一次：init 之後、start 之前有可能被另一個行程改過
         // （例如使用者在上一次執行裡改了設定）。成本是一次小檔案讀取。
         loadPreferences()
+        // 遠端機器：只有真的在跑的 app、而且使用者打開了，才執行 herdr。
+        // ⚠️ 要在上面那次重讀**之後**判斷 —— 之前判斷的話，偏好剛被改成關的那一刻照樣會啟動（code review）。
+        if showsRemoteSessions { startRemote() }
         // 先把上一筆讀回來，重啟才不會又寫一次一模一樣的紀錄。
         lastRecorded = history.last(historyFile)
         // 靜音是使用者直接下的指令，時間跨度（「到明早」約 12 小時）遠長於
@@ -453,7 +454,8 @@ final class DataStore {
         timer = t
     }
 
-    func stop() { timer?.invalidate(); timer = nil }
+    /// 結束 app 時呼叫。⚠️ 遠端也要停：在途的 herdr 收掉，不留子行程（code review）。
+    func stop() { timer?.invalidate(); timer = nil; stopRemote() }
 
     func attach(presenter: NotificationPresenting) { self.presenter = presenter }
 

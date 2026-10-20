@@ -147,7 +147,15 @@ struct HerdrOutputTests {
     @Test("逾時與啟動不了，優先於 exit code")
     func timeoutAndLaunch() {
         #expect(HerdrOutput.agents(run("", exit: 15, timedOut: true)) == .failure(.timedOut))
-        #expect(HerdrOutput.agents(run("", exit: nil, launchFailed: true)) == .failure(.notInstalled))
+        // ⚠️ 啟動不了（暫存目錄建不起來、檔案在但不可執行）**不是**「沒裝 herdr」——
+        // 沒裝的話整區不畫；這裡要畫出原因（code review：曾經對映成 notInstalled，整區靜默消失）。
+        #expect(HerdrOutput.agents(run("", exit: nil, launchFailed: true)) == .failure(.couldNotRun))
+    }
+
+    @Test("unknown machine 只認 exit 2 —— 其他錯誤的訊息裡剛好有那幾個字不算")
+    func unknownMachineNeedsExit2() {
+        let out = run("", exit: 1, stderr: #"{"error":{"code":"remote_failed","message":"unknown machine state"}}"#)
+        #expect(HerdrOutput.agents(out) == .failure(.herdrError(code: "remote_failed")))
     }
 
     @Test("exit 0 但讀不懂：incompatible，不是「沒有 session」")

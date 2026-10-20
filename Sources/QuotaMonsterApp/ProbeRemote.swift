@@ -42,8 +42,9 @@ enum ProbeRemote {
         case .notice(let text):
             print("遠端 REMOTE：\(text)")
             return 1
-        case .machines(let cards):
-            var ok = true
+        case .machines(let cards, let listNote):
+            var ok = listNote == nil
+            if let listNote { print("⚠ \(listNote)") }
             for c in cards {
                 print("\(c.warning ? "⚠ " : "")\(c.label)　\(c.caption)")
                 if let counts = c.counts {
